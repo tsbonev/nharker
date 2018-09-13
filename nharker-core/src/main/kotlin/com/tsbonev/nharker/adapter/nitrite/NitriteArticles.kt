@@ -2,6 +2,8 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.append
+import com.tsbonev.nharker.core.helpers.subtract
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -49,7 +51,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun appendEntry(articleId: String, entryId: String): Entry {
         val article = findByIdOrThrow(articleId)
 
-        if(article.entries[entryId] != null) throw EntryAlreadyInArticleException()
+        if(article.entries.containsKey(entryId)) throw EntryAlreadyInArticleException()
 
         val possibleEntry = entryService.getById(entryId)
 
@@ -58,9 +60,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         val retrievedEntry = possibleEntry.get()
 
         val updatedArticle = article
-                .copy(entries = article.entries.plus(
-                        retrievedEntry.id to article.entries.count()
-                ))
+                .copy(entries = article.entries.append(entryId))
 
         val updatedEntry = entryService.changeArticle(retrievedEntry.id, articleId)
 
@@ -76,11 +76,9 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         if(!entryToDelete.isPresent) throw EntryNotFoundException()
 
-        val articleEntries = article.entries.toMutableMap()
-        val deletedSpace = articleEntries[entryId] ?: throw EntryNotInArticleException()
-        articleEntries.remove(entryId)
+        if(!article.entries.contains(entryId)) throw EntryNotInArticleException()
 
-        val updatedArticle = article.copy(entries = reorderEntriesAfterDeletion(articleEntries, deletedSpace))
+        val updatedArticle = article.copy(entries = article.entries.subtract(entryId))
         coll.update(updatedArticle)
 
         return entryService.changeArticle(entryId, "deleted")
@@ -99,14 +97,6 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         coll.update(updatedArticle)
 
         return updatedArticle
-    }
-
-    private fun reorderEntriesAfterDeletion(entries: MutableMap<String, Int>,
-                                            deletedSpace: Int): MutableMap<String, Int>{
-        entries.forEach {
-            if(it.value > deletedSpace) entries[it.key] = it.value - 1
-        }
-        return entries
     }
 
     private fun findByIdOrThrow(articleId: String): Article{
