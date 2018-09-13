@@ -2,6 +2,8 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.append
+import com.tsbonev.nharker.core.helpers.subtract
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -62,7 +64,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val updatedChild = childCatalogue.copy(parentCatalogue = parentCatalogueId)
         val updatedParent = parentCatalogue.copy(subCatalogues = parentCatalogue.subCatalogues
-                .plus(Pair(catalogueId, parentCatalogue.subCatalogues.count())))
+                .append(catalogueId))
 
         coll.update(updatedChild)
         coll.update(updatedParent)
@@ -86,9 +88,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
         val updatedChild = childCatalogue.copy(parentCatalogue = parentCatalogueId)
-        val updatedParent = parentCatalogue.copy(subCatalogues = parentCatalogue.subCatalogues.plus(
-                subCatalogueId to parentCatalogue.subCatalogues.count()
-        ))
+        val updatedParent = parentCatalogue.copy(subCatalogues = parentCatalogue.subCatalogues.append(subCatalogueId))
 
         coll.update(updatedChild)
         coll.update(updatedParent)
@@ -105,14 +105,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val updatedChild = childCatalogue.copy(parentCatalogue = "None")
 
-        val deletedSpace = parentCatalogue.subCatalogues[subCatalogueId]!!
-
-        val updatedParentSubcatalogues = parentCatalogue.subCatalogues.toMutableMap()
-
-        updatedParentSubcatalogues.remove(subCatalogueId)
-
-        val updatedParent = parentCatalogue.copy(
-                subCatalogues = reorderMapAfterDeletion(updatedParentSubcatalogues, deletedSpace))
+        val updatedParent = parentCatalogue.copy(subCatalogues = parentCatalogue.subCatalogues.subtract(subCatalogueId))
 
         coll.update(updatedChild)
         coll.update(updatedParent)
@@ -130,9 +123,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val catalogue = findOrThrow(catalogueId)
 
-        val updatedCatalogue = catalogue.copy(articles = catalogue.articles.plus(
-                articleId to catalogue.articles.count()
-        ))
+        val updatedCatalogue = catalogue.copy(articles = catalogue.articles.append(articleId))
 
         articleService.setCatalogue(articleId, catalogueId)
         val updatedArticle = retrievedArticle.copy(catalogueId = catalogueId)
@@ -152,26 +143,13 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val catalogue = findOrThrow(catalogueId)
 
-        val deletedArticleSpace = catalogue.articles[articleId]!!
-
-        val catalogueMap = catalogue.articles.toMutableMap()
-        catalogueMap.remove(articleId)
-
-        val updatedCatalogue = catalogue.copy(articles = reorderMapAfterDeletion(catalogueMap, deletedArticleSpace))
+        val updatedCatalogue = catalogue.copy(articles = catalogue.articles.subtract(articleId))
 
         coll.update(updatedCatalogue)
 
         articleService.setCatalogue(articleId, "none")
 
         return retrievedArticle.copy(catalogueId = "none")
-    }
-
-    private fun reorderMapAfterDeletion(map: MutableMap<String, Int>,
-                                            deletedSpace: Int): MutableMap<String, Int>{
-        map.forEach {
-            if(it.value > deletedSpace) map[it.key] = it.value - 1
-        }
-        return map
     }
 
     private fun findOrThrow(catalogueId: String): Catalogue{
