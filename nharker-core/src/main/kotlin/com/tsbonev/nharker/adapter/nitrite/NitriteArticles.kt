@@ -2,8 +2,10 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.ElementNotInMapException
 import com.tsbonev.nharker.core.helpers.append
 import com.tsbonev.nharker.core.helpers.subtract
+import com.tsbonev.nharker.core.helpers.switch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -85,6 +87,18 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         coll.update(updatedArticle)
 
         return catalogue.copy(articles = catalogue.articles.append(articleId))
+    }
+
+    override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
+        val article = findByIdOrThrow(articleId)
+
+        return try {
+            val updatedArticle = article.copy(entries = article.entries.switch(first.id, second.id))
+            coll.update(updatedArticle)
+            updatedArticle
+        }catch (ex: ElementNotInMapException){
+            throw EntryNotInArticleException()
+        }
     }
 
     private fun findByIdOrThrow(articleId: String): Article{

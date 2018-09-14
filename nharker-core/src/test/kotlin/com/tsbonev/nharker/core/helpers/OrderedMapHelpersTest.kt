@@ -34,7 +34,7 @@ class OrderedMapHelpersTest {
         assertThat(holderMap["Three"]!!, Is(1))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = ElementNotInMapException::class)
     fun `Subtracting non-existent value throws exception`(){
         mutableMap.subtract("::non-existent-value::")
     }
@@ -52,7 +52,7 @@ class OrderedMapHelpersTest {
         assertThat(holderMap["Two"]!!, Is(1))
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test(expected = ElementNotInMapException::class)
     fun `Switching non-existent value throws exception`(){
         mutableMap.switch("::non-existent-value::", "::non-existent-value::")
     }

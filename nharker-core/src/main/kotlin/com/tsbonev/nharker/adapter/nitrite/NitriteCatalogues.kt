@@ -2,8 +2,10 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.ElementNotInMapException
 import com.tsbonev.nharker.core.helpers.append
 import com.tsbonev.nharker.core.helpers.subtract
+import com.tsbonev.nharker.core.helpers.switch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -62,7 +64,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     override fun changeParentCatalogue(catalogueId: String, parentCatalogueId: String): Pair<Catalogue, Catalogue> {
         val childCatalogue = findOrThrow(catalogueId)
 
-        if(childCatalogue.parentCatalogue == parentCatalogueId) throw CatalogueIsAlreadyAChildException()
+        if(childCatalogue.parentCatalogue == parentCatalogueId) throw CatalogueAlreadyAChildException()
 
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
@@ -84,10 +86,12 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         return catalogue
     }
 
-    override fun appendSubcatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue {
+    override fun appendSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue {
         val childCatalogue = findOrThrow(subCatalogueId)
 
-        if(childCatalogue.parentCatalogue == parentCatalogueId) throw CatalogueIsAlreadyAChildException()
+        if(childCatalogue.parentCatalogue == parentCatalogueId) throw CatalogueAlreadyAChildException()
+
+        if(childCatalogue.id == parentCatalogueId) throw SelfContainedCatalogueException()
 
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
@@ -103,7 +107,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     override fun removeSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue {
         val childCatalogue = findOrThrow(subCatalogueId)
 
-        if(childCatalogue.parentCatalogue != parentCatalogueId) throw CatalogueIsNotAChildException()
+        if(childCatalogue.parentCatalogue != parentCatalogueId) throw CatalogueNotAChildException()
 
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
@@ -139,6 +143,30 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         coll.update(updatedCatalogue)
 
         return article.copy(catalogueId = "none")
+    }
+
+    override fun switchArticles(catalogueId: String, first: Article, second: Article): Catalogue {
+        val catalogue = findOrThrow(catalogueId)
+
+        return try {
+            val updatedCatalogue = catalogue.copy(articles = catalogue.articles.switch(first.id, second.id))
+            coll.update(updatedCatalogue)
+            updatedCatalogue
+        }catch (ex: ElementNotInMapException){
+            throw ArticleNotInCatalogueException()
+        }
+    }
+
+    override fun switchSubCatalogues(catalogueId: String, first: Catalogue, second: Catalogue): Catalogue {
+        val catalogue = findOrThrow(catalogueId)
+
+        return try {
+            val updatedCatalogue = catalogue.copy(subCatalogues = catalogue.subCatalogues.switch(first.id, second.id))
+            coll.update(updatedCatalogue)
+            updatedCatalogue
+        }catch (ex: ElementNotInMapException){
+            throw CatalogueNotAChildException()
+        }
     }
 
     private fun findOrThrow(catalogueId: String): Catalogue{

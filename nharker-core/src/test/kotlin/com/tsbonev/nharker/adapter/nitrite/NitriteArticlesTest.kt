@@ -169,6 +169,26 @@ class NitriteArticlesTest {
         articles.setCatalogue("::fake-article-id::", catalogue)
     }
 
+    @Test
+    fun `Switch entries in an article`(){
+        val updatedArticle = articles.switchEntries(article.id, firstPresavedEntry, secondPresavedEntry)
+
+        assertThat(updatedArticle, Is(presavedArticle().copy(
+                entries = mapOf(secondPresavedEntry.id to 0,
+                        firstPresavedEntry.id to 1)
+        )))
+    }
+
+    @Test(expected = ArticleNotFoundException::class)
+    fun `Switching entries of non-existing article throws exception`(){
+        articles.switchEntries("::fake-article-id::", firstPresavedEntry, secondPresavedEntry)
+    }
+
+    @Test(expected = EntryNotInArticleException::class)
+    fun `Switching entries of non-containing article throws exception`(){
+        articles.switchEntries(article.id, entry, secondPresavedEntry)
+    }
+
     private fun presavedArticle(): Article{
         return db.getRepository(collectionName, Article::class.java).find(Article::id eq article.id).first()
     }
