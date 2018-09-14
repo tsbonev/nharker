@@ -4,12 +4,15 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryRequest
 import com.tsbonev.nharker.core.exceptions.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.exceptions.EntryNotFoundException
+import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.nitrite
 import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 import org.junit.Before
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -24,18 +27,19 @@ class NitriteEntriesTest {
             mapOf("::content::" to "::article::")
     )
 
-    private val instant = LocalDateTime.of(1, 1, 1, 1, 1, 1)
+    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+    private val stubClock = StubClock()
     private val collectionName = "TestEntries"
 
     private val entry = Entry(
             "::entryId::",
-            instant,
+            date,
             "::articleId::",
             "::content::",
             mapOf("::content::" to "::article::")
     )
 
-    private val entries = NitriteEntries(db, collectionName = collectionName) {instant}
+    private val entries = NitriteEntries(db, collectionName, stubClock)
 
     @Before
     fun setUp(){
