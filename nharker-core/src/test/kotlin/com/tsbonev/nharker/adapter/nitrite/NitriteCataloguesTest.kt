@@ -6,11 +6,14 @@ import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.exceptions.*
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
+import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -301,6 +304,24 @@ class NitriteCataloguesTest {
     @Test(expected = CatalogueNotFoundException::class)
     fun `Switching subcatalogues in non-existing catalogue throws exception`(){
         catalogues.switchSubCatalogues("::fake-catalogue-id::", firstPresavedSubcatalogue, secondPresavedSubcatalogue)
+    }
+
+    @Test
+    fun `Delete and return catalogue`(){
+        val savedCatalogue = presavedCatalogue()
+
+        val deletedCatalogue = catalogues.delete(savedCatalogue.id)
+
+        assertThat(savedCatalogue, Is(deletedCatalogue))
+        assertThat(
+                db.getRepository(collectionName, Catalogue::class.java)
+                        .find(Catalogue::id eq catalogue.id).firstOrNull(),
+                Is(nullValue()))
+    }
+
+    @Test(expected = CatalogueNotFoundException::class)
+    fun `Deleting non-existent catalogue throws exception`(){
+        catalogues.delete("::fake-catalogue-id::")
     }
 
     private fun presavedCatalogue(): Catalogue{

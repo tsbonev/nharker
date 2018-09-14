@@ -1,4 +1,10 @@
-buildscript{
+repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+}
+
+buildscript {
     ext.kotlinVersion = "1.2.61"
     ext.nitriteVersion = "3.1.0"
 
@@ -10,24 +16,39 @@ buildscript{
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "net.saliman:gradle-cobertura-plugin:2.5.4"
+        classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2"
     }
 }
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-    jcenter()
-}
 
 allprojects {
+
+    apply plugin: "jacoco"
+
+    jacoco {
+        toolVersion = "0.8.1"
+    }
+
+    group 'com.tsbonev.nharker'
+    version '0.1'
+}
+
+subprojects {
 
     apply plugin: 'java'
     apply plugin: 'kotlin'
 
-    group 'com.tsbonev.nharker'
-    version '0.1'
-
     sourceCompatibility = 1.8
+
+    test {
+        jacoco {
+            append = false
+            destinationFile = file("$buildDir/jacoco/moduleTestsCoverage.exec")
+            includeNoLocationClasses = true
+            excludes = ['jdk.internal.*']
+        }
+    }
 
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
@@ -35,4 +56,35 @@ allprojects {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
+}
+
+apply plugin: 'com.github.kt3k.coveralls'
+
+def allTestsCoverageFile = "$buildDir/jacoco/rootTestsCoverage.exec"
+
+task jacocoMergeSubprojectResultsIntoRootOne(type: JacocoMerge) {
+    destinationFile = file(allTestsCoverageFile)
+    executionData = project.fileTree(dir: '.', include: '**/build/jacoco/moduleTestsCoverage.exec')
+}
+
+task jacocoMerge(dependsOn: ['jacocoMergeSubprojectResultsIntoRootOne'])
+
+task jacocoRootReport(type: JacocoReport, dependsOn: "jacocoMerge") {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+    }
+    additionalSourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories = files(subprojects.sourceSets.main.output)
+    executionData = files(allTestsCoverageFile)
+}
+
+coveralls {
+    sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
+}
+
+tasks.coveralls {
+    dependsOn(jacocoRootReport)
 }
