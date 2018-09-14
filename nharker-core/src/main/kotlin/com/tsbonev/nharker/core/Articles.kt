@@ -18,6 +18,12 @@ interface Articles {
     fun create(articleRequest: ArticleRequest) : Article
 
     /**
+     * Saves an article into persistence, overwriting the previous one
+     * if it exists.
+     */
+    fun save(article: Article): Article
+
+    /**
      * Retrieves an optional article by id.
      *
      * @param articleId The id of the article sought.

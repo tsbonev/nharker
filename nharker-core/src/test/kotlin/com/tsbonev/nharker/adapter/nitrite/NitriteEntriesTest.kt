@@ -48,6 +48,11 @@ class NitriteEntriesTest {
     }
 
     @Test
+    fun `Save and return entry`(){
+        assertThat(entries.save(entry), Is(entry))
+    }
+
+    @Test
     fun `Retrieve entry by id`(){
         val retrievedEntry = entries.getById("::entryId::")
 

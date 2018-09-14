@@ -20,6 +20,12 @@ interface Catalogues {
     fun create(catalogueRequest: CatalogueRequest): Catalogue
 
     /**
+     * Saves a catalogue into persistence, overwriting the previous one
+     * if it exists.
+     */
+    fun save(catalogue: Catalogue): Catalogue
+
+    /**
      * Retrieves an article by id.
      *
      * @param catalogueId The id search by.

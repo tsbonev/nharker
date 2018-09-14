@@ -38,6 +38,11 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         return catalogue
     }
 
+    override fun save(catalogue: Catalogue): Catalogue {
+        coll.update(catalogue, true)
+        return catalogue
+    }
+
     override fun getById(catalogueId: String): Optional<Catalogue> {
         val catalogue = coll.find(Catalogue::id eq catalogueId).firstOrNull() ?: return Optional.empty()
         return Optional.of(catalogue)

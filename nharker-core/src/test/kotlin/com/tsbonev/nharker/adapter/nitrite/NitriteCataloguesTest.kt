@@ -102,6 +102,13 @@ class NitriteCataloguesTest {
                         articles = emptyMap())))
     }
 
+    @Test
+    fun `Save and return catalogue`(){
+        db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
+
+        assertThat(catalogues.save(catalogue), Is(catalogue))
+    }
+
     @Test(expected = CatalogueTitleTakenException::class)
     fun `Creating a catalogue with a taken title throws exception`(){
         catalogues.create(catalogueRequest)

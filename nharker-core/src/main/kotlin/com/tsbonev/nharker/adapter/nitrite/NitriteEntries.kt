@@ -39,6 +39,11 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         return entry
     }
 
+    override fun save(entry: Entry): Entry {
+        coll.update(entry, true)
+        return entry
+    }
+
     override fun getById(entryId: String): Optional<Entry> {
         val entry = coll.find(Entry::id eq entryId).firstOrNull() ?: return Optional.empty()
         return Optional.of(entry)
