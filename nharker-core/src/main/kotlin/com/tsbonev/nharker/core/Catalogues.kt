@@ -1,8 +1,6 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.exceptions.CatalogueIsAlreadyAChildException
-import com.tsbonev.nharker.core.exceptions.CatalogueNotFoundException
-import com.tsbonev.nharker.core.exceptions.CatalogueTitleTakenException
+import com.tsbonev.nharker.core.exceptions.*
 import java.util.Optional
 
 /**
@@ -51,7 +49,7 @@ interface Catalogues {
      * @return The new parent catalogue and the updated child catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
-            CatalogueIsAlreadyAChildException::class)
+            CatalogueAlreadyAChildException::class)
     fun changeParentCatalogue(catalogueId: String, parentCatalogueId: String): Pair<Catalogue, Catalogue>
 
     /**
@@ -70,8 +68,10 @@ interface Catalogues {
      * @param subCatalogueId The id of the child catalogue.
      * @return The appended catalogue.
      */
-    @Throws(CatalogueNotFoundException::class)
-    fun appendSubcatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue
+    @Throws(CatalogueNotFoundException::class,
+            CatalogueAlreadyAChildException::class,
+            SelfContainedCatalogueException::class)
+    fun appendSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue
 
     /**
      * Removes a catalogue from the targeted catalogue's children list.
@@ -80,7 +80,8 @@ interface Catalogues {
      * @param subCatalogueId The id of the child catalogue.
      * @return The removed catalogue.
      */
-    @Throws(CatalogueNotFoundException::class)
+    @Throws(CatalogueNotFoundException::class,
+            CatalogueNotAChildException::class)
     fun removeSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue
 
     /**
@@ -90,7 +91,8 @@ interface Catalogues {
      * @param article The article.
      * @return The appended article.
      */
-    @Throws(CatalogueNotFoundException::class)
+    @Throws(CatalogueNotFoundException::class,
+            ArticleAlreadyInCatalogueException::class)
     fun appendArticle(catalogueId: String, article: Article): Article
 
     /**
@@ -100,6 +102,31 @@ interface Catalogues {
      * @param article The  article.
      * @return The removed article.
      */
-    @Throws(CatalogueNotFoundException::class)
+    @Throws(CatalogueNotFoundException::class,
+            ArticleNotInCatalogueException::class)
     fun removeArticle(catalogueId: String, article: Article): Article
+
+    /**
+     * Switches the order of two articles in a catalogue.
+     *
+     * @param catalogueId The id of the catalogue targeted.
+     * @param first The first article.
+     * @param second The second article.
+     * @return The updated catalogue.
+     */
+    @Throws(CatalogueNotFoundException::class,
+            ArticleNotInCatalogueException::class)
+    fun switchArticles(catalogueId: String, first: Article, second: Article): Catalogue
+
+    /**
+     * Switches the order of two subcatalogues in a catalogue.
+     *
+     * @param catalogueId The id of the catalogue targeted.
+     * @param first The first catalogue.
+     * @param second The second catalogue.
+     * @return The updated catalogue.
+     */
+    @Throws(CatalogueNotFoundException::class,
+            CatalogueNotAChildException::class)
+    fun switchSubCatalogues(catalogueId: String, first: Catalogue, second: Catalogue): Catalogue
 }

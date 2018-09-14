@@ -151,14 +151,14 @@ class NitriteCataloguesTest {
         catalogues.changeParentCatalogue("::fake-parent-id::", subCatalogue.id)
     }
 
-    @Test(expected = CatalogueIsAlreadyAChildException::class)
+    @Test(expected = CatalogueAlreadyAChildException::class)
     fun `Changing parent of catalogue to the same value throws exception`(){
         catalogues.changeParentCatalogue(catalogue.id, catalogue.parentCatalogue)
     }
 
     @Test
     fun `Append catalogue to catalogue subcatalogues`(){
-        val appendedChild = catalogues.appendSubcatalogue(catalogue.id, subCatalogue.id)
+        val appendedChild = catalogues.appendSubCatalogue(catalogue.id, subCatalogue.id)
 
         assertThat(appendedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
         assertThat(presavedCatalogue(), Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
@@ -166,19 +166,24 @@ class NitriteCataloguesTest {
         ))))
     }
 
-    @Test(expected = CatalogueIsAlreadyAChildException::class)
+    @Test(expected = CatalogueAlreadyAChildException::class)
     fun `Appending catalogue that is already a subcatalogue throws exception`(){
-        catalogues.appendSubcatalogue(catalogue.id, firstPresavedSubcatalogue.id)
+        catalogues.appendSubCatalogue(catalogue.id, firstPresavedSubcatalogue.id)
+    }
+
+    @Test(expected = SelfContainedCatalogueException::class)
+    fun `Appending catalogue to itself throws exception`(){
+        catalogues.appendSubCatalogue(catalogue.id, catalogue.id)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Appending a non-existent catalogue throws exception`(){
-        catalogues.appendSubcatalogue(catalogue.id, "::fake-catalogue-id::")
+        catalogues.appendSubCatalogue(catalogue.id, "::fake-catalogue-id::")
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Appending subcatalogue to non-existent catalogue throws exception`(){
-        catalogues.appendSubcatalogue("::fake-catalogue-id::", catalogue.id)
+        catalogues.appendSubCatalogue("::fake-catalogue-id::", catalogue.id)
     }
 
     @Test
@@ -196,7 +201,7 @@ class NitriteCataloguesTest {
         assertThat(presavedCatalogue().subCatalogues, Is(mapOf(secondPresavedSubcatalogue.id to 0)))
     }
 
-    @Test(expected = CatalogueIsNotAChildException::class)
+    @Test(expected = CatalogueNotAChildException::class)
     fun `Removing subcatalogue from non-parent throws exception`(){
         catalogues.removeSubCatalogue("::fake-parent-catalogue-id::", catalogue.id)
     }
@@ -258,6 +263,45 @@ class NitriteCataloguesTest {
         catalogues.removeArticle(catalogue.id, firstPresavedArticle)
     }
 
+    @Test
+    fun `Switch articles in catalogue`(){
+        val updatedCatalogue = catalogues.switchArticles(catalogue.id, firstPresavedArticle, secondPresavedArticle)
+
+        assertThat(updatedCatalogue, Is(presavedCatalogue().copy(articles = mapOf(
+                secondPresavedArticle.id to 0,
+                firstPresavedArticle.id to 1
+        ))))
+    }
+
+    @Test(expected = CatalogueNotFoundException::class)
+    fun `Switching articles in non-existent catalogue throws exception`(){
+        catalogues.switchArticles("::fake-catalogue-id::", firstPresavedArticle, secondPresavedArticle)
+    }
+
+    @Test(expected = ArticleNotInCatalogueException::class)
+    fun `Switching articles in non-containing catalogue throws exception`(){
+        catalogues.switchArticles(catalogue.id, article, secondPresavedArticle)
+    }
+
+    @Test
+    fun `Switch subcatalogues in catalogue`(){
+        val updatedCatalogue = catalogues.switchSubCatalogues(catalogue.id, firstPresavedSubcatalogue, secondPresavedSubcatalogue)
+
+        assertThat(updatedCatalogue, Is(presavedCatalogue().copy(subCatalogues = mapOf(
+                secondPresavedSubcatalogue.id to 0,
+                firstPresavedSubcatalogue.id to 1
+        ))))
+    }
+
+    @Test(expected = CatalogueNotAChildException::class)
+    fun `Switching subcatalogues in non-containing catalogue throws exception`(){
+        catalogues.switchSubCatalogues(catalogue.id, subCatalogue, secondPresavedSubcatalogue)
+    }
+
+    @Test(expected = CatalogueNotFoundException::class)
+    fun `Switching subcatalogues in non-existing catalogue throws exception`(){
+        catalogues.switchSubCatalogues("::fake-catalogue-id::", firstPresavedSubcatalogue, secondPresavedSubcatalogue)
+    }
 
     private fun presavedCatalogue(): Catalogue{
         return db.getRepository(collectionName, Catalogue::class.java).find(Catalogue::id eq catalogue.id).first()

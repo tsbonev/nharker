@@ -61,7 +61,18 @@ interface Articles {
      * @return The updated catalogue.
      */
     @Throws(ArticleNotFoundException::class,
-            CatalogueNotFoundException::class,
             ArticleAlreadyInCatalogueException::class)
     fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue
+
+    /**
+     * Switches two entries in the article.
+     *
+     * @param articleId The id of the article.
+     * @param first The first entry.
+     * @param second The second entry.
+     * @return The updated article.
+     */
+    @Throws(ArticleNotFoundException::class,
+            EntryNotInArticleException::class)
+    fun switchEntries(articleId: String, first: Entry, second: Entry): Article
 }
