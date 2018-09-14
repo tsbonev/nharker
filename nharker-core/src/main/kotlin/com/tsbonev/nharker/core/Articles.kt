@@ -26,39 +26,36 @@ interface Articles {
     fun getById(articleId: String): Optional<Article>
 
     /**
-     * Appends an entry to an article, first creating that entry and automatically
-     * linking it to other articles.
+     * Appends an entry to an article.
      *
      * @param articleId The id of the article targeted.
-     * @param entryId The id of the entry.
-     * @return The appended entry.
+     * @param entry The entry to append.
+     * @return The updated entry.
      */
     @Throws(ArticleNotFoundException::class,
-            EntryNotFoundException::class,
             EntryAlreadyInArticleException::class)
-    fun appendEntry(articleId: String, entryId: String): Entry
+    fun appendEntry(articleId: String, entry: Entry): Entry
 
     /**
      * Removes an entry from an article, deleting it from persistence.
      *
      * @param articleId The id of the article targeted.
-     * @param entryId The id of the entry targeted.
+     * @param entry The entry to remove.
      * @return The removed entry.
      */
     @Throws(ArticleNotFoundException::class,
-            EntryNotFoundException::class,
             EntryNotInArticleException::class)
-    fun removeEntry(articleId: String, entryId: String): Entry
+    fun removeEntry(articleId: String, entry: Entry): Entry
 
     /**
-     * Sets the catalogueId of an article.
+     * Sets the catalogue of an article.
      *
      * @param articleId The id of the article targeted.
-     * @param catalogueId The id of the catalogue.
-     * @return The updated article.
+     * @param catalogue The catalogue.
+     * @return The updated catalogue.
      */
     @Throws(ArticleNotFoundException::class,
             CatalogueNotFoundException::class,
             ArticleAlreadyInCatalogueException::class)
-    fun setCatalogue(articleId: String, catalogueId: String): Article
+    fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue
 }

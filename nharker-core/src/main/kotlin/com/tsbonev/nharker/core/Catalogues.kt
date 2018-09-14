@@ -82,21 +82,19 @@ interface Catalogues {
      * Appends an article from a catalogue.
      *
      * @param catalogueId The id of the catalogue targeted.
-     * @param articleId The id of the article.
+     * @param article The article.
      * @return The appended article.
      */
-    @Throws(CatalogueNotFoundException::class,
-            ArticleNotFoundException::class)
-    fun appendArticle(catalogueId: String, articleId: String): Article
+    @Throws(CatalogueNotFoundException::class)
+    fun appendArticle(catalogueId: String, article: Article): Article
 
     /**
      * Removes an article from a catalogue.
      *
      * @param catalogueId The id of the catalogue targeted.
-     * @param articleId The id of the article.
+     * @param article The  article.
      * @return The removed article.
      */
-    @Throws(CatalogueNotFoundException::class,
-            ArticleNotFoundException::class)
-    fun removeArticle(catalogueId: String, articleId: String): Article
+    @Throws(CatalogueNotFoundException::class)
+    fun removeArticle(catalogueId: String, article: Article): Article
 }

@@ -15,8 +15,6 @@ import java.util.Optional
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticles(private val nitriteDb: Nitrite,
-                      private val entryService: EntryService,
-                      private val catalogueService: CatalogueService,
                       private val collectionName: String = "Articles",
                       private val getInstant: () -> LocalDateTime = { LocalDateTime.now()}) : Articles {
 
@@ -48,55 +46,40 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return Optional.of(article)
     }
 
-    override fun appendEntry(articleId: String, entryId: String): Entry {
+    override fun appendEntry(articleId: String, entry: Entry): Entry {
         val article = findByIdOrThrow(articleId)
 
-        if(article.entries.containsKey(entryId)) throw EntryAlreadyInArticleException()
-
-        val possibleEntry = entryService.getById(entryId)
-
-        if(!possibleEntry.isPresent) throw EntryNotFoundException()
-
-        val retrievedEntry = possibleEntry.get()
+        if(article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
 
         val updatedArticle = article
-                .copy(entries = article.entries.append(entryId))
-
-        val updatedEntry = entryService.changeArticle(retrievedEntry.id, articleId)
+                .copy(entries = article.entries.append(entry.id))
 
         coll.update(updatedArticle)
 
-        return updatedEntry
+        return entry.copy(articleId = articleId)
     }
 
-    override fun removeEntry(articleId: String, entryId: String): Entry {
+    override fun removeEntry(articleId: String, entry: Entry): Entry {
         val article = findByIdOrThrow(articleId)
 
-        val entryToDelete = entryService.getById(entryId)
+        if(!article.entries.contains(entry.id)) throw EntryNotInArticleException()
 
-        if(!entryToDelete.isPresent) throw EntryNotFoundException()
-
-        if(!article.entries.contains(entryId)) throw EntryNotInArticleException()
-
-        val updatedArticle = article.copy(entries = article.entries.subtract(entryId))
+        val updatedArticle = article.copy(entries = article.entries.subtract(entry.id))
         coll.update(updatedArticle)
 
-        return entryService.changeArticle(entryId, "deleted")
+        return entry.copy(articleId = "deleted")
     }
 
-    override fun setCatalogue(articleId: String, catalogueId: String): Article {
+    override fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue {
         val article = findByIdOrThrow(articleId)
 
-        if(article.catalogueId == catalogueId) throw ArticleAlreadyInCatalogueException()
+        if(article.catalogueId == catalogue.id) throw ArticleAlreadyInCatalogueException()
 
-        val possibleCatalogue = catalogueService.getById(catalogueId)
-        if(!possibleCatalogue.isPresent) throw CatalogueNotFoundException()
-
-        val updatedArticle = article.copy(catalogueId = possibleCatalogue.get().id)
+        val updatedArticle = article.copy(catalogueId = catalogue.id)
 
         coll.update(updatedArticle)
 
-        return updatedArticle
+        return catalogue.copy(articles = catalogue.articles.append(articleId))
     }
 
     private fun findByIdOrThrow(articleId: String): Article{
