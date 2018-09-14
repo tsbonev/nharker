@@ -2,6 +2,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.StubClock
 import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
@@ -10,6 +11,8 @@ import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -18,18 +21,19 @@ class NitriteArticlesTest {
 
     private val db = nitrite { }
 
-    private val instant = LocalDateTime.of(1, 1, 1, 1, 1, 1)
+    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+    private val stubClock = StubClock()
     private val collectionName = "TestArticles"
 
     private val catalogue = Catalogue(
             "::catalogueId::",
             "::title::",
-            instant
+            date
     )
 
     private val entry = Entry(
             "::entryId::",
-            instant,
+            date,
             "::articleId::",
             "::content::",
             mapOf("::content::" to "::article::")
@@ -37,7 +41,7 @@ class NitriteArticlesTest {
 
     private val firstPresavedEntry = Entry(
             "::firstPresavedEntryId::",
-            instant,
+            date,
             "::articleId::",
             "::content::",
             emptyMap()
@@ -45,7 +49,7 @@ class NitriteArticlesTest {
 
     private val secondPresavedEntry = Entry(
             "::secondPresavedEntryId::",
-            instant,
+            date,
             "::articleId::",
             "::content::",
             emptyMap()
@@ -61,7 +65,7 @@ class NitriteArticlesTest {
             "::articleId::",
             "article-title",
             "Article title",
-            instant,
+            date,
             "::default-catalogue::",
             emptyList(),
             mapOf(firstPresavedEntry.id to 0,
@@ -72,10 +76,10 @@ class NitriteArticlesTest {
     private val defaultCatalogue = Catalogue(
             "::default-catalogue::",
             "Default catalogue",
-            instant
+            date
     )
 
-    private val articles = NitriteArticles(db, collectionName) {instant}
+    private val articles = NitriteArticles(db, collectionName, clock = stubClock)
 
     @Before
     fun setUp(){

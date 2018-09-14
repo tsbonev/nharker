@@ -4,6 +4,7 @@ import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
@@ -12,8 +13,8 @@ import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
-import kotlin.test.assertFails
-import kotlin.test.assertFailsWith
+import java.time.Instant
+import java.time.ZoneOffset
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -22,14 +23,15 @@ class NitriteCataloguesTest {
 
     private val db = nitrite { }
 
-    private val instant = LocalDateTime.of(1, 1, 1, 1, 1, 1)
+    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+    private val stubClock = StubClock()
     private val collectionName = "TestCatalogues"
 
     private val firstPresavedArticle = Article(
             "::firstArticleId::",
             "article-title-1",
             "Article title 1",
-            instant,
+            date,
             "::catalogue-id::"
     )
 
@@ -37,7 +39,7 @@ class NitriteCataloguesTest {
             "::secondArticleId::",
             "article-title-2",
             "Article title 2",
-            instant,
+            date,
             "::catalogue-id::"
     )
 
@@ -45,28 +47,28 @@ class NitriteCataloguesTest {
             "::articleId::",
             "article-title",
             "Article title",
-            instant,
+            date,
             "::default-catalogue::"
     )
 
     private val firstPresavedSubcatalogue = Catalogue(
             "::catalogue-id-1::",
             "::catalogue-title-1::",
-            instant,
+            date,
             parentCatalogue = "::catalogue-id::"
     )
 
     private val secondPresavedSubcatalogue = Catalogue(
             "::catalogue-id-2::",
             "::catalogue-title-2::",
-            instant,
+            date,
             parentCatalogue = "::catalogue-id::"
     )
 
     private val subCatalogue = Catalogue(
             "::catalogue-id-3::",
             "::catalogue-title-3::",
-            instant
+            date
     )
 
     private val catalogueRequest = CatalogueRequest(
@@ -76,7 +78,7 @@ class NitriteCataloguesTest {
     private val catalogue = Catalogue(
             "::catalogue-id::",
             "::catalogue-title::",
-            instant,
+            date,
             mapOf(firstPresavedArticle.id to 0,
                     secondPresavedArticle.id to 1),
             mapOf(firstPresavedSubcatalogue.id to 0,
@@ -85,8 +87,9 @@ class NitriteCataloguesTest {
 
     private val catalogues = NitriteCatalogues(
             db,
-            collectionName
-    ) {instant}
+            collectionName,
+            stubClock
+    )
 
     @Before
     fun setUp(){

@@ -10,6 +10,7 @@ import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
+import java.time.Clock
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -18,7 +19,7 @@ import java.util.Optional
  */
 class NitriteArticles(private val nitriteDb: Nitrite,
                       private val collectionName: String = "Articles",
-                      private val getInstant: () -> LocalDateTime = { LocalDateTime.now()}) : Articles {
+                      private val clock: Clock = Clock.systemUTC()) : Articles {
 
     /**
      * Retrieve the repository on every request.
@@ -32,7 +33,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                 NitriteId.newId().toString(),
                 articleRequest.title.toLinkTitle(),
                 articleRequest.title,
-                getInstant(),
+                LocalDateTime.now(clock),
                 articleRequest.catalogue
         )
 
