@@ -1,4 +1,3 @@
 rootProject.name = 'nharker'
 include 'nharker-core'
-include 'nharker-ui'
 
