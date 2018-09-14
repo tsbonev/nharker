@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.exceptions.ArticleNotFoundException
 import com.tsbonev.nharker.core.exceptions.CatalogueIsAlreadyAChildException
 import com.tsbonev.nharker.core.exceptions.CatalogueNotFoundException
 import com.tsbonev.nharker.core.exceptions.CatalogueTitleTakenException
