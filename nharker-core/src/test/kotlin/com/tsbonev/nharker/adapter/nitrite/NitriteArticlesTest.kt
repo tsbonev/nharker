@@ -2,32 +2,19 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
-import org.jmock.AbstractExpectations.returnValue
-import org.jmock.Expectations
-import org.jmock.Mockery
-import org.jmock.integration.junit4.JUnitRuleMockery
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
-import org.junit.Rule
-import java.util.Optional
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticlesTest {
-
-    @Rule
-    @JvmField
-    val context: JUnitRuleMockery = JUnitRuleMockery()
-
-    private fun Mockery.expecting(block: Expectations.() -> Unit){
-            checking(Expectations().apply(block))
-    }
 
     private val db = nitrite { }
 
@@ -82,11 +69,13 @@ class NitriteArticlesTest {
             ArticleLinks(mutableMapOf())
     )
 
-    private val entryService = context.mock(EntryService::class.java)
+    val defaultCatalogue = Catalogue(
+            "::default-catalogue::",
+            "Default catalogue",
+            instant
+    )
 
-    private val catalogueService = context.mock(CatalogueService::class.java)
-
-    private val articles = NitriteArticles(db, entryService, catalogueService, collectionName) {instant}
+    private val articles = NitriteArticles(db, collectionName) {instant}
 
     @Before
     fun setUp(){
@@ -119,15 +108,7 @@ class NitriteArticlesTest {
 
     @Test
     fun `Append entry to article`(){
-        context.expecting {
-            oneOf(entryService).getById(entry.id)
-            will(returnValue(Optional.of(entry)))
-
-            oneOf(entryService).changeArticle(entry.id, article.id)
-            will(returnValue(entry))
-        }
-
-        val appendedEntry = articles.appendEntry(article.id, entry.id)
+        val appendedEntry = articles.appendEntry(article.id, entry)
 
         assertThat(appendedEntry, Is(entry))
         assertThat(presavedArticle(), Is(article.copy(entries = article.entries.plus(entry.id to 2))))
@@ -135,20 +116,12 @@ class NitriteArticlesTest {
 
     @Test(expected = EntryAlreadyInArticleException::class)
     fun `Appending entry that is already in article throws exception`(){
-        articles.appendEntry(article.id, firstPresavedEntry.id)
+        articles.appendEntry(article.id, firstPresavedEntry)
     }
 
     @Test
     fun `Remove and return entry from article`(){
-        context.expecting {
-            oneOf(entryService).getById(secondPresavedEntry.id)
-            will(returnValue(Optional.of(secondPresavedEntry)))
-
-            oneOf(entryService).changeArticle(secondPresavedEntry.id, "deleted")
-            will(returnValue(secondPresavedEntry.copy(articleId = "deleted")))
-        }
-
-        val removedEntry = articles.removeEntry(article.id, secondPresavedEntry.id)
+        val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
 
         assertThat(removedEntry, Is(secondPresavedEntry.copy(articleId = "deleted")))
         assertThat(presavedArticle().entries.count(), Is(1))
@@ -156,75 +129,38 @@ class NitriteArticlesTest {
 
     @Test
     fun `Reorder entries after deletion`(){
-        context.expecting {
-            oneOf(entryService).getById(firstPresavedEntry.id)
-            will(returnValue(Optional.of(firstPresavedEntry)))
-
-            oneOf(entryService).changeArticle(firstPresavedEntry.id, "deleted")
-            will(returnValue(firstPresavedEntry.copy(articleId = "deleted")))
-        }
-
-        articles.removeEntry(article.id, firstPresavedEntry.id)
+        articles.removeEntry(article.id, firstPresavedEntry)
 
         assertThat(presavedArticle().entries.count(), Is(1))
         assertThat(presavedArticle().entries[secondPresavedEntry.id], Is(0))
     }
 
-    @Test(expected = EntryNotFoundException::class)
-    fun `Deleting a non-existent entry throws exception`(){
-        context.expecting {
-            oneOf(entryService).getById("::fake-entry-id::")
-            will(returnValue(Optional.empty<Entry>()))
-        }
-
-        articles.removeEntry(article.id, "::fake-entry-id::")
-    }
-
     @Test(expected = ArticleNotFoundException::class)
     fun `Deleting from a non-existent article throws exception`(){
-        articles.removeEntry("::fake-article-id::", "::fake-entry-id::")
+        articles.removeEntry("::fake-article-id::", firstPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
     fun `Deleting an entry that isn't in an article throws exception`(){
-        context.expecting {
-            oneOf(entryService).getById(entry.id)
-            will(returnValue(Optional.of(entry)))
-        }
-
-        articles.removeEntry(article.id, entry.id)
+        articles.removeEntry(article.id, entry)
     }
 
     @Test
     fun `Change article catalogue`(){
-        context.expecting {
-            oneOf(catalogueService).getById(catalogue.id)
-            will(returnValue(Optional.of(catalogue)))
-        }
+        val changedCatalogue = articles.setCatalogue(article.id, catalogue)
 
-        val updatedArticle = articles.setCatalogue(article.id, catalogue.id)
-
-        assertThat(presavedArticle(), Is(updatedArticle))
+        assertThat(presavedArticle(), Is(article.copy(catalogueId = catalogue.id)))
+        assertThat(changedCatalogue, Is(catalogue.copy(articles= catalogue.articles.append(article.id))))
     }
 
     @Test(expected = ArticleAlreadyInCatalogueException::class)
     fun `Changing catalogue of article to the same value throws exception`(){
-        articles.setCatalogue(article.id, "::default-catalogue::")
+        articles.setCatalogue(article.id, defaultCatalogue)
     }
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Changing catalogue of non-existent article throws exception`(){
-        articles.setCatalogue("::fake-article-id::", catalogue.id)
-    }
-
-    @Test(expected = CatalogueNotFoundException::class)
-    fun `Changing catalogue to non-existent one throws exception`(){
-        context.expecting {
-            oneOf(catalogueService).getById("::fake-catalogue::")
-            will(returnValue(Optional.empty<Catalogue>()))
-        }
-
-        articles.setCatalogue(article.id, "::fake-catalogue::")
+        articles.setCatalogue("::fake-article-id::", catalogue)
     }
 
     private fun presavedArticle(): Article{

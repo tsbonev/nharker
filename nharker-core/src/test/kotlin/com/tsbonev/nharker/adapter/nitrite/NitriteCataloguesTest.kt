@@ -1,43 +1,26 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleService
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.exceptions.*
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
-import org.jmock.AbstractExpectations.returnValue
-import org.jmock.Expectations
-import org.jmock.Mockery
-import org.jmock.integration.junit4.JUnitRuleMockery
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
-import java.util.Optional
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteCataloguesTest {
 
-    @Rule
-    @JvmField
-    val context: JUnitRuleMockery = JUnitRuleMockery()
-
-    private fun Mockery.expecting(block: Expectations.() -> Unit) {
-        checking(Expectations().apply(block))
-    }
-
     private val db = nitrite { }
 
     private val instant = LocalDateTime.of(1, 1, 1, 1, 1, 1)
     private val collectionName = "TestCatalogues"
-
-    private val articleService = context.mock(ArticleService::class.java)
 
     private val firstPresavedArticle = Article(
             "::firstArticleId::",
@@ -99,7 +82,6 @@ class NitriteCataloguesTest {
 
     private val catalogues = NitriteCatalogues(
             db,
-            articleService,
             collectionName
     ) {instant}
 
@@ -225,16 +207,7 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Append article to catalogue`(){
-
-        context.expecting {
-            oneOf(articleService).getById(article.id)
-            will(returnValue(Optional.of(article)))
-
-            oneOf(articleService).setCatalogue(article.id, catalogue.id)
-            will(returnValue(catalogue))
-        }
-
-        val appendedChild = catalogues.appendArticle(catalogue.id, article.id)
+        val appendedChild = catalogues.appendArticle(catalogue.id, article)
 
         assertThat(appendedChild, Is(article.copy(catalogueId = catalogue.id)))
         assertThat(presavedCatalogue(), Is(catalogue.copy(articles = catalogue.articles.plus(
@@ -244,44 +217,17 @@ class NitriteCataloguesTest {
 
     @Test(expected = ArticleAlreadyInCatalogueException::class)
     fun `Appending article that is already a in a catalogue throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById(firstPresavedArticle.id)
-            will(returnValue(Optional.of(firstPresavedArticle)))
-        }
-
-        catalogues.appendArticle(catalogue.id, firstPresavedArticle.id)
-    }
-
-    @Test(expected = ArticleNotFoundException::class)
-    fun `Appending a non-existent article throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById("::fake-catalogue-id::")
-            will(returnValue(Optional.empty<Article>()))
-        }
-
-        catalogues.appendArticle(catalogue.id, "::fake-catalogue-id::")
+        catalogues.appendArticle(catalogue.id, firstPresavedArticle)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Appending article to non-existent catalogue throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById(article.id)
-            will(returnValue(Optional.of(article)))
-        }
-
-        catalogues.appendArticle("::fake-catalogue-id::", article.id)
+        catalogues.appendArticle("::fake-catalogue-id::", article)
     }
 
     @Test
     fun `Remove article from catalogue`(){
-        context.expecting {
-            oneOf(articleService).getById(secondPresavedArticle.id)
-            will(returnValue(Optional.of(secondPresavedArticle)))
-
-            oneOf(articleService).setCatalogue(secondPresavedArticle.id, "none")
-        }
-
-        val removedArticle = catalogues.removeArticle(catalogue.id, secondPresavedArticle.id)
+        val removedArticle = catalogues.removeArticle(catalogue.id, secondPresavedArticle)
 
         assertThat(removedArticle, Is(secondPresavedArticle.copy(catalogueId = "none")))
         assertThat(presavedCatalogue(), Is(catalogue.copy(articles = mapOf(firstPresavedArticle.id to 0))))
@@ -289,47 +235,20 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Reorder articles after deletion`(){
-        context.expecting {
-            oneOf(articleService).getById(firstPresavedArticle.id)
-            will(returnValue(Optional.of(firstPresavedArticle)))
-
-            oneOf(articleService).setCatalogue(firstPresavedArticle.id, "none")
-        }
-
-        catalogues.removeArticle(catalogue.id, firstPresavedArticle.id)
+        catalogues.removeArticle(catalogue.id, firstPresavedArticle)
 
         assertThat(presavedCatalogue(), Is(catalogue.copy(articles = mapOf(secondPresavedArticle.id to 0))))
     }
 
     @Test(expected = ArticleNotInCatalogueException::class)
     fun `Removing article from non-parent throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById(article.id)
-            will(returnValue(Optional.of(article)))
-        }
-
-        catalogues.removeArticle(catalogue.id, article.id)
-    }
-
-    @Test(expected = ArticleNotFoundException::class)
-    fun `Removing non-existent article throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById("::fake-article-id::")
-            will(returnValue(Optional.empty<Article>()))
-        }
-
-        catalogues.removeArticle(catalogue.id, "::fake-article-id::")
+        catalogues.removeArticle(catalogue.id, article)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Removing article from non-existent catalogue throws exception`(){
-        context.expecting {
-            oneOf(articleService).getById(firstPresavedArticle.id)
-            will(returnValue(Optional.of(firstPresavedArticle)))
-        }
-
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
-        catalogues.removeArticle(catalogue.id, firstPresavedArticle.id)
+        catalogues.removeArticle(catalogue.id, firstPresavedArticle)
     }
 
 
