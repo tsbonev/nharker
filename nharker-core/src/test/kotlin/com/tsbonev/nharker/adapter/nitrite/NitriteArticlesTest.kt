@@ -69,7 +69,7 @@ class NitriteArticlesTest {
             ArticleLinks(mutableMapOf())
     )
 
-    val defaultCatalogue = Catalogue(
+    private val defaultCatalogue = Catalogue(
             "::default-catalogue::",
             "Default catalogue",
             instant
@@ -88,6 +88,12 @@ class NitriteArticlesTest {
         val createdArticle = articles.create(articleRequest)
 
         assertThat(createdArticle.copy(id = "::articleId::", entries = article.entries), Is(article))
+    }
+
+    @Test
+    fun `Save and return article`(){
+        db.getRepository(collectionName, Article::class.java).remove(Article::linkTitle eq article.linkTitle)
+        assertThat(articles.save(article), Is(article))
     }
 
     @Test(expected = ArticleTitleTakenException::class)

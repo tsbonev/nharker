@@ -18,6 +18,12 @@ interface Entries {
     fun create(entryRequest: EntryRequest): Entry
 
     /**
+     * Saves an entry into persistence, overwriting the previous one
+     * if it exists.
+     */
+    fun save(entry: Entry): Entry
+
+    /**
      * Updates the content of an entry.
      *
      * @param entryId The id of the entry targeted.
