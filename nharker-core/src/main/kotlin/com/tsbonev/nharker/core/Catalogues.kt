@@ -45,12 +45,12 @@ interface Catalogues {
      * Changes the parent of a catalogue.
      *
      * @param catalogueId The id of the catalogue targeted.
-     * @param parentCatalogueId The id of the new parent.
-     * @return The new parent catalogue and the updated child catalogue.
+     * @param parentCatalogue The id of the new parent.
+     * @return The updated child catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class)
-    fun changeParentCatalogue(catalogueId: String, parentCatalogueId: String): Pair<Catalogue, Catalogue>
+    fun changeParentCatalogue(catalogueId: String, parentCatalogue: Catalogue): Catalogue
 
     /**
      * Deletes a catalogue by id.
@@ -64,25 +64,25 @@ interface Catalogues {
     /**
      * Appends a catalogue to the targeted catalogue's children list.
      *
-     * @param parentCatalogueId The id of the parent catalogue.
-     * @param subCatalogueId The id of the child catalogue.
-     * @return The appended catalogue.
+     * @param catalogueId The id of the targeted parent catalogue.
+     * @param subCatalogue The id of the child catalogue.
+     * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class,
             SelfContainedCatalogueException::class)
-    fun appendSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue
+    fun appendSubCatalogue(catalogueId: String, subCatalogue: Catalogue): Catalogue
 
     /**
      * Removes a catalogue from the targeted catalogue's children list.
      *
-     * @param parentCatalogueId The id of the parent catalogue.
-     * @param subCatalogueId The id of the child catalogue.
-     * @return The removed catalogue.
+     * @param catalogueId The id of the parent catalogue.
+     * @param subCatalogue The id of the child catalogue.
+     * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueNotAChildException::class)
-    fun removeSubCatalogue(parentCatalogueId: String, subCatalogueId: String): Catalogue
+    fun removeSubCatalogue(catalogueId: String, subCatalogue: Catalogue): Catalogue
 
     /**
      * Appends an article from a catalogue.

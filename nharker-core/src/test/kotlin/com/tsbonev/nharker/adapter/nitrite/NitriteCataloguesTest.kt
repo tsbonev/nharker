@@ -5,6 +5,7 @@ import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.exceptions.*
 import com.tsbonev.nharker.core.helpers.StubClock
+import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
@@ -151,31 +152,25 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Change parent of catalogue`(){
-        val parentChildPair = catalogues.changeParentCatalogue(catalogue.id, subCatalogue.id)
+        val updatedChild = catalogues.changeParentCatalogue(subCatalogue.id, catalogue)
 
-        assertThat(parentChildPair.first, Is(subCatalogue.copy(subCatalogues = mapOf(catalogue.id to 0))))
-        assertThat(parentChildPair.second, Is(presavedCatalogue()))
-        assertThat(presavedCatalogue().parentCatalogue, Is(parentChildPair.first.id))
-    }
-
-    @Test(expected = CatalogueNotFoundException::class)
-    fun `Changing parent of catalogue to non-existent throws exception`(){
-        catalogues.changeParentCatalogue(catalogue.id, "::fake-parent-id::")
+        assertThat(updatedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
+        assertThat(presavedCatalogue(), Is(catalogue.copy(subCatalogues= catalogue.subCatalogues.append(subCatalogue.id))))
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Changing parent of non-existent catalogue throws exception`(){
-        catalogues.changeParentCatalogue("::fake-parent-id::", subCatalogue.id)
+        catalogues.changeParentCatalogue("::fake-parent-id::", subCatalogue)
     }
 
-    @Test(expected = CatalogueAlreadyAChildException::class)
+    @Test(expected = SelfContainedCatalogueException::class)
     fun `Changing parent of catalogue to the same value throws exception`(){
-        catalogues.changeParentCatalogue(catalogue.id, catalogue.parentCatalogue)
+        catalogues.changeParentCatalogue(catalogue.id, catalogue)
     }
 
     @Test
     fun `Append catalogue to catalogue subcatalogues`(){
-        val appendedChild = catalogues.appendSubCatalogue(catalogue.id, subCatalogue.id)
+        val appendedChild = catalogues.appendSubCatalogue(catalogue.id, subCatalogue)
 
         assertThat(appendedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
         assertThat(presavedCatalogue(), Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
@@ -185,27 +180,22 @@ class NitriteCataloguesTest {
 
     @Test(expected = CatalogueAlreadyAChildException::class)
     fun `Appending catalogue that is already a subcatalogue throws exception`(){
-        catalogues.appendSubCatalogue(catalogue.id, firstPresavedSubcatalogue.id)
+        catalogues.appendSubCatalogue(catalogue.id, firstPresavedSubcatalogue)
     }
 
     @Test(expected = SelfContainedCatalogueException::class)
     fun `Appending catalogue to itself throws exception`(){
-        catalogues.appendSubCatalogue(catalogue.id, catalogue.id)
-    }
-
-    @Test(expected = CatalogueNotFoundException::class)
-    fun `Appending a non-existent catalogue throws exception`(){
-        catalogues.appendSubCatalogue(catalogue.id, "::fake-catalogue-id::")
+        catalogues.appendSubCatalogue(catalogue.id, catalogue)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Appending subcatalogue to non-existent catalogue throws exception`(){
-        catalogues.appendSubCatalogue("::fake-catalogue-id::", catalogue.id)
+        catalogues.appendSubCatalogue("::fake-catalogue-id::", catalogue)
     }
 
     @Test
     fun `Remove subcatalogue from catalogue`(){
-        val removedCatalogue = catalogues.removeSubCatalogue(catalogue.id, secondPresavedSubcatalogue.id)
+        val removedCatalogue = catalogues.removeSubCatalogue(catalogue.id, secondPresavedSubcatalogue)
 
         assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentCatalogue = "None")))
         assertThat(presavedCatalogue().subCatalogues, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
@@ -213,25 +203,20 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Reorder subcatalogues after deletion`(){
-        catalogues.removeSubCatalogue(catalogue.id, firstPresavedSubcatalogue.id)
+        catalogues.removeSubCatalogue(catalogue.id, firstPresavedSubcatalogue)
 
         assertThat(presavedCatalogue().subCatalogues, Is(mapOf(secondPresavedSubcatalogue.id to 0)))
     }
 
     @Test(expected = CatalogueNotAChildException::class)
     fun `Removing subcatalogue from non-parent throws exception`(){
-        catalogues.removeSubCatalogue("::fake-parent-catalogue-id::", catalogue.id)
-    }
-
-    @Test(expected = CatalogueNotFoundException::class)
-    fun `Removing non-existent catalogue throws exception`(){
-        catalogues.removeSubCatalogue(catalogue.id, "::fake-catalogue-id::")
+        catalogues.removeSubCatalogue("::fake-parent-catalogue-id::", catalogue)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Removing subcatalogue from non-existent parent throws exception`(){
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
-        catalogues.removeSubCatalogue(catalogue.id, firstPresavedSubcatalogue.id)
+        catalogues.removeSubCatalogue(catalogue.id, firstPresavedSubcatalogue)
     }
 
     @Test
