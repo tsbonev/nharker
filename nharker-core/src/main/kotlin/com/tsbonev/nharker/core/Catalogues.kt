@@ -23,9 +23,9 @@ interface Catalogues {
     fun save(catalogue: Catalogue): Catalogue
 
     /**
-     * Retrieves an article by id.
+     * Retrieves an article by value.
      *
-     * @param catalogueId The id search by.
+     * @param catalogueId The value search by.
      * @return An optional article.
      */
     fun getById(catalogueId: String): Optional<Catalogue>
@@ -33,7 +33,7 @@ interface Catalogues {
     /**
      * Changes the title of a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @param newTitle The new title.
      * @return The updated catalogue.
      */
@@ -53,9 +53,9 @@ interface Catalogues {
     fun changeParentCatalogue(catalogueId: String, parentCatalogue: Catalogue): Catalogue
 
     /**
-     * Deletes a catalogue by id.
+     * Deletes a catalogue by value.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @return The deleted catalogue.
      */
     @Throws(CatalogueNotFoundException::class)
@@ -87,7 +87,7 @@ interface Catalogues {
     /**
      * Appends an article from a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @param article The article.
      * @return The appended article.
      */
@@ -98,7 +98,7 @@ interface Catalogues {
     /**
      * Removes an article from a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @param article The  article.
      * @return The removed article.
      */
@@ -109,7 +109,7 @@ interface Catalogues {
     /**
      * Switches the order of two articles in a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @param first The first article.
      * @param second The second article.
      * @return The updated catalogue.
@@ -121,7 +121,7 @@ interface Catalogues {
     /**
      * Switches the order of two subcatalogues in a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param catalogueId The value of the catalogue targeted.
      * @param first The first catalogue.
      * @param second The second catalogue.
      * @return The updated catalogue.

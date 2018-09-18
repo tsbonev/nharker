@@ -2,10 +2,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
-import com.tsbonev.nharker.core.helpers.ElementNotInMapException
-import com.tsbonev.nharker.core.helpers.append
-import com.tsbonev.nharker.core.helpers.subtract
-import com.tsbonev.nharker.core.helpers.switch
+import com.tsbonev.nharker.core.helpers.*
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -75,7 +72,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         val updatedArticle = article.copy(entries = article.entries.subtract(entry.id))
         coll.update(updatedArticle)
 
-        return entry.copy(articleId = "deleted")
+        return entry.copy(articleId = ReferenceId.Deleted.value)
     }
 
     override fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue {

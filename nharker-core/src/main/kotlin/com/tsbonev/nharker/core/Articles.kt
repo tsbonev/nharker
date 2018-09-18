@@ -24,9 +24,9 @@ interface Articles {
     fun save(article: Article): Article
 
     /**
-     * Retrieves an optional article by id.
+     * Retrieves an optional article by value.
      *
-     * @param articleId The id of the article sought.
+     * @param articleId The value of the article sought.
      * @return An optional article.
      */
     fun getById(articleId: String): Optional<Article>
@@ -34,7 +34,7 @@ interface Articles {
     /**
      * Appends an entry to an article.
      *
-     * @param articleId The id of the article targeted.
+     * @param articleId The value of the article targeted.
      * @param entry The entry to append.
      * @return The updated entry.
      */
@@ -45,7 +45,7 @@ interface Articles {
     /**
      * Removes an entry from an article, deleting it from persistence.
      *
-     * @param articleId The id of the article targeted.
+     * @param articleId The value of the article targeted.
      * @param entry The entry to remove.
      * @return The removed entry.
      */
@@ -56,7 +56,7 @@ interface Articles {
     /**
      * Sets the catalogue of an article.
      *
-     * @param articleId The id of the article targeted.
+     * @param articleId The value of the article targeted.
      * @param catalogue The catalogue.
      * @return The updated catalogue.
      */
@@ -67,7 +67,7 @@ interface Articles {
     /**
      * Switches two entries in the article.
      *
-     * @param articleId The id of the article.
+     * @param articleId The value of the article.
      * @param first The first entry.
      * @param second The second entry.
      * @return The updated article.

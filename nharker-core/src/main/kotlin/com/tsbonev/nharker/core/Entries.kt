@@ -26,7 +26,7 @@ interface Entries {
     /**
      * Updates the content of an entry.
      *
-     * @param entryId The id of the entry targeted.
+     * @param entryId The value of the entry targeted.
      * @param content The new content of the entry.
      * @return The updated entry.
      */
@@ -36,7 +36,7 @@ interface Entries {
     /**
      * Updates the links of an entry.
      *
-     * @param entryId The id of the entry targeted.
+     * @param entryId The value of the entry targeted.
      * @param links The new links of the entry.
      * @return The updated entry.
      */
@@ -53,9 +53,9 @@ interface Entries {
     fun delete(entryId: String): Entry
 
     /**
-     * Returns an optional entry by id.
+     * Returns an optional entry by value.
      *
-     * @param entryId The id of the entry sought.
+     * @param entryId The value of the entry sought.
      * @return An optional entry.
      */
     fun getById(entryId: String): Optional<Entry>
@@ -71,8 +71,8 @@ interface Entries {
     /**
      * Changes the article of an entry.
      *
-     * @param entryId The id of the entry targeted.
-     * @param articleId The id of the new article.
+     * @param entryId The value of the entry targeted.
+     * @param articleId The value of the new article.
      * @return The updated entry.
      */
     @Throws(EntryNotFoundException::class,

@@ -66,7 +66,7 @@ class NitriteEntriesTest {
 
     @Test
     fun `Return empty when an entry is not found by id`(){
-        val retrievedEntry = entries.getById("::fake-entry-id::")
+        val retrievedEntry = entries.getById("::fake-entry-value::")
 
         assertThat(retrievedEntry.isPresent, Is(false))
     }
@@ -84,7 +84,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Updating a non-existent entry's content throws exception`(){
-        entries.updateContent("::fake-entry-id::", "::content::")
+        entries.updateContent("::fake-entry-value::", "::content::")
     }
 
     @Test
@@ -100,7 +100,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Updating a non-existent entry's links throws exception`(){
-        entries.updateLinks("::fake-entry-id::", mapOf("::new-link::" to "::new-article::"))
+        entries.updateLinks("::fake-entry-value::", mapOf("::new-link::" to "::new-article::"))
     }
 
     @Test
@@ -112,7 +112,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Changing entry article of non-existent entry throws exception`(){
-        entries.changeArticle("::fake-entry-id::", entry.articleId)
+        entries.changeArticle("::fake-entry-value::", entry.articleId)
     }
 
     @Test(expected = EntryAlreadyInArticleException::class)
@@ -150,7 +150,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Deleting non-existent entry throws exception`(){
-        entries.delete("::fake-entry-id::")
+        entries.delete("::fake-entry-value::")
     }
 
 }

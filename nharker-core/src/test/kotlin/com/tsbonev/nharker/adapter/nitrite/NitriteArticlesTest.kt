@@ -2,6 +2,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.helpers.ReferenceId
 import com.tsbonev.nharker.core.helpers.StubClock
 import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
@@ -113,7 +114,7 @@ class NitriteArticlesTest {
 
     @Test
     fun `Return empty when article isn't found`(){
-        assertThat(articles.getById("::fake-article-id::").isPresent, Is(false))
+        assertThat(articles.getById("::fake-article-value::").isPresent, Is(false))
     }
 
     @Test
@@ -133,7 +134,7 @@ class NitriteArticlesTest {
     fun `Remove and return entry from article`(){
         val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
 
-        assertThat(removedEntry, Is(secondPresavedEntry.copy(articleId = "deleted")))
+        assertThat(removedEntry, Is(secondPresavedEntry.copy(articleId = ReferenceId.Deleted.value)))
         assertThat(presavedArticle().entries.count(), Is(1))
     }
 
@@ -147,7 +148,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Deleting from a non-existent article throws exception`(){
-        articles.removeEntry("::fake-article-id::", firstPresavedEntry)
+        articles.removeEntry("::fake-article-value::", firstPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
@@ -170,7 +171,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Changing catalogue of non-existent article throws exception`(){
-        articles.setCatalogue("::fake-article-id::", catalogue)
+        articles.setCatalogue("::fake-article-value::", catalogue)
     }
 
     @Test
@@ -185,7 +186,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Switching entries of non-existing article throws exception`(){
-        articles.switchEntries("::fake-article-id::", firstPresavedEntry, secondPresavedEntry)
+        articles.switchEntries("::fake-article-value::", firstPresavedEntry, secondPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
