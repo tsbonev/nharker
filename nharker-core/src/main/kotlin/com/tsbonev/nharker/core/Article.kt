@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.core
 
+import com.tsbonev.nharker.core.helpers.ReferenceId
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -22,7 +23,7 @@ data class Article(@Id val id: String,
                    val linkTitle: String,
                    val fullTitle: String,
                    val creationDate: LocalDateTime,
-                   val catalogueId: String,
+                   val catalogueId: String = ReferenceId.None.value,
                    val properties: List<ArticleProperty> = emptyList(),
                    val entries: Map<String, Int> = emptyMap(),
                    val links: ArticleLinks = ArticleLinks(mutableMapOf()))
