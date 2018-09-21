@@ -1,10 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.Entries
-import com.tsbonev.nharker.core.Entry
-import com.tsbonev.nharker.core.EntryRequest
-import com.tsbonev.nharker.core.exceptions.EntryAlreadyInArticleException
-import com.tsbonev.nharker.core.exceptions.EntryNotFoundException
+import com.tsbonev.nharker.core.*
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite

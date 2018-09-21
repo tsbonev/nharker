@@ -1,9 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.Catalogue
-import com.tsbonev.nharker.core.CatalogueRequest
-import com.tsbonev.nharker.core.exceptions.*
+import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.helpers.ReferenceId
 import com.tsbonev.nharker.core.helpers.StubClock
 import com.tsbonev.nharker.core.helpers.append

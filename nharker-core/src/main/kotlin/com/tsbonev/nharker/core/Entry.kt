@@ -20,3 +20,7 @@ data class Entry (@Id val id: String,
                   val articleId: String = ReferenceId.None.value,
                   val content: String,
                   val links: Map<String, String>)
+
+class EntryAlreadyInArticleException : Exception()
+class EntryNotFoundException : Exception()
+class EntryNotInArticleException : Exception()

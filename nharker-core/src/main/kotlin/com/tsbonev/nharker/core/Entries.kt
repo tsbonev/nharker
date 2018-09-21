@@ -1,7 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.exceptions.EntryAlreadyInArticleException
-import com.tsbonev.nharker.core.exceptions.EntryNotFoundException
 import java.util.Optional
 
 /**
