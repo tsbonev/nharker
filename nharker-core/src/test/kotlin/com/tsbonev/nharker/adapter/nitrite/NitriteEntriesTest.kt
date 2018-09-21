@@ -1,9 +1,9 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Entry
+import com.tsbonev.nharker.core.EntryAlreadyInArticleException
+import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
-import com.tsbonev.nharker.core.exceptions.EntryAlreadyInArticleException
-import com.tsbonev.nharker.core.exceptions.EntryNotFoundException
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.nitrite
 import org.junit.Test

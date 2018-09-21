@@ -53,3 +53,8 @@ data class ArticleHead(val id: String,
                        val fullTitle: String,
                        val catalogue: String,
                        val creationDate: LocalDateTime)
+
+class ArticleNotFoundException : Exception()
+class ArticleAlreadyInCatalogueException : Exception()
+class ArticleNotInCatalogueException : Exception()
+class ArticleTitleTakenException : Exception()

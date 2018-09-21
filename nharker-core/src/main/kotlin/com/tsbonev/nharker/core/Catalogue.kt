@@ -23,3 +23,9 @@ data class Catalogue(@Id val id: String,
                      val articles: Map<String, Int> = emptyMap(),
                      val subCatalogues: Map<String, Int> = emptyMap(),
                      val parentCatalogue: String = ReferenceId.None.value)
+
+class CatalogueNotFoundException : Exception()
+class CatalogueAlreadyAChildException : Exception()
+class CatalogueNotAChildException : Exception()
+class CatalogueTitleTakenException : Exception()
+class SelfContainedCatalogueException : Exception()
