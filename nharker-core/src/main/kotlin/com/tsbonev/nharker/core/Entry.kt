@@ -15,11 +15,11 @@ import java.time.LocalDateTime
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Indices(Index(value = "content", type = IndexType.Fulltext))
-data class Entry (@Id val id: String,
+data class Entry (@Id override val id: String,
                   val creationDate: LocalDateTime,
                   val articleId: String = ReferenceId.None.value,
                   val content: String,
-                  val links: Map<String, String>)
+                  val links: Map<String, String> = emptyMap()) : Entity(id)
 
 class EntryAlreadyInArticleException : Exception()
 class EntryNotFoundException : Exception()
