@@ -5,7 +5,7 @@ repositories {
 }
 
 buildscript {
-    ext.kotlinVersion = "1.2.61"
+    ext.kotlinVersion = "1.2.70"
     ext.nitriteVersion = "3.1.0"
 
     repositories {
