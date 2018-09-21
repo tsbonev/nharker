@@ -17,12 +17,12 @@ import java.time.LocalDateTime
  */
 @Indices(Index(value = "parentCatalogue", type = IndexType.NonUnique),
         Index(value = "title", type = IndexType.Unique))
-data class Catalogue(@Id val id: String,
+data class Catalogue(@Id override val id: String,
                      val title: String,
                      val creationDate: LocalDateTime,
                      val articles: Map<String, Int> = emptyMap(),
                      val subCatalogues: Map<String, Int> = emptyMap(),
-                     val parentCatalogue: String = ReferenceId.None.value)
+                     val parentCatalogue: String = ReferenceId.None.value) : Entity(id)
 
 class CatalogueNotFoundException : Exception()
 class CatalogueAlreadyAChildException : Exception()
