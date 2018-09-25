@@ -21,7 +21,7 @@ data class Article(@Id val id: String,
                    val linkTitle: String,
                    val fullTitle: String,
                    val creationDate: LocalDateTime,
-                   val properties: List<ArticleProperty> = emptyList(),
+                   val properties: ArticleProperties = ArticleProperties(),
                    val entries: Map<String, Int> = emptyMap(),
                    val links: ArticleLinks = ArticleLinks(mutableMapOf()))
 
