@@ -1,8 +1,6 @@
 package com.tsbonev.nharker.core.helpers
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.google.gson.Gson
 import org.dizitart.no2.Document
 import org.dizitart.no2.NitriteId
 
@@ -19,10 +17,7 @@ import org.dizitart.no2.NitriteId
 fun Any.toDocument(): Document {
     val document = Document()
     document["entityId"] = NitriteId.newId().toString()
-    document["json"] = ObjectMapper()
-            .registerKotlinModule()
-            .registerModule(JavaTimeModule())
-            .writeValueAsString(this)
+    document["json"] = Gson().toJson(this)
     document["class"] = this::class.java.name
     return document
 }
@@ -32,9 +27,6 @@ fun Any.toDocument(): Document {
  * that class.
  */
 fun Document.toEntity(): Any {
-    return ObjectMapper()
-            .registerKotlinModule()
-            .registerModule(JavaTimeModule())
-            .readValue(this["json"].toString(),
+    return Gson().fromJson(this["json"].toString(),
             Class.forName(this["class"].toString()))
 }

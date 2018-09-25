@@ -8,7 +8,7 @@ import java.lang.Exception
  *
  * An Entity is any domain object.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface TrashCollector {
     /**
