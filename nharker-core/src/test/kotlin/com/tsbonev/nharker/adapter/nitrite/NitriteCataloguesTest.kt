@@ -1,7 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
-import com.tsbonev.nharker.core.helpers.ReferenceId
 import com.tsbonev.nharker.core.helpers.StubClock
 import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
@@ -30,24 +29,21 @@ class NitriteCataloguesTest {
             "::firstArticleId::",
             "article-title-1",
             "Article title 1",
-            date,
-            "::catalogue-value::"
+            date
     )
 
     private val secondPresavedArticle = Article(
             "::secondArticleId::",
             "article-title-2",
             "Article title 2",
-            date,
-            "::catalogue-value::"
+            date
     )
 
     private val article = Article(
             "::articleId::",
             "article-title",
             "Article title",
-            date,
-            "::default-catalogue::"
+            date
     )
 
     private val firstPresavedSubcatalogue = Catalogue(
@@ -195,7 +191,7 @@ class NitriteCataloguesTest {
     fun `Remove subcatalogue from catalogue`(){
         val removedCatalogue = catalogues.removeSubCatalogue(catalogue.id, secondPresavedSubcatalogue)
 
-        assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentCatalogue = ReferenceId.None.value)))
+        assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentCatalogue = null)))
         assertThat(presavedCatalogue().subCatalogues, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
     }
 
@@ -221,7 +217,7 @@ class NitriteCataloguesTest {
     fun `Append article to catalogue`(){
         val appendedChild = catalogues.appendArticle(catalogue.id, article)
 
-        assertThat(appendedChild, Is(article.copy(catalogueId = catalogue.id)))
+        assertThat(appendedChild, Is(article))
         assertThat(presavedCatalogue(), Is(catalogue.copy(articles = catalogue.articles.plus(
                 article.id to catalogue.articles.count()
         ))))
@@ -241,7 +237,7 @@ class NitriteCataloguesTest {
     fun `Remove article from catalogue`(){
         val removedArticle = catalogues.removeArticle(catalogue.id, secondPresavedArticle)
 
-        assertThat(removedArticle, Is(secondPresavedArticle.copy(catalogueId = ReferenceId.None.value)))
+        assertThat(removedArticle, Is(secondPresavedArticle))
         assertThat(presavedCatalogue(), Is(catalogue.copy(articles = mapOf(firstPresavedArticle.id to 0))))
     }
 

@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.helpers.ReferenceId
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -22,10 +21,18 @@ data class Catalogue(@Id val id: String,
                      val creationDate: LocalDateTime,
                      val articles: Map<String, Int> = emptyMap(),
                      val subCatalogues: Map<String, Int> = emptyMap(),
-                     val parentCatalogue: String = ReferenceId.None.value)
+                     val parentCatalogue: String? = null){
+    fun hasParent(): Boolean {
+        return this.parentCatalogue != null
+    }
+}
 
 class CatalogueNotFoundException : Exception()
+class CatalogueTitleTakenException : Exception()
+
 class CatalogueAlreadyAChildException : Exception()
 class CatalogueNotAChildException : Exception()
-class CatalogueTitleTakenException : Exception()
 class SelfContainedCatalogueException : Exception()
+
+class ArticleAlreadyInCatalogueException : Exception()
+class ArticleNotInCatalogueException : Exception()

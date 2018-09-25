@@ -65,15 +65,4 @@ interface Entries {
      * @return A list of matching entries.
      */
     fun getByContent(searchText: String): List<Entry>
-
-    /**
-     * Changes the article of an entry.
-     *
-     * @param entryId The value of the entry targeted.
-     * @param articleId The value of the new article.
-     * @return The updated entry.
-     */
-    @Throws(EntryNotFoundException::class,
-            EntryAlreadyInArticleException::class)
-    fun changeArticle(entryId: String, articleId: String): Entry
 }

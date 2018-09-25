@@ -103,7 +103,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val parentCatalogue = findOrThrow(catalogueId)
 
-        val updatedChild = subCatalogue.copy(parentCatalogue = ReferenceId.None.value)
+        val updatedChild = subCatalogue.copy(parentCatalogue = null)
 
         val updatedParent = parentCatalogue.copy(subCatalogues = parentCatalogue.subCatalogues.subtract(subCatalogue.id))
 
@@ -114,27 +114,27 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     }
 
     override fun appendArticle(catalogueId: String, article: Article): Article {
-        if(article.catalogueId == catalogueId) throw ArticleAlreadyInCatalogueException()
-
         val catalogue = findOrThrow(catalogueId)
+
+        if(catalogue.articles.containsKey(article.id)) throw ArticleAlreadyInCatalogueException()
 
         val updatedCatalogue = catalogue.copy(articles = catalogue.articles.append(article.id))
 
         coll.update(updatedCatalogue)
 
-        return article.copy(catalogueId = catalogueId)
+        return article
     }
 
     override fun removeArticle(catalogueId: String, article: Article): Article {
-        if(article.catalogueId != catalogueId) throw ArticleNotInCatalogueException()
-
         val catalogue = findOrThrow(catalogueId)
+
+        if(!catalogue.articles.containsKey(article.id)) throw ArticleNotInCatalogueException()
 
         val updatedCatalogue = catalogue.copy(articles = catalogue.articles.subtract(article.id))
 
         coll.update(updatedCatalogue)
 
-        return article.copy(catalogueId = ReferenceId.None.value)
+        return article
     }
 
     override fun switchArticles(catalogueId: String, first: Article, second: Article): Catalogue {

@@ -53,17 +53,6 @@ interface Articles {
     fun removeEntry(articleId: String, entry: Entry): Entry
 
     /**
-     * Sets the catalogue of an article.
-     *
-     * @param articleId The value of the article targeted.
-     * @param catalogue The catalogue.
-     * @return The updated catalogue.
-     */
-    @Throws(ArticleNotFoundException::class,
-            ArticleAlreadyInCatalogueException::class)
-    fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue
-
-    /**
      * Switches two entries in the article.
      *
      * @param articleId The value of the article.

@@ -1,9 +1,7 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.*
-import com.tsbonev.nharker.core.helpers.ReferenceId
 import com.tsbonev.nharker.core.helpers.StubClock
-import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.junit.Before
@@ -25,16 +23,9 @@ class NitriteArticlesTest {
     private val stubClock = StubClock()
     private val collectionName = "TestArticles"
 
-    private val catalogue = Catalogue(
-            "::catalogueId::",
-            "::title::",
-            date
-    )
-
     private val entry = Entry(
             "::entryId::",
             date,
-            "::articleId::",
             "::content::",
             mapOf("::content::" to "::article::")
     )
@@ -42,7 +33,6 @@ class NitriteArticlesTest {
     private val firstPresavedEntry = Entry(
             "::firstPresavedEntryId::",
             date,
-            "::articleId::",
             "::content::",
             emptyMap()
     )
@@ -50,15 +40,13 @@ class NitriteArticlesTest {
     private val secondPresavedEntry = Entry(
             "::secondPresavedEntryId::",
             date,
-            "::articleId::",
             "::content::",
             emptyMap()
     )
 
 
     private val articleRequest = ArticleRequest(
-            "Article title",
-            "::default-catalogue::"
+            "Article title"
     )
 
     private val article = Article(
@@ -66,17 +54,10 @@ class NitriteArticlesTest {
             "article-title",
             "Article title",
             date,
-            "::default-catalogue::",
             emptyList(),
             mapOf(firstPresavedEntry.id to 0,
                     secondPresavedEntry.id to 1),
             ArticleLinks(mutableMapOf())
-    )
-
-    private val defaultCatalogue = Catalogue(
-            "::default-catalogue::",
-            "Default catalogue",
-            date
     )
 
     private val articles = NitriteArticles(db, collectionName, clock = stubClock)
@@ -133,7 +114,7 @@ class NitriteArticlesTest {
     fun `Remove and return entry from article`(){
         val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
 
-        assertThat(removedEntry, Is(secondPresavedEntry.copy(articleId = ReferenceId.Deleted.value)))
+        assertThat(removedEntry, Is(secondPresavedEntry))
         assertThat(presavedArticle().entries.count(), Is(1))
     }
 
@@ -153,24 +134,6 @@ class NitriteArticlesTest {
     @Test(expected = EntryNotInArticleException::class)
     fun `Deleting an entry that isn't in an article throws exception`(){
         articles.removeEntry(article.id, entry)
-    }
-
-    @Test
-    fun `Change article catalogue`(){
-        val changedCatalogue = articles.setCatalogue(article.id, catalogue)
-
-        assertThat(presavedArticle(), Is(article.copy(catalogueId = catalogue.id)))
-        assertThat(changedCatalogue, Is(catalogue.copy(articles= catalogue.articles.append(article.id))))
-    }
-
-    @Test(expected = ArticleAlreadyInCatalogueException::class)
-    fun `Changing catalogue of article to the same value throws exception`(){
-        articles.setCatalogue(article.id, defaultCatalogue)
-    }
-
-    @Test(expected = ArticleNotFoundException::class)
-    fun `Changing catalogue of non-existent article throws exception`(){
-        articles.setCatalogue("::fake-article-value::", catalogue)
     }
 
     @Test
