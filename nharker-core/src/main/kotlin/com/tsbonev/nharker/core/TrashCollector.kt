@@ -6,6 +6,8 @@ import java.lang.Exception
  * Provides the methods to store a deleted entity in a
  * collection and be retrieved on a later basis.
  *
+ * An Entity is any domain object.
+ *
  * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
  */
 interface TrashCollector {
@@ -14,15 +16,15 @@ interface TrashCollector {
      *
      * @return The list of trashed entities.
      */
-    fun view(): List<Entity>
+    fun view(): List<Any>
 
     /**
      * Stores an entity into the trash collection.
      *
      * @param entity Entity to trash.
+     * @return The id of the trashed entity.
      */
-    @Throws(EntityAlreadyInTrashException::class)
-    fun trash(entity: Entity)
+    fun trash(entity: Any): String
 
     /**
      * Retrieves an entity from the trash.
@@ -31,7 +33,7 @@ interface TrashCollector {
      * @return The restored entity.
      */
     @Throws(EntityNotInTrashException::class)
-    fun restore(id: String): Entity
+    fun restore(id: String): Any
 
     /**
      * Clears all trashed entities.
@@ -39,5 +41,4 @@ interface TrashCollector {
     fun clear()
 }
 
-class EntityAlreadyInTrashException: Exception()
 class EntityNotInTrashException: Exception()
