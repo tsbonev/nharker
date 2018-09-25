@@ -41,7 +41,8 @@ class NitriteEntityTrashCollectorTest {
             "::articleId::",
             "article-id",
             "Article id",
-            date
+            date,
+            properties = ArticleProperties(mutableMapOf("::property::" to entry))
     )
 
     private lateinit var trashedId: String
