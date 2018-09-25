@@ -85,6 +85,24 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         }
     }
 
+    override fun attachProperty(articleId: String, propertyName: String, property: Entry): Entry {
+        val article = findByIdOrThrow(articleId)
+
+        article.properties.attachProperty(propertyName, property)
+
+        coll.update(article)
+        return property
+    }
+
+    override fun detachProperty(articleId: String, propertyName: String): Entry {
+        val article = findByIdOrThrow(articleId)
+
+        val property = article.properties.detachProperty(propertyName)
+
+        coll.update(article)
+        return property
+    }
+
     private fun findByIdOrThrow(articleId: String): Article{
         return coll.find(Article::id eq articleId).firstOrNull() ?: throw ArticleNotFoundException()
     }
