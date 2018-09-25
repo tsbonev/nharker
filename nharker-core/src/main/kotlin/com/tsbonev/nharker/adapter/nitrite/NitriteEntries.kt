@@ -27,7 +27,6 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         val entry = Entry(
                 NitriteId.newId().toString(),
                 LocalDateTime.now(clock),
-                entryRequest.articleId,
                 entryRequest.content,
                 entryRequest.links
         )
@@ -62,15 +61,6 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         val entry = findByIdOrThrow(entryId)
         val updatedEntry = entry.copy(links = links)
 
-        coll.update(updatedEntry)
-        return updatedEntry
-    }
-
-    override fun changeArticle(entryId: String, articleId: String): Entry {
-        val entry = findByIdOrThrow(entryId)
-        if(entry.articleId == articleId) throw EntryAlreadyInArticleException()
-
-        val updatedEntry = entry.copy(articleId = articleId)
         coll.update(updatedEntry)
         return updatedEntry
     }

@@ -23,7 +23,6 @@ class NitriteEntriesTest {
 
     private val entryRequest = EntryRequest(
             "::content::",
-            "::articleId::",
             mapOf("::content::" to "::article::")
     )
 
@@ -34,7 +33,6 @@ class NitriteEntriesTest {
     private val entry = Entry(
             "::entryId::",
             date,
-            "::articleId::",
             "::content::",
             mapOf("::content::" to "::article::")
     )
@@ -101,23 +99,6 @@ class NitriteEntriesTest {
     @Test(expected = EntryNotFoundException::class)
     fun `Updating a non-existent entry's links throws exception`(){
         entries.updateLinks("::fake-entry-value::", mapOf("::new-link::" to "::new-article::"))
-    }
-
-    @Test
-    fun `Change entry article`(){
-        val updatedEntry = entries.changeArticle(entry.id, "::new-article::")
-
-        assertThat(updatedEntry, Is(entry.copy(articleId = "::new-article::")))
-    }
-
-    @Test(expected = EntryNotFoundException::class)
-    fun `Changing entry article of non-existent entry throws exception`(){
-        entries.changeArticle("::fake-entry-value::", entry.articleId)
-    }
-
-    @Test(expected = EntryAlreadyInArticleException::class)
-    fun `Changing entry article with the same article throws exception`(){
-        entries.changeArticle(entry.id, entry.articleId)
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.helpers.ReferenceId
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -17,13 +16,11 @@ import java.time.LocalDateTime
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Indices(Index(value = "linkTitle", type = IndexType.NonUnique),
-        Index(value = "fullTitle", type = IndexType.Fulltext),
-        Index(value = "catalogueId", type = IndexType.NonUnique))
+        Index(value = "fullTitle", type = IndexType.Fulltext))
 data class Article(@Id val id: String,
                    val linkTitle: String,
                    val fullTitle: String,
                    val creationDate: LocalDateTime,
-                   val catalogueId: String = ReferenceId.None.value,
                    val properties: List<ArticleProperty> = emptyList(),
                    val entries: Map<String, Int> = emptyMap(),
                    val links: ArticleLinks = ArticleLinks(mutableMapOf()))
@@ -55,6 +52,7 @@ data class ArticleHead(val id: String,
                        val creationDate: LocalDateTime)
 
 class ArticleNotFoundException : Exception()
-class ArticleAlreadyInCatalogueException : Exception()
-class ArticleNotInCatalogueException : Exception()
 class ArticleTitleTakenException : Exception()
+
+class EntryAlreadyInArticleException : Exception()
+class EntryNotInArticleException : Exception()

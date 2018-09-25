@@ -29,8 +29,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                 NitriteId.newId().toString(),
                 articleRequest.title.toLinkTitle(),
                 articleRequest.title,
-                LocalDateTime.now(clock),
-                articleRequest.catalogue
+                LocalDateTime.now(clock)
         )
 
         if(coll.find(Article::linkTitle eq article.linkTitle).firstOrNull() != null)
@@ -60,7 +59,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         coll.update(updatedArticle)
 
-        return entry.copy(articleId = articleId)
+        return entry
     }
 
     override fun removeEntry(articleId: String, entry: Entry): Entry {
@@ -71,19 +70,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         val updatedArticle = article.copy(entries = article.entries.subtract(entry.id))
         coll.update(updatedArticle)
 
-        return entry.copy(articleId = ReferenceId.Deleted.value)
-    }
-
-    override fun setCatalogue(articleId: String, catalogue: Catalogue): Catalogue {
-        val article = findByIdOrThrow(articleId)
-
-        if(article.catalogueId == catalogue.id) throw ArticleAlreadyInCatalogueException()
-
-        val updatedArticle = article.copy(catalogueId = catalogue.id)
-
-        coll.update(updatedArticle)
-
-        return catalogue.copy(articles = catalogue.articles.append(articleId))
+        return entry
     }
 
     override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
