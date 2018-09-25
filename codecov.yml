@@ -15,13 +15,14 @@ coverage:
         base: auto
     patch:
       default:
-        enabled: no
-        if_not_found: success
+        target: 75%
+          threshold: 10
+          base: auto
     changes:
       default:
-        enabled: no
-        if_not_found: success
-
+        target: 75%
+          threshold: 10
+          base: auto
 parsers:
   gcov:
     branch_detection:
