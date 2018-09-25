@@ -8,6 +8,7 @@ import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteCollection
 
 /**
+ *
  * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
  */
 class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
@@ -18,24 +19,26 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
     private val coll: NitriteCollection
         get() = nitriteDb.getCollection(collectionName)
 
-    override fun view(): List<Entity> {
+    override fun view(): List<Any> {
         val docList = coll.find().toList()
 
-        val entityList = mutableListOf<Entity>()
+        val entityList = mutableListOf<Any>()
 
         docList.forEach { entityList.add(it.toEntity()) }
 
         return entityList
     }
 
-    override fun trash(entity: Entity) {
-        if (coll.find("entityId" eq entity.id).firstOrNull() != null)
-            throw EntityAlreadyInTrashException()
+    override fun trash(entity: Any): String {
 
-        coll.insert(entity.toDocument())
+        val documentEntity = entity.toDocument()
+
+        coll.insert(documentEntity)
+
+        return documentEntity.get("entityId", String::class.java)
     }
 
-    override fun restore(id: String): Entity {
+    override fun restore(id: String): Any {
         val restoredDoc = coll.find("entityId" eq id).firstOrNull()
                 ?: throw EntityNotInTrashException()
 
