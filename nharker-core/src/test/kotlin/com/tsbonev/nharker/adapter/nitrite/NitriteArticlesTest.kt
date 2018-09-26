@@ -44,6 +44,12 @@ class NitriteArticlesTest {
             emptyMap()
     )
 
+    private val articleProperty = Entry(
+            "::articleProperty::",
+            date,
+            "::Content::",
+            emptyMap()
+    )
 
     private val articleRequest = ArticleRequest(
             "Article title"
@@ -54,10 +60,10 @@ class NitriteArticlesTest {
             "article-title",
             "Article title",
             date,
-            emptyList(),
-            mapOf(firstPresavedEntry.id to 0,
+            properties = ArticleProperties(mutableMapOf("::property::" to articleProperty)),
+            entries = mapOf(firstPresavedEntry.id to 0,
                     secondPresavedEntry.id to 1),
-            ArticleLinks(mutableMapOf())
+            links = ArticleLinks(mutableMapOf())
     )
 
     private val articles = NitriteArticles(db, collectionName, clock = stubClock)
@@ -69,10 +75,14 @@ class NitriteArticlesTest {
 
     @Test
     fun `Create and return article`(){
-        db.getRepository(collectionName, Article::class.java).remove(Article::linkTitle eq article.linkTitle)
+        db.getRepository(collectionName, Article::class.java)
+                .remove(Article::linkTitle eq article.linkTitle)
+
         val createdArticle = articles.create(articleRequest)
 
-        assertThat(createdArticle.copy(id = "::articleId::", entries = article.entries), Is(article))
+        assertThat(createdArticle.copy(id = "::articleId::",
+                entries = article.entries),
+                Is(article.copy(properties = ArticleProperties(mutableMapOf()))))
     }
 
     @Test
@@ -102,7 +112,7 @@ class NitriteArticlesTest {
         val appendedEntry = articles.appendEntry(article.id, entry)
 
         assertThat(appendedEntry, Is(entry))
-        assertThat(presavedArticle(), Is(article.copy(entries = article.entries.plus(entry.id to 2))))
+        assertThat(presavedArticle, Is(article.copy(entries = article.entries.plus(entry.id to 2))))
     }
 
     @Test(expected = EntryAlreadyInArticleException::class)
@@ -115,15 +125,15 @@ class NitriteArticlesTest {
         val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
 
         assertThat(removedEntry, Is(secondPresavedEntry))
-        assertThat(presavedArticle().entries.count(), Is(1))
+        assertThat(presavedArticle.entries.count(), Is(1))
     }
 
     @Test
     fun `Reorder entries after deletion`(){
         articles.removeEntry(article.id, firstPresavedEntry)
 
-        assertThat(presavedArticle().entries.count(), Is(1))
-        assertThat(presavedArticle().entries[secondPresavedEntry.id], Is(0))
+        assertThat(presavedArticle.entries.count(), Is(1))
+        assertThat(presavedArticle.entries[secondPresavedEntry.id], Is(0))
     }
 
     @Test(expected = ArticleNotFoundException::class)
@@ -140,7 +150,7 @@ class NitriteArticlesTest {
     fun `Switch entries in an article`(){
         val updatedArticle = articles.switchEntries(article.id, firstPresavedEntry, secondPresavedEntry)
 
-        assertThat(updatedArticle, Is(presavedArticle().copy(
+        assertThat(updatedArticle, Is(presavedArticle.copy(
                 entries = mapOf(secondPresavedEntry.id to 0,
                         firstPresavedEntry.id to 1)
         )))
@@ -156,7 +166,39 @@ class NitriteArticlesTest {
         articles.switchEntries(article.id, entry, secondPresavedEntry)
     }
 
-    private fun presavedArticle(): Article{
-        return db.getRepository(collectionName, Article::class.java).find(Article::id eq article.id).first()
+    @Test
+    fun `Attach property to article`(){
+        val attachedProperty = articles.attachProperty(article.id, "::propertyName::", entry)
+
+        assertThat(attachedProperty, Is(entry))
+        assertThat(presavedArticle.properties.getAll(),
+                Is(mapOf("::propertyName::" to entry,
+                        "::property::" to articleProperty)))
     }
+
+    @Test(expected = ArticleNotFoundException::class)
+    fun `Attaching property to non-existent article throws exception`(){
+        articles.attachProperty("::non-existing-article::", "::propertyName::", entry)
+    }
+
+    @Test
+    fun `Detach property from article`(){
+        val detachedProperty = articles.detachProperty(article.id, "::property::")
+
+        assertThat(detachedProperty, Is(articleProperty))
+        assertThat(presavedArticle.properties.getAll(), Is(emptyMap()))
+    }
+    
+    @Test(expected = PropertyNotFoundException::class)
+    fun `Detaching non-existent property throws exception`(){
+        articles.detachProperty(article.id, "::non-existent-property::")
+    }
+
+    @Test(expected = ArticleNotFoundException::class)
+    fun `Detaching property from non-existent article throws exception`(){
+        articles.detachProperty("::non-existing-article::", "::property::")
+    }
+
+    private val presavedArticle: Article
+            get() = db.getRepository(collectionName, Article::class.java).find(Article::id eq article.id).first()
 }

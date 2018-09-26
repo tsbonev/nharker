@@ -63,4 +63,27 @@ interface Articles {
     @Throws(ArticleNotFoundException::class,
             EntryNotInArticleException::class)
     fun switchEntries(articleId: String, first: Entry, second: Entry): Article
+
+    /**
+     * Attaches a property to an article, if another property
+     * has been attached, replaces the entry it points to.
+     *
+     * @param articleId: The id of the targeted article.
+     * @param propertyName The name of the property.
+     * @param property The entry describing the property.
+     * @return The attached property.
+     */
+    @Throws(ArticleNotFoundException::class)
+    fun attachProperty(articleId: String, propertyName: String, property: Entry): Entry
+
+    /**
+     * Detaches a property from an article.
+     *
+     * @param articleId The id of the targeted article.
+     * @param propertyName The name of the property.
+     * @return The removed property.
+     */
+    @Throws(ArticleNotFoundException::class,
+            PropertyNotFoundException::class)
+    fun detachProperty(articleId: String, propertyName: String): Entry
 }
