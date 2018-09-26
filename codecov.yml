@@ -10,28 +10,14 @@ coverage:
   status:
     project:
       default:
+        enabled: yes
         target: 75%
-        threshold: 10
-        base: auto
+        threshold: 10%
+
     patch:
       default:
+        enabled: yes
         target: 75%
-          threshold: 10
-          base: auto
-    changes:
-      default:
-        target: 75%
-          threshold: 10
-          base: auto
-parsers:
-  gcov:
-    branch_detection:
-      conditional: yes
-      loop: yes
-      method: no
-      macro: no
+        threshold: 10%
 
-comment:
-  layout: "header, diff"
-  behavior: default
-  require_changes: no
+    changes: no

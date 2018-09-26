@@ -158,6 +158,11 @@ class NitriteCataloguesTest {
                 subCatalogues= catalogue.subCatalogues.append(subCatalogue.id))))
     }
 
+    @Test(expected = CatalogueAlreadyAChildException::class)
+    fun `Changing parent of a child to the same parent throws exception`(){
+        catalogues.changeParentCatalogue(firstPresavedSubcatalogue.id, catalogue)
+    }
+
     @Test(expected = CatalogueNotFoundException::class)
     fun `Changing parent of non-existent catalogue throws exception`(){
         catalogues.changeParentCatalogue("::fake-parent-id::", subCatalogue)
