@@ -142,7 +142,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
      * @param adding Whether or not the links should be added or removed.
      */
     private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean){
-        val entryLinks = entryLinker.findLinksInContent(
+        val entryLinks = entryLinker.findArticleLinks(
                 entry,
                 getArticleLinkTitles()
         )

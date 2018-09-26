@@ -8,11 +8,11 @@ package com.tsbonev.nharker.core
  */
 interface EntryLinker {
     /**
-     * Searches for links in an entry.
+     * Searches for links in an entry's content.
      *
-     * @param entry The entry to link.
-     * @param articleLinkTitles The titles of the articles to try and link to.
-     * @return The list of article titles that are linked.
+     * @param entry The entry to link from.
+     * @param articleLinkTitles The titles of the articles to match for links.
+     * @return The set of article titles that are linked.
      */
-    fun findLinksInContent(entry: Entry, articleLinkTitles: List<String>): List<String>
+    fun findArticleLinks(entry: Entry, articleLinkTitles: List<String>): Set<String>
 }

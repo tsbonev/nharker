@@ -128,8 +128,8 @@ class NitriteArticlesTest {
     @Test
     fun `Append entry to article`() {
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(entry, listOf("article-title"))
-            will(returnValue(emptyList<String>()))
+            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            will(returnValue(emptySet<String>()))
         }
 
         val appendedEntry = articles.appendEntry(article.id, entry)
@@ -141,8 +141,8 @@ class NitriteArticlesTest {
     @Test
     fun `Automatically link to articles when appending`() {
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(entry, listOf("article-title"))
-            will(returnValue(listOf("new-article-title")))
+            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            will(returnValue(setOf("new-article-title")))
         }
 
         articles.appendEntry(article.id, entry)
@@ -155,8 +155,8 @@ class NitriteArticlesTest {
     @Test
     fun `Linking increases count when already linked`(){
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(entry, listOf("article-title"))
-            will(returnValue(listOf("article-title-2")))
+            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            will(returnValue(setOf("article-title-2")))
         }
 
         articles.appendEntry(article.id, entry)
@@ -174,8 +174,8 @@ class NitriteArticlesTest {
     @Test
     fun `Remove and return entry from article`() {
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(secondPresavedEntry, listOf("article-title"))
-            will(returnValue(emptyList<String>()))
+            oneOf(entryLinker).findArticleLinks(secondPresavedEntry, listOf("article-title"))
+            will(returnValue(emptySet<String>()))
         }
 
         val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
@@ -187,8 +187,8 @@ class NitriteArticlesTest {
     @Test
     fun `De-link when deleting entry`() {
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(firstPresavedEntry, listOf("article-title"))
-            will(returnValue(listOf("article-title-2")))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            will(returnValue(setOf("article-title-2")))
         }
 
         articles.removeEntry(article.id, firstPresavedEntry)
@@ -199,8 +199,8 @@ class NitriteArticlesTest {
     @Test
     fun `Decrease number of links when more than one is present`(){
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(firstPresavedEntry, listOf("article-title"))
-            will(returnValue(listOf("article-title-1")))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            will(returnValue(setOf("article-title-1")))
         }
 
         articles.removeEntry(article.id, firstPresavedEntry)
@@ -212,8 +212,8 @@ class NitriteArticlesTest {
     @Test
     fun `Reorder entries after deletion`() {
         context.expecting {
-            oneOf(entryLinker).findLinksInContent(firstPresavedEntry, listOf("article-title"))
-            will(returnValue(emptyList<String>()))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            will(returnValue(emptySet<String>()))
         }
 
         articles.removeEntry(article.id, firstPresavedEntry)
