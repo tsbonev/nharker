@@ -103,7 +103,6 @@ class NitriteEntriesTest {
 
     @Test
     fun `Query entries by content`(){
-
         val firstEntry = entries.create(entryRequest.copy(content = "apples"))
         val secondEntry = entries.create(entryRequest.copy(content = "apples and oranges"))
         val thirdEntry = entries.create(entryRequest.copy(content = "only oranges"))
@@ -133,5 +132,4 @@ class NitriteEntriesTest {
     fun `Deleting non-existent entry throws exception`(){
         entries.delete("::fake-entry-value::")
     }
-
 }

@@ -71,6 +71,9 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         return entry
     }
 
+    /**
+     * Finds an entry by id or throws an exception.
+     */
     private fun findByIdOrThrow(entryId: String): Entry{
         return coll.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException()
     }

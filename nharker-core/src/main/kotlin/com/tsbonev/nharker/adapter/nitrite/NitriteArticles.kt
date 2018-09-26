@@ -15,6 +15,7 @@ import java.util.Optional
  */
 class NitriteArticles(private val nitriteDb: Nitrite,
                       private val collectionName: String = "Articles",
+                      private val entryLinker: EntryLinker,
                       private val clock: Clock = Clock.systemUTC()) : Articles {
 
     /**
@@ -54,6 +55,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         if(article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
 
+        handleArticleLinks(article, entry, true)
+
         val updatedArticle = article
                 .copy(entries = article.entries.append(entry.id))
 
@@ -66,6 +69,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         val article = findByIdOrThrow(articleId)
 
         if(!article.entries.contains(entry.id)) throw EntryNotInArticleException()
+
+        handleArticleLinks(article, entry, false)
 
         val updatedArticle = article.copy(entries = article.entries.subtract(entry.id))
         coll.update(updatedArticle)
@@ -103,7 +108,53 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return property
     }
 
+    /**
+     * Finds an article by id or throws an exception.
+     */
     private fun findByIdOrThrow(articleId: String): Article{
         return coll.find(Article::id eq articleId).firstOrNull() ?: throw ArticleNotFoundException()
+    }
+
+    /**
+     * Returns a list of all articles' link titles.
+     *
+     * @return List of article link titles.
+     */
+    private fun getArticleLinkTitles(): List<String>{
+        val projectedArticleTitles = coll
+                .find()
+                .project(ArticleLinkTitle::class.java)
+                .toList()
+
+        val articleTitles = mutableListOf<String>()
+
+        projectedArticleTitles.forEach { articleTitles.add(it.linkTitle) }
+
+        return articleTitles
+    }
+
+    /**
+     * Removes or adds a link to the article's links depending on the passed
+     * boolean.
+     *
+     * @param article The article to modify.
+     * @param entry The entry whose links are up for modification.
+     * @param adding Whether or not the links should be added or removed.
+     */
+    private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean){
+        val entryLinks = entryLinker.findLinksInContent(
+                entry,
+                getArticleLinkTitles()
+        )
+
+        if(adding){
+            entryLinks.forEach {
+                article.links.addLink(it)
+            }
+        }else{
+            entryLinks.forEach {
+                article.links.removeLink(it)
+            }
+        }
     }
 }

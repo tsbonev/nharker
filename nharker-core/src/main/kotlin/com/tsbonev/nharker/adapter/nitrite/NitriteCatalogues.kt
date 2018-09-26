@@ -161,6 +161,9 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         }
     }
 
+    /**
+     * Finds a catalogue by id or throws an exception.
+     */
     private fun findOrThrow(catalogueId: String): Catalogue{
         return coll.find(Catalogue::id eq catalogueId).firstOrNull() ?: throw CatalogueNotFoundException()
     }
