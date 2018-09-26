@@ -17,7 +17,7 @@ import org.junit.Assert.assertThat
 import org.junit.Before
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntityTrashCollectorTest {
 

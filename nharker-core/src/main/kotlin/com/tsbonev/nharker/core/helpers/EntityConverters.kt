@@ -7,7 +7,7 @@ import org.dizitart.no2.NitriteId
 /**
  * Converters used by the trash store utilizing Jackson.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 /**
