@@ -36,6 +36,11 @@ fun String.toLinkTitle(): String {
             .replace(".", "")
 }
 
+/**
+ * Projection used for faster automatic linking.
+ */
+data class ArticleLinkTitle(val linkTitle: String)
+
 class ArticleNotFoundException : Exception()
 class ArticleTitleTakenException : Exception()
 

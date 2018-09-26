@@ -80,6 +80,10 @@ class NitriteCataloguesTest {
                     secondPresavedSubcatalogue.id to 1)
     )
 
+    private val presavedCatalogue: Catalogue
+        get() = db.getRepository(collectionName, Catalogue::class.java)
+                .find(Catalogue::id eq catalogue.id).first()
+
     private val catalogues = NitriteCatalogues(
             db,
             collectionName,
@@ -131,7 +135,7 @@ class NitriteCataloguesTest {
         val updatedCatalogue = catalogues.changeTitle(catalogue.id, "::new-title::")
 
         assertThat(updatedCatalogue, Is(catalogue.copy(title = updatedCatalogue.title)))
-        assertThat(presavedCatalogue(), Is(updatedCatalogue))
+        assertThat(presavedCatalogue, Is(updatedCatalogue))
     }
 
     @Test(expected = CatalogueTitleTakenException::class)
@@ -148,8 +152,10 @@ class NitriteCataloguesTest {
     fun `Change parent of catalogue`(){
         val updatedChild = catalogues.changeParentCatalogue(subCatalogue.id, catalogue)
 
-        assertThat(updatedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
-        assertThat(presavedCatalogue(), Is(catalogue.copy(subCatalogues= catalogue.subCatalogues.append(subCatalogue.id))))
+        assertThat(updatedChild, Is(subCatalogue.copy(
+                parentCatalogue = catalogue.id)))
+        assertThat(presavedCatalogue, Is(catalogue.copy(
+                subCatalogues= catalogue.subCatalogues.append(subCatalogue.id))))
     }
 
     @Test(expected = CatalogueNotFoundException::class)
@@ -167,7 +173,7 @@ class NitriteCataloguesTest {
         val appendedChild = catalogues.appendSubCatalogue(catalogue.id, subCatalogue)
 
         assertThat(appendedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
-        assertThat(presavedCatalogue(), Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
+        assertThat(presavedCatalogue, Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
                 subCatalogue.id to catalogue.subCatalogues.count()
         ))))
     }
@@ -192,14 +198,14 @@ class NitriteCataloguesTest {
         val removedCatalogue = catalogues.removeSubCatalogue(catalogue.id, secondPresavedSubcatalogue)
 
         assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentCatalogue = null)))
-        assertThat(presavedCatalogue().subCatalogues, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
+        assertThat(presavedCatalogue.subCatalogues, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
     }
 
     @Test
     fun `Reorder subcatalogues after deletion`(){
         catalogues.removeSubCatalogue(catalogue.id, firstPresavedSubcatalogue)
 
-        assertThat(presavedCatalogue().subCatalogues, Is(mapOf(secondPresavedSubcatalogue.id to 0)))
+        assertThat(presavedCatalogue.subCatalogues, Is(mapOf(secondPresavedSubcatalogue.id to 0)))
     }
 
     @Test(expected = CatalogueNotAChildException::class)
@@ -218,7 +224,7 @@ class NitriteCataloguesTest {
         val appendedChild = catalogues.appendArticle(catalogue.id, article)
 
         assertThat(appendedChild, Is(article))
-        assertThat(presavedCatalogue(), Is(catalogue.copy(articles = catalogue.articles.plus(
+        assertThat(presavedCatalogue, Is(catalogue.copy(articles = catalogue.articles.plus(
                 article.id to catalogue.articles.count()
         ))))
     }
@@ -238,14 +244,14 @@ class NitriteCataloguesTest {
         val removedArticle = catalogues.removeArticle(catalogue.id, secondPresavedArticle)
 
         assertThat(removedArticle, Is(secondPresavedArticle))
-        assertThat(presavedCatalogue(), Is(catalogue.copy(articles = mapOf(firstPresavedArticle.id to 0))))
+        assertThat(presavedCatalogue, Is(catalogue.copy(articles = mapOf(firstPresavedArticle.id to 0))))
     }
 
     @Test
     fun `Reorder articles after deletion`(){
         catalogues.removeArticle(catalogue.id, firstPresavedArticle)
 
-        assertThat(presavedCatalogue(), Is(catalogue.copy(articles = mapOf(secondPresavedArticle.id to 0))))
+        assertThat(presavedCatalogue, Is(catalogue.copy(articles = mapOf(secondPresavedArticle.id to 0))))
     }
 
     @Test(expected = ArticleNotInCatalogueException::class)
@@ -261,9 +267,10 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Switch articles in catalogue`(){
-        val updatedCatalogue = catalogues.switchArticles(catalogue.id, firstPresavedArticle, secondPresavedArticle)
+        val updatedCatalogue = catalogues.switchArticles(catalogue.id,
+                firstPresavedArticle, secondPresavedArticle)
 
-        assertThat(updatedCatalogue, Is(presavedCatalogue().copy(articles = mapOf(
+        assertThat(updatedCatalogue, Is(presavedCatalogue.copy(articles = mapOf(
                 secondPresavedArticle.id to 0,
                 firstPresavedArticle.id to 1
         ))))
@@ -271,7 +278,8 @@ class NitriteCataloguesTest {
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Switching articles in non-existent catalogue throws exception`(){
-        catalogues.switchArticles("::fake-catalogue-value::", firstPresavedArticle, secondPresavedArticle)
+        catalogues.switchArticles("::fake-catalogue-value::",
+                firstPresavedArticle, secondPresavedArticle)
     }
 
     @Test(expected = ArticleNotInCatalogueException::class)
@@ -281,9 +289,10 @@ class NitriteCataloguesTest {
 
     @Test
     fun `Switch subcatalogues in catalogue`(){
-        val updatedCatalogue = catalogues.switchSubCatalogues(catalogue.id, firstPresavedSubcatalogue, secondPresavedSubcatalogue)
+        val updatedCatalogue = catalogues.switchSubCatalogues(catalogue.id,
+                firstPresavedSubcatalogue, secondPresavedSubcatalogue)
 
-        assertThat(updatedCatalogue, Is(presavedCatalogue().copy(subCatalogues = mapOf(
+        assertThat(updatedCatalogue, Is(presavedCatalogue.copy(subCatalogues = mapOf(
                 secondPresavedSubcatalogue.id to 0,
                 firstPresavedSubcatalogue.id to 1
         ))))
@@ -296,12 +305,13 @@ class NitriteCataloguesTest {
 
     @Test(expected = CatalogueNotFoundException::class)
     fun `Switching subcatalogues in non-existing catalogue throws exception`(){
-        catalogues.switchSubCatalogues("::fake-catalogue-value::", firstPresavedSubcatalogue, secondPresavedSubcatalogue)
+        catalogues.switchSubCatalogues("::fake-catalogue-value::",
+                firstPresavedSubcatalogue, secondPresavedSubcatalogue)
     }
 
     @Test
     fun `Delete and return catalogue`(){
-        val savedCatalogue = presavedCatalogue()
+        val savedCatalogue = presavedCatalogue
 
         val deletedCatalogue = catalogues.delete(savedCatalogue.id)
 
@@ -315,9 +325,5 @@ class NitriteCataloguesTest {
     @Test(expected = CatalogueNotFoundException::class)
     fun `Deleting non-existent catalogue throws exception`(){
         catalogues.delete("::fake-catalogue-value::")
-    }
-
-    private fun presavedCatalogue(): Catalogue{
-        return db.getRepository(collectionName, Catalogue::class.java).find(Catalogue::id eq catalogue.id).first()
     }
 }
