@@ -29,27 +29,12 @@ data class Article(@Id val id: String,
  * Converts a full text title to a lowercase, dash-concatenated string.
  */
 fun String.toLinkTitle(): String {
-    return this.toLowerCase().replace(' ', '-').replace("\'", "")
+    return this.toLowerCase()
+            .replace(' ', '-')
+            .replace("\'", "")
+            .replace(",", "")
+            .replace(".", "")
 }
-
-/**
- * Projection used to extract the link titles of an Article.
- */
-data class ArticleLinkTitle(val linkTitle: String)
-
-/**
- * Projection used to extract the full title of an Article.
- */
-data class ArticleFullTitle(val fullTitle: String)
-
-/**
- * Projection used to extract the general properties of an Article.
- */
-data class ArticleHead(val id: String,
-                       val linkTitle: String,
-                       val fullTitle: String,
-                       val catalogue: String,
-                       val creationDate: LocalDateTime)
 
 class ArticleNotFoundException : Exception()
 class ArticleTitleTakenException : Exception()

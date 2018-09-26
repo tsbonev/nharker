@@ -9,7 +9,7 @@ import org.dizitart.no2.NitriteCollection
 
 /**
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
                                   private val collectionName: String = "Entity_trash") : TrashCollector {
