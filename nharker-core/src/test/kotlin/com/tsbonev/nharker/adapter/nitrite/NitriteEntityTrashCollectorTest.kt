@@ -52,24 +52,24 @@ class NitriteEntityTrashCollectorTest {
     private val trashCollector = NitriteEntityTrashCollector(db, entryTrashCollectionName)
 
     private val coll = db.getCollection(entryTrashCollectionName)
-    
+
     @Before
-    fun setUp(){
+    fun setUp() {
         val trashedDoc = trashedEntry.toDocument()
         trashedId = trashedDoc.get("entityId", String::class.java)
 
         coll.insert(trashedDoc)
     }
-    
+
     @Test
-    fun `Trash entity`(){
+    fun `Trash entity`() {
         val trashedID = trashCollector.trash(entry)
 
         assertThat(findEntity(trashedID) as Entry, Is(entry))
     }
 
     @Test
-    fun `Trash entities of differing types`(){
+    fun `Trash entities of differing types`() {
         val entryTrashedId = trashCollector.trash(entry)
         val articleTrashedId = trashCollector.trash(article)
 
@@ -78,33 +78,33 @@ class NitriteEntityTrashCollectorTest {
     }
 
     @Test
-    fun `Restore entity from trash`(){
+    fun `Restore entity from trash`() {
         val restoredEntry = trashCollector.restore(trashedId) as Entry
 
         assertThat(restoredEntry, Is(trashedEntry))
     }
 
     @Test
-    fun `Restoring entity removes it from trash`(){
+    fun `Restoring entity removes it from trash`() {
         trashCollector.restore(trashedId)
 
         assertThat(coll.find("entityId" eq trashedId).firstOrNull(), Is(nullValue()))
     }
 
     @Test(expected = EntityNotInTrashException::class)
-    fun `Restoring non-trashed entity throws exception`(){
+    fun `Restoring non-trashed entity throws exception`() {
         trashCollector.restore(entry.id)
     }
 
     @Test
-    fun `View trashed entities`(){
+    fun `View trashed entities`() {
         val trashed = trashCollector.view()
-        
+
         assertThat(trashed, Is(listOf<Any>(trashedEntry)))
     }
 
     @Test
-    fun `Clear trashed`(){
+    fun `Clear trashed`() {
         trashCollector.clear()
 
         assertThat(coll.find().toList(), Is(emptyList()))

@@ -8,10 +8,9 @@ import java.time.LocalDateTime
 
 /**
  * Articles are the main building block of
- * NHarker's organization scheme, they group
- * entries together into different information
- * categories and consolidate their links into
- * one accessible map.
+ * NHarker's organization scheme, they keep track
+ * of entries and handle automatically linking
+ * to each other based on each entry's content.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -30,7 +29,7 @@ data class Article(@Id val id: String,
  */
 fun String.toLinkTitle(): String {
     return this.toLowerCase()
-            .replace(' ', '-')
+            .replace("\\s+".toRegex(), "-")
             .replace("\'", "")
             .replace(",", "")
             .replace(".", "")
@@ -46,8 +45,8 @@ data class ArticleLinkTitle(val linkTitle: String)
  */
 data class ArticleFullTitle(val fullTitle: String)
 
-class ArticleNotFoundException : Exception()
-class ArticleTitleTakenException : Exception()
+class ArticleNotFoundException : Throwable()
+class ArticleTitleTakenException : Throwable()
 
-class EntryAlreadyInArticleException : Exception()
-class EntryNotInArticleException : Exception()
+class EntryAlreadyInArticleException : Throwable()
+class EntryNotInArticleException : Throwable()

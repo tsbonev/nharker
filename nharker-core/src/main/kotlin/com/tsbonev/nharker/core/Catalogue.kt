@@ -21,19 +21,15 @@ data class Catalogue(@Id val id: String,
                      val creationDate: LocalDateTime,
                      val articles: Map<String, Int> = emptyMap(),
                      val subCatalogues: Map<String, Int> = emptyMap(),
-                     val parentCatalogue: String? = null){
-    fun hasParent(): Boolean {
-        return this.parentCatalogue != null
-    }
-}
+                     val parentCatalogue: String? = null)
 
-class CatalogueNotFoundException : Exception()
-class CatalogueTitleTakenException : Exception()
+class CatalogueNotFoundException : Throwable()
+class CatalogueTitleTakenException : Throwable()
 
-class CatalogueAlreadyAChildException : Exception()
-class CatalogueNotAChildException : Exception()
-class SelfContainedCatalogueException : Exception()
-class CatalogueCircularInheritanceException : Exception()
+class CatalogueAlreadyAChildException : Throwable()
+class CatalogueNotAChildException : Throwable()
+class SelfContainedCatalogueException : Throwable()
+class CatalogueCircularInheritanceException : Throwable()
 
-class ArticleAlreadyInCatalogueException : Exception()
-class ArticleNotInCatalogueException : Exception()
+class ArticleAlreadyInCatalogueException : Throwable()
+class ArticleNotInCatalogueException : Throwable()

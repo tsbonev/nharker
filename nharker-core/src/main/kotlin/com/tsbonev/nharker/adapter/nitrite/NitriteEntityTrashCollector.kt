@@ -12,10 +12,9 @@ import org.dizitart.no2.NitriteCollection
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
-                                  private val collectionName: String = "Entity_trash") : TrashCollector {
-    /**
-     * Retrieve the repository on every request.
-     */
+                                  private val collectionName: String = "Entity_trash")
+    : TrashCollector {
+
     private val coll: NitriteCollection
         get() = nitriteDb.getCollection(collectionName)
 

@@ -5,13 +5,13 @@ import org.dizitart.no2.Document
 import org.dizitart.no2.NitriteId
 
 /**
- * Converters used by the trash store utilizing Jackson.
+ * Converters used by the trash store.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 /**
- * Converts object to a document with three fields,
+ * Converts object to a document with three fields:
  * a class, an id and a json body.
  */
 fun Any.toDocument(): Document {

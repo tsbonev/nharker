@@ -16,9 +16,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
                                     private val collectionName: String = "Article_synonyms",
                                     private val globalMapId: String = "Global_synonym_map")
     : ArticleSynonymProvider {
-    /**
-     * Retrieve the repository on every request.
-     */
+
     private val coll: NitriteCollection
         get() = nitriteDb.getCollection(collectionName)
 
@@ -33,7 +31,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
     override fun addSynonym(articleSynonym: String, article: Article): String {
         val map = getSynonymMap().toMutableMap()
 
-        if(map[articleSynonym] != null) throw SynonymAlreadyTakenException()
+        if (map[articleSynonym] != null) throw SynonymAlreadyTakenException()
 
         map[articleSynonym] = article.linkTitle
 
@@ -44,7 +42,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
     override fun removeSynonym(articleSynonym: String): String {
         val map = getSynonymMap().toMutableMap()
 
-        if(map[articleSynonym] == null) throw SynonymNotFoundException()
+        if (map[articleSynonym] == null) throw SynonymNotFoundException()
 
         map.remove(articleSynonym)
 
@@ -59,7 +57,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
      * @param synonymMap The map whose values to save.
      * @return A Document of the map.
      */
-    private fun updateOrCreateMap(synonymMap: Map<String, String>): Document{
+    private fun updateOrCreateMap(synonymMap: Map<String, String>): Document {
         val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
                 ?: Document.createDocument("globalId", globalMapId)
 

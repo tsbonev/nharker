@@ -16,24 +16,21 @@ import java.util.Optional
 class NitriteArticles(private val nitriteDb: Nitrite,
                       private val collectionName: String = "Articles",
                       private val entryLinker: EntryLinker,
-                      private val clock: Clock = Clock.systemUTC()) : Articles {
+                      private val clock: Clock = Clock.systemUTC())
+    : Articles {
 
-    /**
-     * Retrieve the repository on every request.
-     */
     private val coll: ObjectRepository<Article>
         get() = nitriteDb.getRepository(collectionName, Article::class.java)
 
-    @Throws(ArticleTitleTakenException::class)
     override fun create(articleRequest: ArticleRequest): Article {
         val article = Article(
                 NitriteId.newId().toString(),
-                articleRequest.title.toLinkTitle(),
-                articleRequest.title,
+                articleRequest.fullTitle.toLinkTitle(),
+                articleRequest.fullTitle,
                 LocalDateTime.now(clock)
         )
 
-        if(coll.find(Article::linkTitle eq article.linkTitle).firstOrNull() != null)
+        if (coll.find(Article::linkTitle eq article.linkTitle).firstOrNull() != null)
             throw ArticleTitleTakenException()
 
         coll.insert(article)
@@ -46,35 +43,46 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     }
 
     override fun getById(articleId: String): Optional<Article> {
-        val article = coll.find(Article::id eq articleId).firstOrNull() ?: return Optional.empty()
+        val article = coll.find(Article::id eq articleId).firstOrNull()
+                ?: return Optional.empty()
+
         return Optional.of(article)
+    }
+
+    override fun delete(articleId: String): Article {
+        val article = findByIdOrThrow(articleId)
+
+        coll.remove(article)
+        return article
     }
 
     override fun appendEntry(articleId: String, entry: Entry): Entry {
         val article = findByIdOrThrow(articleId)
 
-        if(article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
+        if (article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
 
         handleArticleLinks(article, entry, true)
 
         val updatedArticle = article
-                .copy(entries = article.entries.append(entry.id))
+                .copy(entries = article.entries
+                        .append(entry.id))
 
         coll.update(updatedArticle)
-
         return entry
     }
 
     override fun removeEntry(articleId: String, entry: Entry): Entry {
         val article = findByIdOrThrow(articleId)
 
-        if(!article.entries.contains(entry.id)) throw EntryNotInArticleException()
+        if (!article.entries.contains(entry.id)) throw EntryNotInArticleException()
 
         handleArticleLinks(article, entry, false)
 
-        val updatedArticle = article.copy(entries = article.entries.subtract(entry.id))
-        coll.update(updatedArticle)
+        val updatedArticle = article
+                .copy(entries = article.entries
+                        .subtract(entry.id))
 
+        coll.update(updatedArticle)
         return entry
     }
 
@@ -82,10 +90,13 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         val article = findByIdOrThrow(articleId)
 
         return try {
-            val updatedArticle = article.copy(entries = article.entries.switch(first.id, second.id))
+            val updatedArticle = article
+                    .copy(entries = article.entries
+                            .switch(first.id, second.id))
+
             coll.update(updatedArticle)
             updatedArticle
-        }catch (ex: ElementNotInMapException){
+        } catch (ex: ElementNotInMapException) {
             throw EntryNotInArticleException()
         }
     }
@@ -111,7 +122,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun getArticleTitles(linkTitleList: Set<String>): List<String> {
         val fullTitleList = mutableListOf<String>()
 
-        linkTitleList.forEach{
+        linkTitleList.forEach {
             val article = coll.find(Article::linkTitle eq it)
                     .project(ArticleFullTitle::class.java).firstOrNull() ?: return@forEach
             fullTitleList.add(article.fullTitle)
@@ -123,7 +134,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     /**
      * Finds an article by id or throws an exception.
      */
-    private fun findByIdOrThrow(articleId: String): Article{
+    private fun findByIdOrThrow(articleId: String): Article {
         return coll.find(Article::id eq articleId).firstOrNull() ?: throw ArticleNotFoundException()
     }
 
@@ -132,7 +143,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
      *
      * @return List of article link titles.
      */
-    private fun getArticleLinkTitles(): List<String>{
+    private fun getArticleLinkTitles(): List<String> {
         val projectedArticleTitles = coll
                 .find()
                 .project(ArticleLinkTitle::class.java)
@@ -153,17 +164,17 @@ class NitriteArticles(private val nitriteDb: Nitrite,
      * @param entry The entry whose links are up for modification.
      * @param adding Whether or not the links should be added or removed.
      */
-    private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean){
+    private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean) {
         val entryLinks = entryLinker.findArticleLinks(
                 entry,
                 getArticleLinkTitles()
         )
 
-        if(adding){
+        if (adding) {
             entryLinks.forEach {
                 article.links.addLink(it)
             }
-        }else{
+        } else {
             entryLinks.forEach {
                 article.links.removeLink(it)
             }

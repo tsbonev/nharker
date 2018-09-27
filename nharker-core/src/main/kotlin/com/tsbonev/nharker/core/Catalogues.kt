@@ -3,6 +3,8 @@ package com.tsbonev.nharker.core
 import java.util.Optional
 
 /**
+ * Provides the methods to handle catalogues in persistence.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface Catalogues {
@@ -30,6 +32,15 @@ interface Catalogues {
     fun getById(catalogueId: String): Optional<Catalogue>
 
     /**
+     * Deletes a catalogue by value.
+     *
+     * @param catalogueId The value of the catalogue targeted.
+     * @return The deleted catalogue.
+     */
+    @Throws(CatalogueNotFoundException::class)
+    fun delete(catalogueId: String): Catalogue
+
+    /**
      * Changes the title of a catalogue.
      *
      * @param catalogueId The value of the catalogue targeted.
@@ -50,15 +61,6 @@ interface Catalogues {
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class)
     fun changeParentCatalogue(childCatalogueId: String, parentCatalogue: Catalogue): Catalogue
-
-    /**
-     * Deletes a catalogue by value.
-     *
-     * @param catalogueId The value of the catalogue targeted.
-     * @return The deleted catalogue.
-     */
-    @Throws(CatalogueNotFoundException::class)
-    fun delete(catalogueId: String): Catalogue
 
     /**
      * Appends a catalogue to the targeted catalogue's children list.

@@ -8,15 +8,16 @@ import java.time.LocalDateTime
 
 /**
  * Entries are the main wrapper of information,
- * all entries are owned by an article and contain
- * a set of phrases that should point to other articles.
+ * they may contain links that are explicit which
+ * will be used by their parent article alongside their
+ * content for linking purposes.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Indices(Index(value = "content", type = IndexType.Fulltext))
-data class Entry (@Id val id: String,
-                  val creationDate: LocalDateTime,
-                  val content: String,
-                  val links: Map<String, String> = emptyMap())
+data class Entry(@Id val id: String,
+                 val creationDate: LocalDateTime,
+                 val content: String,
+                 val links: Map<String, String> = emptyMap())
 
-class EntryNotFoundException : Exception()
+class EntryNotFoundException : Throwable()

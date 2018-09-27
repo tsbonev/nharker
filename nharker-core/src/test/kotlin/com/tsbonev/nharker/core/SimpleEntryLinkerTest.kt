@@ -76,7 +76,7 @@ class SimpleEntryLinkerTest {
     private val entryLinker = SimpleEntryLinker(synonymProvider)
 
     @Test
-    fun `Link entry content to articles`(){
+    fun `Link entry content to articles`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
@@ -88,7 +88,7 @@ class SimpleEntryLinkerTest {
     }
 
     @Test
-    fun `Find no implicit links`(){
+    fun `Find no implicit links`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(emptyMap<String, String>()))
@@ -105,7 +105,7 @@ class SimpleEntryLinkerTest {
         assertThat(articleLinks, Is(emptySet()))
     }
 
-    private fun Mockery.expecting(block: Expectations.() -> Unit){
-            checking(Expectations().apply(block))
+    private fun Mockery.expecting(block: Expectations.() -> Unit) {
+        checking(Expectations().apply(block))
     }
 }

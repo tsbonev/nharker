@@ -20,4 +20,4 @@ data class ArticleProperties (private val map: MutableMap<String, Entry> = mutab
     }
 }
 
-class PropertyNotFoundException : Exception()
+class PropertyNotFoundException : Throwable()

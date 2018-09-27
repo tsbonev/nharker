@@ -45,14 +45,14 @@ class NitriteArticleSynonymProviderTest {
                 .first()["synonymMap"] as Map<String, String>
 
     @Before
-    fun setUp(){
+    fun setUp() {
         val mapDocument = Document.createDocument("globalId", globalMapId)
         mapDocument["synonymMap"] = synonymMap
         db.getCollection(mapCollectionName).insert(mapDocument)
     }
 
     @Test
-    fun `Getting synonym map creates it`(){
+    fun `Getting synonym map creates it`() {
         db.getCollection(mapCollectionName).remove("globalId" eq globalMapId)
 
         val synonymMap = synonymMapProvider.getSynonymMap()
@@ -61,14 +61,14 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test
-    fun `Get synonym map`(){
+    fun `Get synonym map`() {
         val synonymMap = synonymMapProvider.getSynonymMap()
 
         assertThat(synonymMap, Is(synonymMap))
     }
 
     @Test
-    fun `Add synonym to map`(){
+    fun `Add synonym to map`() {
         val synonym = synonymMapProvider.addSynonym("::synonym::", article)
 
         assertThat(presavedMap, Is(synonymMap.plus(
@@ -77,12 +77,12 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test(expected = SynonymAlreadyTakenException::class)
-    fun `Adding existing synonym throws exception`(){
+    fun `Adding existing synonym throws exception`() {
         synonymMapProvider.addSynonym("::presavedSynonym::", article)
     }
 
     @Test
-    fun `Remove synonym from map`(){
+    fun `Remove synonym from map`() {
         synonymMapProvider.removeSynonym("::presavedSynonym::")
 
 
@@ -90,7 +90,7 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test(expected = SynonymNotFoundException::class)
-    fun `Removing non-existent synonym throws exception`(){
+    fun `Removing non-existent synonym throws exception`() {
         synonymMapProvider.removeSynonym("::non-existent-synonym::")
     }
 }

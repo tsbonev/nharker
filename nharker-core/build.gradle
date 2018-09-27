@@ -1,5 +1,3 @@
-group 'com.tsbonev.nharker'
-
 repositories {
     mavenCentral()
     mavenLocal()

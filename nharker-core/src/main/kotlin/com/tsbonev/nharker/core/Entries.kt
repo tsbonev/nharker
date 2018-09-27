@@ -3,10 +3,11 @@ package com.tsbonev.nharker.core
 import java.util.Optional
 
 /**
+ * Provides the methods to handle entries in persistence.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface Entries {
-
     /**
      * Creates an Entry from an EntryRequest and saves it into persistence.
      *
@@ -20,6 +21,15 @@ interface Entries {
      * if it exists.
      */
     fun save(entry: Entry): Entry
+
+    /**
+     * Deletes an entry.
+     *
+     * @param entryId The Id of the entry targeted.
+     * @return The deleted entry.
+     */
+    @Throws(EntryNotFoundException::class)
+    fun delete(entryId: String): Entry
 
     /**
      * Updates the content of an entry.
@@ -40,15 +50,6 @@ interface Entries {
      */
     @Throws(EntryNotFoundException::class)
     fun updateLinks(entryId: String, links: Map<String, String>): Entry
-
-    /**
-     * Deletes an entry.
-     *
-     * @param entryId The Id of the entry targeted.
-     * @return The deleted entry.
-     */
-    @Throws(EntryNotFoundException::class)
-    fun delete(entryId: String): Entry
 
     /**
      * Returns an optional entry by value.

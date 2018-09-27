@@ -1,8 +1,7 @@
 package com.tsbonev.nharker.core
 
 /**
- * Provides the methods to persist a map of synonyms that ease
- * article linking.
+ * Provides the methods to persist a map of synonyms that ease article linking.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -10,7 +9,7 @@ interface ArticleSynonymProvider {
     /**
      * Returns a map of article link synonyms.
      *
-     * @return A map of the synonym link and the real link.
+     * @return A map of synonym links to real links.
      */
     fun getSynonymMap(): Map<String, String>
 
@@ -34,5 +33,5 @@ interface ArticleSynonymProvider {
     fun removeSynonym(articleSynonym: String): String
 }
 
-class SynonymNotFoundException: Exception()
-class SynonymAlreadyTakenException: Exception()
+class SynonymNotFoundException : Throwable()
+class SynonymAlreadyTakenException : Throwable()
