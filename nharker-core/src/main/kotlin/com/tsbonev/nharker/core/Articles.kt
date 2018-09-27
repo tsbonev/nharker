@@ -86,4 +86,13 @@ interface Articles {
     @Throws(ArticleNotFoundException::class,
             PropertyNotFoundException::class)
     fun detachProperty(articleId: String, propertyName: String): Entry
+
+    /**
+     * Returns a list of all article titles that match a set of
+     * link titles.
+     *
+     * @param linkTitleList The links to match to.
+     * @return A list of full article titles.
+     */
+    fun getArticleTitles(linkTitleList: Set<String>): List<String>
 }

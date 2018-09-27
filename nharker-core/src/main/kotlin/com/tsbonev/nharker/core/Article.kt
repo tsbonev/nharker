@@ -41,6 +41,11 @@ fun String.toLinkTitle(): String {
  */
 data class ArticleLinkTitle(val linkTitle: String)
 
+/**
+ * Projection used for retrieving full titles.
+ */
+data class ArticleFullTitle(val fullTitle: String)
+
 class ArticleNotFoundException : Exception()
 class ArticleTitleTakenException : Exception()
 

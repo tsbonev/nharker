@@ -108,6 +108,18 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return property
     }
 
+    override fun getArticleTitles(linkTitleList: Set<String>): List<String> {
+        val fullTitleList = mutableListOf<String>()
+
+        linkTitleList.forEach{
+            val article = coll.find(Article::linkTitle eq it)
+                    .project(ArticleFullTitle::class.java).firstOrNull() ?: return@forEach
+            fullTitleList.add(article.fullTitle)
+        }
+
+        return fullTitleList
+    }
+
     /**
      * Finds an article by id or throws an exception.
      */
