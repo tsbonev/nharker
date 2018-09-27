@@ -285,6 +285,29 @@ class NitriteArticlesTest {
         articles.detachProperty("::non-existing-article::", "::property::")
     }
 
+    @Test
+    fun `Get article titles by links`(){
+        val articleTitles = articles.getArticleTitles(setOf("article-title"))
+
+        assertThat(articleTitles, Is(listOf("Article title")))
+    }
+
+    @Test
+    fun `Skip non-existing links when gathering full titles`(){
+        val articleTitles = articles.getArticleTitles(setOf(
+                "not-found-link-1", "article-title", "not-found-link-2"))
+
+        assertThat(articleTitles, Is(listOf("Article title")))
+    }
+
+    @Test
+    fun `Return empty list when link titles don't point to existing articles`(){
+        val articleTitles = articles.getArticleTitles(setOf("non-existent-link-1",
+                "non-existent-link-2"))
+
+        assertThat(articleTitles, Is(emptyList()))
+    }
+
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
     }
