@@ -15,11 +15,9 @@ import java.util.Optional
  */
 class NitriteEntries(private val nitriteDb: Nitrite,
                      private val collectionName: String = "Entries",
-                     private val clock: Clock = Clock.systemUTC()) : Entries {
+                     private val clock: Clock = Clock.systemUTC())
+    : Entries {
 
-    /**
-     * Retrieve the repository on every request.
-     */
     private val coll: ObjectRepository<Entry>
         get() = nitriteDb.getRepository(collectionName, Entry::class.java)
 
@@ -41,7 +39,9 @@ class NitriteEntries(private val nitriteDb: Nitrite,
     }
 
     override fun getById(entryId: String): Optional<Entry> {
-        val entry = coll.find(Entry::id eq entryId).firstOrNull() ?: return Optional.empty()
+        val entry = coll.find(Entry::id eq entryId).firstOrNull()
+                ?: return Optional.empty()
+
         return Optional.of(entry)
     }
 
@@ -74,7 +74,7 @@ class NitriteEntries(private val nitriteDb: Nitrite,
     /**
      * Finds an entry by id or throws an exception.
      */
-    private fun findByIdOrThrow(entryId: String): Entry{
+    private fun findByIdOrThrow(entryId: String): Entry {
         return coll.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException()
     }
 }

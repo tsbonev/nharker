@@ -4,6 +4,7 @@ import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
+import org.hamcrest.CoreMatchers.nullValue
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.Expectations
 import org.jmock.Mockery
@@ -126,6 +127,20 @@ class NitriteArticlesTest {
     }
 
     @Test
+    fun `Delete and return article`() {
+        val deletedArticle = articles.delete(article.id)
+
+        assertThat(deletedArticle, Is(article))
+        assertThat(db.getRepository(collectionName, Article::class.java)
+                .find(Article::id eq article.id).firstOrNull(), Is(nullValue()))
+    }
+
+    @Test(expected = ArticleNotFoundException::class)
+    fun `Deleting non-existing article throws exception`() {
+        articles.delete("::fake-article-id::")
+    }
+
+    @Test
     fun `Append entry to article`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
@@ -153,7 +168,7 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Linking increases count when already linked`(){
+    fun `Linking increases count when already linked`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
             will(returnValue(setOf("article-title-2")))
@@ -197,7 +212,7 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Decrease number of links when more than one is present`(){
+    fun `Decrease number of links when more than one is present`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
             will(returnValue(setOf("article-title-1")))
@@ -286,14 +301,14 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Get article titles by links`(){
+    fun `Get article titles by links`() {
         val articleTitles = articles.getArticleTitles(setOf("article-title"))
 
         assertThat(articleTitles, Is(listOf("Article title")))
     }
 
     @Test
-    fun `Skip non-existing links when gathering full titles`(){
+    fun `Skip non-existing links when gathering full titles`() {
         val articleTitles = articles.getArticleTitles(setOf(
                 "not-found-link-1", "article-title", "not-found-link-2"))
 
@@ -301,7 +316,7 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Return empty list when link titles don't point to existing articles`(){
+    fun `Return empty list when link titles don't point to existing articles`() {
         val articleTitles = articles.getArticleTitles(setOf("non-existent-link-1",
                 "non-existent-link-2"))
 

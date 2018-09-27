@@ -14,22 +14,22 @@ class StubClockTest {
     private val stubClock = StubClock(instant)
 
     @Test
-    fun `Instant of clock is stubbed`(){
+    fun `Instant of clock is stubbed`() {
         assertThat(stubClock.instant, Is(instant))
     }
 
     @Test
-    fun `Zone of clock is UTC`(){
+    fun `Zone of clock is UTC`() {
         assertThat(stubClock.zone, Is(ZoneId.of("Z")))
     }
 
     @Test
-    fun `Zone of clock cannot change`(){
+    fun `Zone of clock cannot change`() {
         assertThat(stubClock.withZone(ZoneId.of("GMT")).zone, Is(ZoneId.of("Z")))
     }
 
     @Test
-    fun `Clock time is fixed`(){
+    fun `Clock time is fixed`() {
         assertThat(LocalDateTime.ofInstant(instant, ZoneOffset.UTC),
                 Is(LocalDateTime.now(stubClock)))
     }

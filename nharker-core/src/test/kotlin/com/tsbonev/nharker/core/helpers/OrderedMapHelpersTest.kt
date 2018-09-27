@@ -9,11 +9,11 @@ import org.junit.Assert.assertThat
  */
 class OrderedMapHelpersTest {
 
-    private lateinit var holderMap : Map<String, Int>
+    private lateinit var holderMap: Map<String, Int>
     private val mutableMap = mutableMapOf<String, Int>()
 
     @Test
-    fun `Appending to map follows order`(){
+    fun `Appending to map follows order`() {
         holderMap = mutableMap.append("One")
         holderMap = holderMap.append("Two")
 
@@ -23,7 +23,7 @@ class OrderedMapHelpersTest {
     }
 
     @Test
-    fun `Subtracting from map reorders`(){
+    fun `Subtracting from map reorders`() {
         holderMap = mutableMap.append("One")
         holderMap = holderMap.append("Two")
         holderMap = holderMap.append("Three")
@@ -35,12 +35,12 @@ class OrderedMapHelpersTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Subtracting non-existent value throws exception`(){
+    fun `Subtracting non-existent value throws exception`() {
         mutableMap.subtract("::non-existent-value::")
     }
 
     @Test
-    fun `Switching list values reorders`(){
+    fun `Switching list values reorders`() {
         holderMap = mutableMap.append("One")
         holderMap = holderMap.append("Two")
         holderMap = holderMap.append("Three")
@@ -53,7 +53,7 @@ class OrderedMapHelpersTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Switching non-existent value throws exception`(){
+    fun `Switching non-existent value throws exception`() {
         mutableMap.switch("::non-existent-value::", "::non-existent-value::")
     }
 }

@@ -3,7 +3,8 @@ package com.tsbonev.nharker.core
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvider) : EntryLinker {
+class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvider)
+    : EntryLinker {
 
     private val punctuations = listOf(
             "!", "?", ".", ",", ":", ";",
@@ -37,10 +38,10 @@ class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvid
      * @param linkSet The collection to add the found links to.
      * @param linkMap The map of links to match.
      */
-    private fun String.mapLinks(linkSet: MutableSet<String>, linkMap: Map<String, String>): String{
+    private fun String.mapLinks(linkSet: MutableSet<String>, linkMap: Map<String, String>): String {
         var contentHolder = this
-        linkMap.forEach{
-            if(contentHolder.contains("-${it.key}-")){
+        linkMap.forEach {
+            if (contentHolder.contains("-${it.key}-")) {
                 contentHolder = contentHolder.replace("-${it.key}-", "-#-")
                 linkSet.add(it.value)
             }

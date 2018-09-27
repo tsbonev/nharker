@@ -1,7 +1,5 @@
 package com.tsbonev.nharker.core
 
-import java.lang.Exception
-
 /**
  * Provides the methods to store a deleted entity in a
  * collection and be retrieved on a later basis.
@@ -41,4 +39,4 @@ interface TrashCollector {
     fun clear()
 }
 
-class EntityNotInTrashException: Exception()
+class EntityNotInTrashException : Throwable()

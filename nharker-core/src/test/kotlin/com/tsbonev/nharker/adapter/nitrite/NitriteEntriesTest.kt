@@ -40,22 +40,22 @@ class NitriteEntriesTest {
     private val entries = NitriteEntries(db, collectionName, stubClock)
 
     @Before
-    fun setUp(){
+    fun setUp() {
         db.getRepository(collectionName, Entry::class.java).insert(entry)
     }
 
     @Test
-    fun `Create and return entry`(){
+    fun `Create and return entry`() {
         assertThat(entries.create(entryRequest).copy(id = "::entryId::"), Is(entry))
     }
 
     @Test
-    fun `Save and return entry`(){
+    fun `Save and return entry`() {
         assertThat(entries.save(entry), Is(entry))
     }
 
     @Test
-    fun `Retrieve entry by id`(){
+    fun `Retrieve entry by id`() {
         val retrievedEntry = entries.getById("::entryId::")
 
         assertThat(retrievedEntry.isPresent, Is(true))
@@ -63,14 +63,14 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Return empty when an entry is not found by id`(){
+    fun `Return empty when an entry is not found by id`() {
         val retrievedEntry = entries.getById("::fake-entry-value::")
 
         assertThat(retrievedEntry.isPresent, Is(false))
     }
 
     @Test
-    fun `Update entry content`(){
+    fun `Update entry content`() {
         val content = "::new-content::"
 
         entries.updateContent(entry.id, content)
@@ -81,12 +81,12 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existent entry's content throws exception`(){
+    fun `Updating a non-existent entry's content throws exception`() {
         entries.updateContent("::fake-entry-value::", "::content::")
     }
 
     @Test
-    fun `Update entry links`(){
+    fun `Update entry links`() {
         val links = mapOf("::new-link::" to "::new-article::")
 
         entries.updateLinks(entry.id, links)
@@ -97,12 +97,12 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existent entry's links throws exception`(){
+    fun `Updating a non-existent entry's links throws exception`() {
         entries.updateLinks("::fake-entry-value::", mapOf("::new-link::" to "::new-article::"))
     }
 
     @Test
-    fun `Query entries by content`(){
+    fun `Query entries by content`() {
         val firstEntry = entries.create(entryRequest.copy(content = "apples"))
         val secondEntry = entries.create(entryRequest.copy(content = "apples and oranges"))
         val thirdEntry = entries.create(entryRequest.copy(content = "only oranges"))
@@ -121,7 +121,7 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Delete and return entry`(){
+    fun `Delete and return entry`() {
         val deletedEntry = entries.delete(entry.id)
 
         assertThat(deletedEntry, Is(entry))
@@ -129,7 +129,7 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Deleting non-existent entry throws exception`(){
+    fun `Deleting non-existent entry throws exception`() {
         entries.delete("::fake-entry-value::")
     }
 }

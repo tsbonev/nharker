@@ -7,6 +7,7 @@ import java.time.*
  */
 class StubClock(val instant: Instant = Instant.ofEpochSecond(1))
     : Clock() {
+
     override fun withZone(p0: ZoneId?): Clock {
         return this
     }

@@ -3,24 +3,33 @@ package com.tsbonev.nharker.core
 import java.util.Optional
 
 /**
+ * Provides the methods to handle articles in persistence.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface Articles {
-
     /**
-     * Creates an article from a request and saves it into persistence.
+     * Creates an article from a request and saves it.
      *
      * @param articleRequest The article to be created.
      * @return The created article.
      */
     @Throws(ArticleTitleTakenException::class)
-    fun create(articleRequest: ArticleRequest) : Article
+    fun create(articleRequest: ArticleRequest): Article
 
     /**
-     * Saves an article into persistence, overwriting the previous one
-     * if it exists.
+     * Saves an article, overwriting the previous one if it exists.
      */
     fun save(article: Article): Article
+
+    /**
+     * Deletes an article.
+     *
+     * @param articleId The id of the article to delete.
+     * @return The deleted article.
+     */
+    @Throws(ArticleNotFoundException::class)
+    fun delete(articleId: String): Article
 
     /**
      * Retrieves an optional article by value.
@@ -53,7 +62,7 @@ interface Articles {
     fun removeEntry(articleId: String, entry: Entry): Entry
 
     /**
-     * Switches two entries in the article.
+     * Switches two entries in an article.
      *
      * @param articleId The value of the article.
      * @param first The first entry.
