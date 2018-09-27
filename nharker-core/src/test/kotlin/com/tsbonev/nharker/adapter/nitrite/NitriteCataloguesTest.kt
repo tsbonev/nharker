@@ -159,8 +159,13 @@ class NitriteCataloguesTest {
     }
 
     @Test(expected = CatalogueAlreadyAChildException::class)
-    fun `Changing parent of a child to the same parent throws exception`(){
+    fun `Changing parent of a child to the same parent throws exception`() {
         catalogues.changeParentCatalogue(firstPresavedSubcatalogue.id, catalogue)
+    }
+
+    @Test(expected = CatalogueCircularInheritanceException::class)
+    fun `Changing parent of a parent to its child throws exception`(){
+        catalogues.changeParentCatalogue(catalogue.id, firstPresavedSubcatalogue)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
@@ -181,6 +186,11 @@ class NitriteCataloguesTest {
         assertThat(presavedCatalogue, Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
                 subCatalogue.id to catalogue.subCatalogues.count()
         ))))
+    }
+
+    @Test(expected = CatalogueCircularInheritanceException::class)
+    fun `Appending parent to its own child throws exception`(){
+        catalogues.appendSubCatalogue(firstPresavedSubcatalogue.id, catalogue)
     }
 
     @Test(expected = CatalogueAlreadyAChildException::class)
