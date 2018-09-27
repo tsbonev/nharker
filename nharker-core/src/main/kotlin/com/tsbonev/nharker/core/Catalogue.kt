@@ -33,6 +33,7 @@ class CatalogueTitleTakenException : Exception()
 class CatalogueAlreadyAChildException : Exception()
 class CatalogueNotAChildException : Exception()
 class SelfContainedCatalogueException : Exception()
+class CatalogueCircularInheritanceException : Exception()
 
 class ArticleAlreadyInCatalogueException : Exception()
 class ArticleNotInCatalogueException : Exception()

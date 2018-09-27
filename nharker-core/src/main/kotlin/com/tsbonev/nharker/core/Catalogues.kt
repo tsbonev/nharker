@@ -43,13 +43,13 @@ interface Catalogues {
     /**
      * Changes the parent of a catalogue.
      *
-     * @param catalogueId The id of the catalogue targeted.
+     * @param childCatalogueId The id of the catalogue targeted.
      * @param parentCatalogue The id of the new parent.
      * @return The updated child catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class)
-    fun changeParentCatalogue(catalogueId: String, parentCatalogue: Catalogue): Catalogue
+    fun changeParentCatalogue(childCatalogueId: String, parentCatalogue: Catalogue): Catalogue
 
     /**
      * Deletes a catalogue by value.
@@ -63,47 +63,47 @@ interface Catalogues {
     /**
      * Appends a catalogue to the targeted catalogue's children list.
      *
-     * @param catalogueId The id of the targeted parent catalogue.
-     * @param subCatalogue The id of the child catalogue.
+     * @param parentCatalogueId The id of the targeted parent catalogue.
+     * @param childCatalogue The id of the child catalogue.
      * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class,
             SelfContainedCatalogueException::class)
-    fun appendSubCatalogue(catalogueId: String, subCatalogue: Catalogue): Catalogue
+    fun appendSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
 
     /**
      * Removes a catalogue from the targeted catalogue's children list.
      *
-     * @param catalogueId The id of the parent catalogue.
-     * @param subCatalogue The id of the child catalogue.
+     * @param parentCatalogueId The id of the parent catalogue.
+     * @param childCatalogue The id of the child catalogue.
      * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueNotAChildException::class)
-    fun removeSubCatalogue(catalogueId: String, subCatalogue: Catalogue): Catalogue
+    fun removeSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
 
     /**
      * Appends an article from a catalogue.
      *
-     * @param catalogueId The value of the catalogue targeted.
+     * @param parentCatalogueId The value of the catalogue targeted.
      * @param article The article.
      * @return The appended article.
      */
     @Throws(CatalogueNotFoundException::class,
             ArticleAlreadyInCatalogueException::class)
-    fun appendArticle(catalogueId: String, article: Article): Article
+    fun appendArticle(parentCatalogueId: String, article: Article): Article
 
     /**
      * Removes an article from a catalogue.
      *
-     * @param catalogueId The value of the catalogue targeted.
+     * @param parentCatalogueId The value of the catalogue targeted.
      * @param article The  article.
      * @return The removed article.
      */
     @Throws(CatalogueNotFoundException::class,
             ArticleNotInCatalogueException::class)
-    fun removeArticle(catalogueId: String, article: Article): Article
+    fun removeArticle(parentCatalogueId: String, article: Article): Article
 
     /**
      * Switches the order of two articles in a catalogue.
@@ -120,12 +120,12 @@ interface Catalogues {
     /**
      * Switches the order of two subcatalogues in a catalogue.
      *
-     * @param catalogueId The value of the catalogue targeted.
-     * @param first The first catalogue.
-     * @param second The second catalogue.
+     * @param parentCatalogueId The value of the catalogue targeted.
+     * @param firstChild The first catalogue.
+     * @param secondChild The second catalogue.
      * @return The updated catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueNotAChildException::class)
-    fun switchSubCatalogues(catalogueId: String, first: Catalogue, second: Catalogue): Catalogue
+    fun switchSubCatalogues(parentCatalogueId: String, firstChild: Catalogue, secondChild: Catalogue): Catalogue
 }
