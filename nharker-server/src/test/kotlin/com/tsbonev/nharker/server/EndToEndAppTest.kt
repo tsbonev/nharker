@@ -1,5 +1,7 @@
 package com.tsbonev.nharker.server
 
+import com.tsbonev.nharker.server.module.fakeNitrite
+import com.tsbonev.nharker.server.module.loggingTrashHandler
 import io.ktor.application.Application
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -19,14 +21,14 @@ class EndToEndAppTest : AutoCloseKoinTest() {
 
     @Before
     fun setUp() {
-        startKoin(listOf(helloAppModule))
+        startKoin(listOf(fakeNitrite, loggingTrashHandler))
     }
 
     @Test
     fun `Hello route returns ktor & koin`() = withTestApplication(Application::main) {
         with(handleRequest(HttpMethod.Get, "/hello")) {
             assertThat(response.status(), Is(HttpStatusCode.OK))
-            assertThat(response.content, Is("Ktor & Koin"))
+            assertThat(response.content, Is("Hello, world!"))
         }
     }
 
