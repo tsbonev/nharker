@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class LoggingTrashHandlerTest {
 

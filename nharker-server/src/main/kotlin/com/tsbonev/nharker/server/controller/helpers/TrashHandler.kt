@@ -6,7 +6,7 @@ import java.util.Optional
  * Provides the methods to handle a trash collector from
  * a higher level of abstraction.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface TrashHandler {
     /**

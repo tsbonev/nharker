@@ -7,7 +7,7 @@ import com.tsbonev.nharker.server.controller.helpers.TrashHandler
 import org.koin.dsl.module.module
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 val loggingTrashHandler = module {

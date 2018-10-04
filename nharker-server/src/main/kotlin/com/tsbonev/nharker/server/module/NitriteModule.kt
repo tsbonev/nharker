@@ -6,7 +6,7 @@ import org.koin.dsl.module.module
 /**
  * Provides the database to inject into services
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 /**

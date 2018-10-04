@@ -15,7 +15,7 @@ import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EndToEndAppTest : AutoCloseKoinTest() {
 

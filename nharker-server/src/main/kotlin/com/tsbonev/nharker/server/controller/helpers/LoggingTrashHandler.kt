@@ -10,7 +10,7 @@ import java.util.Optional
  * Provides the methods to trash and restore entities while
  * logging its actions and handling exceptions.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class LoggingTrashHandler(private val trashCollector: TrashCollector) : TrashHandler {
 

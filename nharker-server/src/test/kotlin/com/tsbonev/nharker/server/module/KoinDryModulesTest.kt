@@ -9,7 +9,7 @@ import org.koin.test.KoinTest
 import org.koin.test.checkModules
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class KoinDryModulesTest : KoinTest {
     @After

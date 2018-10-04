@@ -16,7 +16,7 @@ import io.ktor.server.netty.Netty
 import org.koin.standalone.StandAloneContext.startKoin
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 fun Application.main() {
