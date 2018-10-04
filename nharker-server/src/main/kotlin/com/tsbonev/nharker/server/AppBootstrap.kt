@@ -1,6 +1,6 @@
 package com.tsbonev.nharker.server
 
-import com.tsbonev.nharker.adapter.HelloService
+import com.tsbonev.nharker.server.module.fakeNitrite
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -13,7 +13,6 @@ import io.ktor.routing.routing
 import io.ktor.server.engine.commandLineEnvironment
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import org.koin.ktor.ext.inject
 import org.koin.standalone.StandAloneContext.startKoin
 
 /**
@@ -25,18 +24,16 @@ fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
 
-    val service: HelloService by inject()
-
     routing {
         get("/hello") {
-            call.respondText(service.sayHello(), ContentType.Text.Plain)
+            call.respondText("Hello, world!", ContentType.Text.Plain)
         }
     }
 }
 
 fun main(args: Array<String>) {
     // Start Koin
-    startKoin(listOf(helloAppModule))
+    startKoin(listOf(fakeNitrite))
     // Start Ktor
     embeddedServer(Netty, commandLineEnvironment(args)).start(true)
 }
