@@ -52,7 +52,7 @@ class LoggingTrashHandler(private val trashCollector: TrashCollector) : TrashHan
                 .filter {
                     entityClass.isInstance(it)
                 }
-                .mapTo(entityList){
+                .mapTo(entityList) {
                     entityClass.cast(it)
                 }
 

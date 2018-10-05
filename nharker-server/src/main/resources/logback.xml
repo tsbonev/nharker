@@ -1,6 +1,6 @@
 <configuration>
 
-    <property name="DEV_HOME" value="/nharker/logs" />
+    <property name="DEV_HOME" value="/nharker/logs"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

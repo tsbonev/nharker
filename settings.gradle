@@ -1,4 +1,5 @@
 rootProject.name = 'nharker'
 include 'nharker-core'
 include 'nharker-server'
+include 'nharker-cqrs'
 
