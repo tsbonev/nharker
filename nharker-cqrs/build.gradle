@@ -1,0 +1,14 @@
+buildscript {
+    ext.logback_version = '1.2.3'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // Logback
+    compile "ch.qos.logback:logback-classic:$logback_version"
+}

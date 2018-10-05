@@ -32,17 +32,17 @@ class LoggingTrashHandlerTest {
     private val trashHandler = LoggingTrashHandler(trashCollector)
 
     @Before
-    fun setUp(){
+    fun setUp() {
         System.setOut(PrintStream(log))
     }
 
     @After
-    fun cleanUp(){
+    fun cleanUp() {
         System.setOut(System.out)
     }
 
     @Test
-    fun `Trash entity and log its id`(){
+    fun `Trash entity and log its id`() {
         context.expecting {
             oneOf(trashCollector).trash("::entity::")
             will(returnValue("::trashed-id::"))
@@ -57,7 +57,7 @@ class LoggingTrashHandlerTest {
     }
 
     @Test
-    fun `Restore trashed entity and log its id`(){
+    fun `Restore trashed entity and log its id`() {
         val trashedString = "::trashed-string::"
 
         context.expecting {
@@ -76,7 +76,7 @@ class LoggingTrashHandlerTest {
     }
 
     @Test
-    fun `Return empty when not found and log error`(){
+    fun `Return empty when not found and log error`() {
         context.expecting {
             oneOf(trashCollector).restore("::entity-id::")
             will(throwException(EntityNotInTrashException()))
@@ -92,7 +92,7 @@ class LoggingTrashHandlerTest {
     }
 
     @Test
-    fun `Return empty when failing to cast and log error`(){
+    fun `Return empty when failing to cast and log error`() {
         context.expecting {
             oneOf(trashCollector).restore("::entity-id::")
             will(returnValue("::entity::"))
@@ -108,7 +108,7 @@ class LoggingTrashHandlerTest {
     }
 
     @Test
-    fun `Return list of trashed entities and log class name and size`(){
+    fun `Return list of trashed entities and log class name and size`() {
         context.expecting {
             oneOf(trashCollector).view()
             will(returnValue(listOf("::first::", "::second::", "::third::", 1, 2, 3)))
@@ -124,7 +124,7 @@ class LoggingTrashHandlerTest {
     }
 
     @Test
-    fun `Return an empty list of entries when none match the class`(){
+    fun `Return an empty list of entries when none match the class`() {
         context.expecting {
             oneOf(trashCollector).view()
             will(returnValue(listOf("::first::", "::second::", "::third::", 1, 2, 3)))
@@ -139,7 +139,7 @@ class LoggingTrashHandlerTest {
                 " with size 0"), Is(true))
     }
 
-    private fun Mockery.expecting(block: Expectations.() -> Unit){
-            checking(Expectations().apply(block))
+    private fun Mockery.expecting(block: Expectations.() -> Unit) {
+        checking(Expectations().apply(block))
     }
 }
