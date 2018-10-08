@@ -1,40 +1,78 @@
 package com.tsbonev.nharker.cqrs.core
 
 import org.slf4j.LoggerFactory
+import java.lang.reflect.Method
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class SimpleEventBus : EventBus {
-
     private val logger = LoggerFactory.getLogger("SimpleEventBus")
 
     /**
      * Registered command handlers.
      */
-    private val commandHandlers = mutableMapOf<String, CommandHandler<Command>>()
+    private val commandHandlers = mutableMapOf<String, CommandInvoker>()
 
     /**
      * Registered event handlers.
      */
-    private val eventHandlers = mutableMapOf<String, MutableList<EventHandler<Event>>>()
+    private val eventHandlers = mutableMapOf<String, MutableList<EventInvoker>>()
 
-    override fun <T : Command> registerCommandHandler(commandClass: Class<T>, commandHandler: CommandHandler<T>) {
-        val key = commandClass.name
+    override fun registerWorkflow(workflow: Workflow) {
+        val methods = workflow::class.java.declaredMethods
 
-        @Suppress("UNCHECKED_CAST")
-        commandHandlers[key] = commandHandler as CommandHandler<Command>
-    }
+        val declaredCommandHandlers = mutableMapOf<String, Method>()
+        val declaredEventHandlers = mutableMapOf<String, MutableList<Method>>()
 
-    override fun <T : Event> registerEventHandler(eventClass: Class<T>, eventHandler: EventHandler<T>) {
-        val key = eventClass.name
+        methods.forEach {
+            val parameterTypes = it.parameterTypes
 
-        if (!eventHandlers.containsKey(key)) {
-            eventHandlers[key] = mutableListOf()
+            /**
+             * Add the method as a command handler.
+             */
+            if (it.isAnnotationPresent(CommandHandler::class.java)) {
+                validateMethod(it)
+                val handlerName = parameterTypes[0].name
+
+                if (commandHandlers[handlerName] != null)
+                    throw CommandAlreadyHandledException("${it.name} tries to handle a command that has" +
+                            " already been handled!")
+
+                declaredCommandHandlers[handlerName] = it
+            }
+            /**
+             * Add the method as an event handler.
+             */
+            else if (it.isAnnotationPresent(EventHandler::class.java)) {
+                validateMethod(it)
+                val handlerName = parameterTypes[0].name
+
+                if (declaredEventHandlers[handlerName] == null)
+                    declaredEventHandlers[handlerName] = mutableListOf()
+
+                declaredEventHandlers[handlerName]!!.add(it)
+            }
         }
 
-        @Suppress("UNCHECKED_CAST")
-        eventHandlers[key]!!.add(eventHandler as EventHandler<Event>)
+        /**
+         * Workflow has not declared any event or command handlers.
+         */
+        if (declaredCommandHandlers.isEmpty() && declaredEventHandlers.isEmpty())
+            throw NoHandlersInWorkflowException("${workflow::class.java.name} does not declare any" +
+                    " command or event handlers!")
+
+        declaredCommandHandlers.forEach {
+            commandHandlers[it.key] = CommandInvoker(it.value, workflow)
+        }
+
+        declaredEventHandlers.forEach { key, value ->
+            if (eventHandlers[key] == null) eventHandlers[key] = mutableListOf()
+
+            value.forEach {
+                eventHandlers[key]!!.add(EventInvoker(it, workflow))
+            }
+        }
     }
 
     override fun <T : Command> send(command: T) {
@@ -45,7 +83,7 @@ class SimpleEventBus : EventBus {
         if (commandHandler == null) {
             logger.warn("No handler registered for $key command class")
         } else {
-            commandHandler.handle(command)
+            commandHandler.invoke(command)
         }
     }
 
@@ -56,7 +94,30 @@ class SimpleEventBus : EventBus {
                 ?: return logger.warn("No handlers registered for $key event class")
 
         handlers.forEach {
-            it.handle(event)
+            it.invoke(event)
         }
+    }
+
+    /**
+     * Validates a method's declared event and command handlers' signatures.
+     */
+    private fun validateMethod(method: Method) {
+        val parameterTypes = method.parameterTypes
+
+        /**
+         * Method has no or too many parameters to be a handler.
+         */
+        if (parameterTypes.isEmpty() || parameterTypes.count() > 1)
+            throw IllegalHandlerInWorkflowException("${method.name} contains an invalid handler!")
+
+        /**
+         * Method requires a non-event or non-command parameter when labeled as a command or event handler.
+         */
+        if ((!Event::class.java.isAssignableFrom(parameterTypes[0])
+                        && method.isAnnotationPresent(EventHandler::class.java))
+                ||
+                (!Command::class.java.isAssignableFrom(parameterTypes[0])
+                        && method.isAnnotationPresent(CommandHandler::class.java)))
+            throw IllegalHandlerInWorkflowException("${method.name} contains an invalid handler!")
     }
 }

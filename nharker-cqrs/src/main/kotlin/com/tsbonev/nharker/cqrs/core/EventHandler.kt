@@ -1,10 +1,11 @@
 package com.tsbonev.nharker.cqrs.core
 
 /**
- * An implementation handling a single event.
+ * An annotation marking a method as an event handler.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-interface EventHandler<in T : Event> {
-    fun handle(event: T)
-}
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+annotation class EventHandler
