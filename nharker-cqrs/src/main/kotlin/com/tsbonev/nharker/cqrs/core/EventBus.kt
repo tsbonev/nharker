@@ -22,6 +22,14 @@ interface EventBus {
     fun registerWorkflow(workflow: Workflow)
 
     /**
+     * Registers an interceptor that will process events and commands before
+     * the event bus.
+     *
+     * @param interceptor The interceptor to register.
+     */
+    fun registerInterceptor(interceptor: Interceptor)
+
+    /**
      * Executes a command by delegating it to the
      * registered command handler.
      *

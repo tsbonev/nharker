@@ -83,6 +83,33 @@ class SimpleEventBusTest {
     }
 
     @Test
+    fun `Register interceptor and intercept event and command`(){
+        val interceptor = object : Interceptor{
+            override fun intercept(command: Command) {
+                logger.info("Intercepted command $command")
+            }
+
+            override fun intercept(event: Event) {
+                logger.info("Intercepted event $event")
+            }
+        }
+
+        eventBus.registerInterceptor(interceptor)
+
+        eventBus.send(testCommand)
+        assertThat(log.toString().contains("INFO"), Is(true))
+        assertThat(log.toString()
+                .contains("Intercepted command $testCommand"),
+                Is(true))
+
+        eventBus.handle(testEvent)
+        assertThat(log.toString().contains("INFO"), Is(true))
+        assertThat(log.toString()
+                .contains("Intercepted event $testEvent"),
+                Is(true))
+    }
+
+    @Test
     fun `Register multiple workflows`() {
         data class SecondTestCommand(val data: String) : Command
         data class SecondTestEvent(val data: String) : Event

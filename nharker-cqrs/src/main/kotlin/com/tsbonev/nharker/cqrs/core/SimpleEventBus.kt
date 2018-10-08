@@ -19,6 +19,8 @@ class SimpleEventBus : EventBus {
      */
     private val eventHandlers = mutableMapOf<String, MutableList<EventInvoker>>()
 
+    private val interceptors = mutableSetOf<Interceptor>()
+
     override fun registerWorkflow(workflow: Workflow) {
         val methods = workflow::class.java.declaredMethods
 
@@ -75,6 +77,10 @@ class SimpleEventBus : EventBus {
         }
     }
 
+    override fun registerInterceptor(interceptor: Interceptor) {
+        interceptors.add(interceptor)
+    }
+
     override fun <T : Command> send(command: T) {
         val key = command::class.java.name
 
@@ -83,6 +89,10 @@ class SimpleEventBus : EventBus {
         if (commandHandler == null) {
             logger.warn("No handler registered for $key command class")
         } else {
+            interceptors.forEach{
+                it.intercept(command)
+            }
+
             commandHandler.invoke(command)
         }
     }
@@ -92,6 +102,10 @@ class SimpleEventBus : EventBus {
 
         val handlers = eventHandlers[key]
                 ?: return logger.warn("No handlers registered for $key event class")
+
+        interceptors.forEach{
+            it.intercept(event)
+        }
 
         handlers.forEach {
             it.invoke(event)
