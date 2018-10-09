@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 import org.junit.After
 import org.junit.Before
@@ -84,7 +84,7 @@ class SimpleEventBusTest {
 
     @Test
     fun `Register interceptor and intercept event and command`(){
-        val interceptor = object : Interceptor{
+        val interceptor = object : Interceptor {
             override fun intercept(command: Command) {
                 logger.info("Intercepted command $command")
             }

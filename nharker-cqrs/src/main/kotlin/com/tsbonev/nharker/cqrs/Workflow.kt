@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 /**
  * A marker interface for a workflow that defines command and

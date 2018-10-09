@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 /**
  * Provides the method to intercept an event or command that
