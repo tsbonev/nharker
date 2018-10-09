@@ -1,9 +1,8 @@
-package com.tsbonev.nharker.server.controller.helpers
+package com.tsbonev.nharker.server
 
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.TrashCollector
 import org.slf4j.LoggerFactory
-import java.lang.ClassCastException
 import java.util.Optional
 
 /**

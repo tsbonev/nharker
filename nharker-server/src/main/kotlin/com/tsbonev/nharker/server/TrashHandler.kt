@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.server.controller.helpers
+package com.tsbonev.nharker.server
 
 import java.util.Optional
 

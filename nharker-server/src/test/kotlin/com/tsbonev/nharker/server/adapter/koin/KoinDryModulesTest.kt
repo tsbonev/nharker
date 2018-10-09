@@ -1,7 +1,5 @@
-package com.tsbonev.nharker.server.module
+package com.tsbonev.nharker.server.adapter.koin
 
-import com.tsbonev.nharker.server.module.loggingTrashHandler
-import com.tsbonev.nharker.server.module.fakeNitrite
 import org.junit.After
 import org.junit.Test
 import org.koin.standalone.StandAloneContext.stopKoin

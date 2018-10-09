@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.server.controller.helpers
+package com.tsbonev.nharker.server
 
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.TrashCollector
@@ -8,13 +8,13 @@ import org.jmock.Expectations
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JUnitRuleMockery
 import org.junit.After
-import org.junit.Rule
-import org.junit.Test
-import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import org.hamcrest.CoreMatchers.`is` as Is
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)

@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.server.module
+package com.tsbonev.nharker.server.adapter.koin
 
 import org.dizitart.kno2.nitrite
 import org.koin.dsl.module.module
