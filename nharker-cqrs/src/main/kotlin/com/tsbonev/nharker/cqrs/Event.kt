@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 /**
  * Wrapper for events.

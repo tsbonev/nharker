@@ -1,11 +1,11 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 /**
- * An annotation marking a method as a command handler.
+ * An annotation marking a method as an event handler.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class CommandHandler
+annotation class EventHandler

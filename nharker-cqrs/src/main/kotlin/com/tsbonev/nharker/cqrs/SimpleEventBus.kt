@@ -1,4 +1,4 @@
-package com.tsbonev.nharker.cqrs.core
+package com.tsbonev.nharker.cqrs
 
 import org.slf4j.LoggerFactory
 import java.lang.reflect.Method
