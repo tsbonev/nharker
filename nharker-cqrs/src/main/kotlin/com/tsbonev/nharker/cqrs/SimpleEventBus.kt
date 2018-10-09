@@ -81,15 +81,15 @@ class SimpleEventBus : EventBus {
         interceptors.add(interceptor)
     }
 
-    override fun <T : Command> send(command: T) {
+    override fun <T : Command> send(command: T): CommandResponse {
         val key = command::class.java.name
 
         val commandHandler = commandHandlers[key]
 
-        if (commandHandler == null) {
-            logger.warn("No handler registered for $key command class")
+        return if (commandHandler == null) {
+            throw NoHandlersInWorkflowException("No handler registered for $key command class")
         } else {
-            interceptors.forEach{
+            interceptors.forEach {
                 it.intercept(command)
             }
 
@@ -103,7 +103,7 @@ class SimpleEventBus : EventBus {
         val handlers = eventHandlers[key]
                 ?: return logger.warn("No handlers registered for $key event class")
 
-        interceptors.forEach{
+        interceptors.forEach {
             it.intercept(event)
         }
 
@@ -133,5 +133,12 @@ class SimpleEventBus : EventBus {
                 (!Command::class.java.isAssignableFrom(parameterTypes[0])
                         && method.isAnnotationPresent(CommandHandler::class.java)))
             throw IllegalHandlerInWorkflowException("${method.name} contains an invalid handler!")
+
+        /**
+         * Command handler does not return a CommandResponse.
+         */
+        if (method.isAnnotationPresent(CommandHandler::class.java)
+                && !CommandResponse::class.java.isAssignableFrom(method.returnType))
+            throw IllegalHandlerInWorkflowException("${method.name} does not return a command response!")
     }
 }

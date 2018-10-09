@@ -4,7 +4,7 @@ package com.tsbonev.nharker.cqrs
  * Provides the method to intercept an event or command that
  * the event bus is about to process.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface Interceptor {
     /**

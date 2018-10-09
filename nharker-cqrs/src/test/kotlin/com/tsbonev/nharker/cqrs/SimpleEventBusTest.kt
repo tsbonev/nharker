@@ -1,14 +1,15 @@
 package com.tsbonev.nharker.cqrs
 
 import org.junit.After
+import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
+import org.slf4j.LoggerFactory
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
-import org.slf4j.LoggerFactory
 
+@Suppress("unused")
 class SimpleEventBusTest {
 
     private val logger = LoggerFactory.getLogger("SimpleEventBusTest")
@@ -38,11 +39,12 @@ class SimpleEventBusTest {
         }
 
         @CommandHandler
-        fun handle(command: TestCommand) {
-            logger.info(command.data)
+        fun handle(command: TestCommand): CommandResponse {
+            return CommandResponse(200,
+                    testCommand.data)
         }
 
-        fun randomFunction(){
+        fun randomFunction() {
             print("This tests that non-annotated functions aren't bothered")
         }
     }
@@ -64,12 +66,11 @@ class SimpleEventBusTest {
 
     @Test
     fun `Send and handle command`() {
-        eventBus.send(testCommand)
+        val commandResponse = eventBus.send(testCommand)
 
-        assertThat(log.toString().contains("INFO"), Is(true))
-        assertThat(log.toString()
-                .contains(testCommand.data),
-                Is(true))
+        assertThat(commandResponse.statusCode, Is(200))
+        assertThat(commandResponse.payload.isPresent, Is(true))
+        assertThat(commandResponse.payload.get() as String, Is(testCommand.data))
     }
 
     @Test
@@ -83,7 +84,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Register interceptor and intercept event and command`(){
+    fun `Register interceptor and intercept event and command`() {
         val interceptor = object : Interceptor {
             override fun intercept(command: Command) {
                 logger.info("Intercepted command $command")
@@ -116,8 +117,9 @@ class SimpleEventBusTest {
 
         val workflow = object : Workflow {
             @CommandHandler
-            fun handle(command: SecondTestCommand) {
-                logger.info("Parallel workflow received command ${command.data}")
+            fun handle(command: SecondTestCommand): CommandResponse {
+                return CommandResponse(200,
+                        "Parallel workflow received command ${command.data}")
             }
 
             @EventHandler
@@ -128,12 +130,12 @@ class SimpleEventBusTest {
 
         eventBus.registerWorkflow(workflow)
 
-        eventBus.send(SecondTestCommand("::new-command-data::"))
+        val commandResponse = eventBus.send(SecondTestCommand("::new-command-data::"))
 
-        assertThat(log.toString().contains("INFO"), Is(true))
-        assertThat(log.toString()
-                .contains("Parallel workflow received command ::new-command-data::"),
-                Is(true))
+        assertThat(commandResponse.statusCode, Is(200))
+        assertThat(commandResponse.payload.isPresent, Is(true))
+        assertThat(commandResponse.payload.get() as String,
+                Is("Parallel workflow received command ::new-command-data::"))
 
         eventBus.handle(SecondTestEvent("::new-event-data::"))
 
@@ -164,7 +166,8 @@ class SimpleEventBusTest {
     fun `Registering command twice throws exception`() {
         val workflow = object : Workflow {
             @CommandHandler
-            fun handle(command: TestCommand) {
+            fun handle(command: TestCommand): CommandResponse {
+                return CommandResponse(200)
             }
         }
 
@@ -175,7 +178,8 @@ class SimpleEventBusTest {
     fun `Registering no-argument handler in workflow throws exception`() {
         val workflow = object : Workflow {
             @CommandHandler
-            fun handle() {
+            fun handle(): CommandResponse {
+                return CommandResponse(200)
             }
         }
 
@@ -183,7 +187,7 @@ class SimpleEventBusTest {
     }
 
     @Test(expected = IllegalHandlerInWorkflowException::class)
-    fun `Registering handler with more than one parameter throws exception`(){
+    fun `Registering handler with more than one parameter throws exception`() {
         val workflow = object : Workflow {
             @EventHandler
             fun handle(p1: String, event: Event) {
@@ -197,7 +201,19 @@ class SimpleEventBusTest {
     fun `Registering non-event or non-command handler in workflow throws exception`() {
         val workflow = object : Workflow {
             @CommandHandler
-            fun handle(p1: String) {
+            fun handle(p1: String): CommandResponse {
+                return CommandResponse(200)
+            }
+        }
+
+        eventBus.registerWorkflow(workflow)
+    }
+
+    @Test(expected = IllegalHandlerInWorkflowException::class)
+    fun `Registering event handler that does not return CommandResponse throws exception`() {
+        val workflow = object : Workflow {
+            @CommandHandler
+            fun handle(command: Command) {
             }
         }
 
@@ -214,13 +230,8 @@ class SimpleEventBusTest {
                 Is(true))
     }
 
-    @Test
-    fun `Handling command with no registered handler logs warning`() {
+    @Test(expected = NoHandlersInWorkflowException::class)
+    fun `Handling command with no registered handler throws exception`() {
         eventBus.send(testNoHandlerCommand)
-
-        assertThat(log.toString().contains("WARN"), Is(true))
-        assertThat(log.toString()
-                .contains("No handler registered for ${testNoHandlerCommand::class.java.name} command class"),
-                Is(true))
     }
 }

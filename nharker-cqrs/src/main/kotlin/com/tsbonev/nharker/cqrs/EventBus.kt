@@ -34,8 +34,9 @@ interface EventBus {
      * registered command handler.
      *
      * @param command The command to execute.
+     * @return The response of the command.
      */
-    fun <T : Command> send(command: T)
+    fun <T : Command> send(command: T): CommandResponse
 
     /**
      * Handles an event by delegating it to all
@@ -54,9 +55,10 @@ internal class EventInvoker(private val method: Method, private val instance: Wo
         method.invoke(instance, event)
     }
 }
+
 internal class CommandInvoker(private val method: Method, private val instance: Workflow) {
-    fun invoke(command: Command) {
-        method.invoke(instance, command)
+    fun invoke(command: Command): CommandResponse {
+        return method.invoke(instance, command) as CommandResponse
     }
 }
 
@@ -64,5 +66,6 @@ internal class CommandInvoker(private val method: Method, private val instance: 
  * Exceptions meant to fail in runtime if a workflow is incorrectly defined.
  */
 class IllegalHandlerInWorkflowException(message: String) : Throwable(message)
+
 class CommandAlreadyHandledException(message: String) : Throwable(message)
 class NoHandlersInWorkflowException(message: String) : Throwable(message)
