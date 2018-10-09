@@ -47,7 +47,7 @@ class EntryWorkflowTest {
             oneOf(entries).create(entryRequest)
             will(returnValue(entry))
 
-            oneOf(eventBus).handle(EntryCreatedEvent(entry))
+            oneOf(eventBus).publish(EntryCreatedEvent(entry))
         }
 
         val response = entryWorkflow.createEntry(
@@ -67,7 +67,7 @@ class EntryWorkflowTest {
             oneOf(entries).delete(entry.id)
             will(returnValue(entry))
 
-            oneOf(eventBus).handle(EntryDeletedEvent(entry))
+            oneOf(eventBus).publish(EntryDeletedEvent(entry))
         }
 
         val response = entryWorkflow.deleteEntry(
@@ -106,7 +106,7 @@ class EntryWorkflowTest {
             oneOf(entries).updateContent(entry.id, newContent)
             will(returnValue(entry))
 
-            oneOf(eventBus).handle(EntryUpdatedEvent(entry))
+            oneOf(eventBus).publish(EntryUpdatedEvent(entry))
         }
 
         val response = entryWorkflow.updateEntryContent(
@@ -147,7 +147,7 @@ class EntryWorkflowTest {
             oneOf(entries).updateLinks(entry.id, newLinks)
             will(returnValue(entry))
 
-            oneOf(eventBus).handle(EntryUpdatedEvent(entry))
+            oneOf(eventBus).publish(EntryUpdatedEvent(entry))
         }
 
         val response = entryWorkflow.updateEntryLinks(

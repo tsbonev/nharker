@@ -75,7 +75,7 @@ class SimpleEventBusTest {
 
     @Test
     fun `Handle event`() {
-        eventBus.handle(testEvent)
+        eventBus.publish(testEvent)
 
         assertThat(log.toString().contains("INFO"), Is(true))
         assertThat(log.toString()
@@ -103,7 +103,7 @@ class SimpleEventBusTest {
                 .contains("Intercepted command $testCommand"),
                 Is(true))
 
-        eventBus.handle(testEvent)
+        eventBus.publish(testEvent)
         assertThat(log.toString().contains("INFO"), Is(true))
         assertThat(log.toString()
                 .contains("Intercepted event $testEvent"),
@@ -137,7 +137,7 @@ class SimpleEventBusTest {
         assertThat(commandResponse.payload.get() as String,
                 Is("Parallel workflow received command ::new-command-data::"))
 
-        eventBus.handle(SecondTestEvent("::new-event-data::"))
+        eventBus.publish(SecondTestEvent("::new-event-data::"))
 
         assertThat(log.toString().contains("INFO"), Is(true))
         assertThat(log.toString()
@@ -147,7 +147,7 @@ class SimpleEventBusTest {
 
     @Test
     fun `Handle event multiple times`() {
-        eventBus.handle(testEvent)
+        eventBus.publish(testEvent)
 
         assertThat(log.toString().contains("INFO"), Is(true))
         assertThat(log.toString()
@@ -222,7 +222,7 @@ class SimpleEventBusTest {
 
     @Test
     fun `Handling event with no registered handlers logs warning`() {
-        eventBus.handle(testNoHandlerEvent)
+        eventBus.publish(testNoHandlerEvent)
 
         assertThat(log.toString().contains("WARN"), Is(true))
         assertThat(log.toString()

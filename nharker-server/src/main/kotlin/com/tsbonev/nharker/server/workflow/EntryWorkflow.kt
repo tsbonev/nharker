@@ -38,7 +38,7 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun createEntry(command: CreateEntryCommand): CommandResponse {
         val createdEntry = entries.create(command.entryRequest)
 
-        eventBus.handle(EntryCreatedEvent(createdEntry))
+        eventBus.publish(EntryCreatedEvent(createdEntry))
         return CommandResponse(HttpStatusCode.Created.value, createdEntry)
     }
 
@@ -55,7 +55,7 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun deleteEntry(command: DeleteEntryCommand): CommandResponse {
         return try {
             val deletedEntry = entries.delete(command.entryId)
-            eventBus.handle(EntryDeletedEvent(deletedEntry))
+            eventBus.publish(EntryDeletedEvent(deletedEntry))
             CommandResponse(HttpStatusCode.OK.value, deletedEntry)
         } catch (e: EntryNotFoundException) {
             logger.error("Failed to delete entry with id ${command.entryId}!")
@@ -76,7 +76,7 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun updateEntryContent(command: UpdateEntryContentCommand): CommandResponse {
         return try {
             val updatedEntry = entries.updateContent(command.entryId, command.content)
-            eventBus.handle(EntryUpdatedEvent(updatedEntry))
+            eventBus.publish(EntryUpdatedEvent(updatedEntry))
             CommandResponse(HttpStatusCode.OK.value, updatedEntry)
         } catch (ex: EntryNotFoundException) {
             logger.error("Could not find entry with id ${command.entryId}!")
@@ -97,7 +97,7 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun updateEntryLinks(command: UpdateEntryLinksCommand): CommandResponse {
         return try {
             val updatedEntry = entries.updateLinks(command.entryId, command.entryLinks)
-            eventBus.handle(EntryUpdatedEvent(updatedEntry))
+            eventBus.publish(EntryUpdatedEvent(updatedEntry))
             CommandResponse(HttpStatusCode.OK.value, updatedEntry)
         } catch (e: EntryNotFoundException) {
             logger.error("Could not find entry with id ${command.entryId}!")

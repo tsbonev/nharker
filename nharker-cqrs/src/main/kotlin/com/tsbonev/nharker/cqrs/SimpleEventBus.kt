@@ -38,7 +38,7 @@ class SimpleEventBus : EventBus {
                 val handlerName = parameterTypes[0].name
 
                 if (commandHandlers[handlerName] != null)
-                    throw CommandAlreadyHandledException("${it.name} tries to handle a command that has" +
+                    throw CommandAlreadyHandledException("${it.name} tries to publish a command that has" +
                             " already been handled!")
 
                 declaredCommandHandlers[handlerName] = it
@@ -97,7 +97,7 @@ class SimpleEventBus : EventBus {
         }
     }
 
-    override fun handle(event: Event) {
+    override fun publish(event: Event) {
         val key = event::class.java.name
 
         val handlers = eventHandlers[key]
