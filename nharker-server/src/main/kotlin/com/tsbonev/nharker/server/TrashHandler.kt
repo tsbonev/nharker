@@ -3,7 +3,7 @@ package com.tsbonev.nharker.server
 import java.util.Optional
 
 /**
- * Provides the methods to handle a trash collector from
+ * Provides the methods to publish a trash collector from
  * a higher level of abstraction.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)

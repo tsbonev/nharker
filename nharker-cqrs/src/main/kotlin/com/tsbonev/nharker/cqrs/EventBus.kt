@@ -39,12 +39,12 @@ interface EventBus {
     fun <T : Command> send(command: T): CommandResponse
 
     /**
-     * Handles an event by delegating it to all
+     * Publishes an event by delegating it to all
      * registered event handlers.
      *
-     * @param event The event to handle.
+     * @param event The event to publish.
      */
-    fun handle(event: Event)
+    fun publish(event: Event)
 }
 
 /**
