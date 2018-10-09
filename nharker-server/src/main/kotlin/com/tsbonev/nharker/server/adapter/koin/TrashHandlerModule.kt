@@ -1,9 +1,9 @@
-package com.tsbonev.nharker.server.module
+package com.tsbonev.nharker.server.adapter.koin
 
 import com.tsbonev.nharker.adapter.nitrite.NitriteEntityTrashCollector
 import com.tsbonev.nharker.core.TrashCollector
-import com.tsbonev.nharker.server.controller.helpers.LoggingTrashHandler
-import com.tsbonev.nharker.server.controller.helpers.TrashHandler
+import com.tsbonev.nharker.server.LoggingTrashHandler
+import com.tsbonev.nharker.server.TrashHandler
 import org.koin.dsl.module.module
 
 /**

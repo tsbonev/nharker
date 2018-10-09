@@ -20,6 +20,9 @@ dependencies {
     // Nharker-core
     compile project(":nharker-core")
 
+    // Nharker-cqrs
+    compile project(":nharker-cqrs")
+
     // Koin for Kotlin
     compile "org.koin:koin-ktor:$koin_version"
     testCompile "org.koin:koin-test:$koin_version"

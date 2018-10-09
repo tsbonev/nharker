@@ -1,6 +1,6 @@
 package com.tsbonev.nharker.server
 
-import com.tsbonev.nharker.server.module.fakeNitrite
+import com.tsbonev.nharker.server.adapter.koin.fakeNitrite
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
