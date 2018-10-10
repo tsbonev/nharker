@@ -122,8 +122,19 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Return empty when article isn't found`() {
+    fun `Return empty when article isn't found by id`() {
         assertThat(articles.getById("::fake-article-value::").isPresent, Is(false))
+    }
+
+    @Test
+    fun `Retrieve article by link title`(){
+        assertThat(articles.getByLinkTitle(article.linkTitle).isPresent, Is(true))
+        assertThat(articles.getByLinkTitle(article.linkTitle).get(), Is(article))
+    }
+
+    @Test
+    fun `Return empty when article isn't found by link title`(){
+        assertThat(articles.getByLinkTitle("::non-existing-link-title::").isPresent, Is(false))
     }
 
     @Test
@@ -235,6 +246,20 @@ class NitriteArticlesTest {
 
         assertThat(presavedArticle.entries.count(), Is(1))
         assertThat(presavedArticle.entries[secondPresavedEntry.id], Is(0))
+    }
+
+    @Test
+    fun `Retrieve list of articles by querying full titles`(){
+        val articleList = articles.searchByFullTitle(article.fullTitle)
+
+        assertThat(articleList, Is(listOf(article)))
+    }
+
+    @Test
+    fun `Return empty list when no articles match full title search`(){
+        val articleList = articles.searchByFullTitle("Non existent")
+
+        assertThat(articleList, Is(emptyList()))
     }
 
     @Test(expected = ArticleNotFoundException::class)

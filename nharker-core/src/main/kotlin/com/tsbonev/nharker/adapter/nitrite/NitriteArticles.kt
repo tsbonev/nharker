@@ -3,6 +3,7 @@ package com.tsbonev.nharker.adapter.nitrite
 import com.tsbonev.nharker.core.*
 import com.tsbonev.nharker.core.helpers.*
 import org.dizitart.kno2.filters.eq
+import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
@@ -44,6 +45,13 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
     override fun getById(articleId: String): Optional<Article> {
         val article = coll.find(Article::id eq articleId).firstOrNull()
+                ?: return Optional.empty()
+
+        return Optional.of(article)
+    }
+
+    override fun getByLinkTitle(linkTitle: String): Optional<Article> {
+        val article = coll.find(Article::linkTitle eq linkTitle).firstOrNull()
                 ?: return Optional.empty()
 
         return Optional.of(article)
@@ -117,6 +125,10 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         coll.update(article)
         return property
+    }
+
+    override fun searchByFullTitle(searchString: String): List<Article> {
+        return coll.find(Article::fullTitle text searchString).toList()
     }
 
     override fun getArticleTitles(linkTitleList: Set<String>): List<String> {
