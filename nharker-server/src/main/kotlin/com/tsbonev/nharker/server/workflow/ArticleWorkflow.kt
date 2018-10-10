@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory
  * Provides the event handlers that are concerned with the
  * state of articles and entries that are in articles.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleWorkflow(private val eventBus: EventBus,
                       private val articles: Articles) : Workflow {
