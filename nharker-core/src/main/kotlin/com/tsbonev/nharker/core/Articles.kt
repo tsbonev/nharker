@@ -97,6 +97,22 @@ interface Articles {
     fun detachProperty(articleId: String, propertyName: String): Entry
 
     /**
+     * Returns an article with a given link title.
+     *
+     * @param linkTitle The link title to search for.
+     * @return An optional article.
+     */
+    fun getByLinkTitle(linkTitle: String): Optional<Article>
+
+    /**
+     * Returns a list of all articles that match a give title.
+     *
+     * @param searchString The string to search by.
+     * @return A list of articles.
+     */
+    fun searchByFullTitle(searchString: String): List<Article>
+
+    /**
      * Returns a list of all article titles that match a set of
      * link titles.
      *
