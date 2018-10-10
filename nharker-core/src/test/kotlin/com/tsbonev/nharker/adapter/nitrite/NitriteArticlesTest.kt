@@ -1,6 +1,16 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.*
+import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.ArticleLinks
+import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticleProperties
+import com.tsbonev.nharker.core.ArticleRequest
+import com.tsbonev.nharker.core.ArticleTitleTakenException
+import com.tsbonev.nharker.core.Entry
+import com.tsbonev.nharker.core.EntryAlreadyInArticleException
+import com.tsbonev.nharker.core.EntryLinker
+import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
@@ -123,17 +133,17 @@ class NitriteArticlesTest {
 
     @Test
     fun `Return empty when article isn't found by id`() {
-        assertThat(articles.getById("::fake-article-value::").isPresent, Is(false))
+        assertThat(articles.getById("::fake-article-id::").isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve article by link title`(){
+    fun `Retrieve article by link title`() {
         assertThat(articles.getByLinkTitle(article.linkTitle).isPresent, Is(true))
         assertThat(articles.getByLinkTitle(article.linkTitle).get(), Is(article))
     }
 
     @Test
-    fun `Return empty when article isn't found by link title`(){
+    fun `Return empty when article isn't found by link title`() {
         assertThat(articles.getByLinkTitle("::non-existing-link-title::").isPresent, Is(false))
     }
 
@@ -158,10 +168,9 @@ class NitriteArticlesTest {
             will(returnValue(emptySet<String>()))
         }
 
-        val appendedEntry = articles.appendEntry(article.id, entry)
+        val updatedArticle = articles.appendEntry(article.id, entry)
 
-        assertThat(appendedEntry, Is(entry))
-        assertThat(presavedArticle, Is(article.copy(entries = article.entries.plus(entry.id to 2))))
+        assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test
@@ -204,10 +213,9 @@ class NitriteArticlesTest {
             will(returnValue(emptySet<String>()))
         }
 
-        val removedEntry = articles.removeEntry(article.id, secondPresavedEntry)
+        val updatedArticle = articles.removeEntry(article.id, secondPresavedEntry)
 
-        assertThat(removedEntry, Is(secondPresavedEntry))
-        assertThat(presavedArticle.entries.count(), Is(1))
+        assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test
@@ -249,14 +257,14 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Retrieve list of articles by querying full titles`(){
+    fun `Retrieve list of articles by querying full titles`() {
         val articleList = articles.searchByFullTitle(article.fullTitle)
 
         assertThat(articleList, Is(listOf(article)))
     }
 
     @Test
-    fun `Return empty list when no articles match full title search`(){
+    fun `Return empty list when no articles match full title search`() {
         val articleList = articles.searchByFullTitle("Non existent")
 
         assertThat(articleList, Is(emptyList()))
@@ -264,7 +272,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Deleting from a non-existent article throws exception`() {
-        articles.removeEntry("::fake-article-value::", firstPresavedEntry)
+        articles.removeEntry("::fake-article-id::", firstPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
@@ -284,7 +292,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Switching entries of non-existing article throws exception`() {
-        articles.switchEntries("::fake-article-value::", firstPresavedEntry, secondPresavedEntry)
+        articles.switchEntries("::fake-article-id::", firstPresavedEntry, secondPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
@@ -294,12 +302,10 @@ class NitriteArticlesTest {
 
     @Test
     fun `Attach property to article`() {
-        val attachedProperty = articles.attachProperty(article.id, "::propertyName::", entry)
+        val updatedArticle = articles.attachProperty(article.id, "::propertyName::", entry)
 
-        assertThat(attachedProperty, Is(entry))
-        assertThat(presavedArticle.properties.getAll(),
-                Is(mapOf("::propertyName::" to entry,
-                        "::property::" to articleProperty)))
+        assertThat(presavedArticle,
+                Is(updatedArticle))
     }
 
     @Test(expected = ArticleNotFoundException::class)
@@ -309,10 +315,9 @@ class NitriteArticlesTest {
 
     @Test
     fun `Detach property from article`() {
-        val detachedProperty = articles.detachProperty(article.id, "::property::")
+        val updatedArticle = articles.detachProperty(article.id, "::property::")
 
-        assertThat(detachedProperty, Is(articleProperty))
-        assertThat(presavedArticle.properties.getAll(), Is(emptyMap()))
+        assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = PropertyNotFoundException::class)

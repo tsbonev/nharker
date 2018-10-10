@@ -6,12 +6,11 @@ import com.tsbonev.nharker.core.SynonymNotFoundException
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.dizitart.no2.Document
-import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Test
-import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Test
 import java.time.LocalDateTime
+import org.hamcrest.CoreMatchers.`is` as Is
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)

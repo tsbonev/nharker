@@ -1,7 +1,21 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.*
-import com.tsbonev.nharker.core.helpers.*
+import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.ArticleAlreadyInCatalogueException
+import com.tsbonev.nharker.core.ArticleNotInCatalogueException
+import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
+import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
+import com.tsbonev.nharker.core.CatalogueNotAChildException
+import com.tsbonev.nharker.core.CatalogueNotFoundException
+import com.tsbonev.nharker.core.CatalogueRequest
+import com.tsbonev.nharker.core.CatalogueTitleTakenException
+import com.tsbonev.nharker.core.Catalogues
+import com.tsbonev.nharker.core.SelfContainedCatalogueException
+import com.tsbonev.nharker.core.helpers.ElementNotInMapException
+import com.tsbonev.nharker.core.helpers.append
+import com.tsbonev.nharker.core.helpers.subtract
+import com.tsbonev.nharker.core.helpers.switch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -124,7 +138,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         return updatedChild
     }
 
-    override fun appendArticle(parentCatalogueId: String, article: Article): Article {
+    override fun appendArticle(parentCatalogueId: String, article: Article): Catalogue {
         val catalogue = findOrThrow(parentCatalogueId)
 
         if (catalogue.articles.containsKey(article.id)) throw ArticleAlreadyInCatalogueException()
@@ -134,10 +148,10 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                         .append(article.id))
 
         coll.update(updatedCatalogue)
-        return article
+        return updatedCatalogue
     }
 
-    override fun removeArticle(parentCatalogueId: String, article: Article): Article {
+    override fun removeArticle(parentCatalogueId: String, article: Article): Catalogue {
         val catalogue = findOrThrow(parentCatalogueId)
 
         if (!catalogue.articles.containsKey(article.id)) throw ArticleNotInCatalogueException()
@@ -147,7 +161,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                         .subtract(article.id))
 
         coll.update(updatedCatalogue)
-        return article
+        return updatedCatalogue
     }
 
     override fun switchArticles(catalogueId: String, first: Article, second: Article): Catalogue {

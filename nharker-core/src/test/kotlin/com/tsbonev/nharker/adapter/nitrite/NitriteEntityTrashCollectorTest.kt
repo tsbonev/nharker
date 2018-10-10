@@ -2,19 +2,22 @@
 
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.*
+import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.ArticleProperties
+import com.tsbonev.nharker.core.EntityNotInTrashException
+import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.helpers.toDocument
 import com.tsbonev.nharker.core.helpers.toEntity
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
+import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
-import org.junit.Before
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)

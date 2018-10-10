@@ -4,11 +4,11 @@ import org.jmock.AbstractExpectations.returnValue
 import org.jmock.Expectations
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JUnitRuleMockery
+import org.junit.Assert.assertThat
+import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
-import org.junit.Rule
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)

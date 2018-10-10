@@ -1,6 +1,7 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.*
+import com.tsbonev.nharker.core.EntityNotInTrashException
+import com.tsbonev.nharker.core.TrashCollector
 import com.tsbonev.nharker.core.helpers.toDocument
 import com.tsbonev.nharker.core.helpers.toEntity
 import org.dizitart.kno2.filters.eq

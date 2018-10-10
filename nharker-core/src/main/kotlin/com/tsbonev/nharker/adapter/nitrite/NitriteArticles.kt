@@ -1,7 +1,21 @@
 package com.tsbonev.nharker.adapter.nitrite
 
-import com.tsbonev.nharker.core.*
-import com.tsbonev.nharker.core.helpers.*
+import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.ArticleFullTitle
+import com.tsbonev.nharker.core.ArticleLinkTitle
+import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticleRequest
+import com.tsbonev.nharker.core.ArticleTitleTakenException
+import com.tsbonev.nharker.core.Articles
+import com.tsbonev.nharker.core.Entry
+import com.tsbonev.nharker.core.EntryAlreadyInArticleException
+import com.tsbonev.nharker.core.EntryLinker
+import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.helpers.ElementNotInMapException
+import com.tsbonev.nharker.core.helpers.append
+import com.tsbonev.nharker.core.helpers.subtract
+import com.tsbonev.nharker.core.helpers.switch
+import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite
@@ -64,7 +78,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return article
     }
 
-    override fun appendEntry(articleId: String, entry: Entry): Entry {
+    override fun appendEntry(articleId: String, entry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
         if (article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
@@ -76,10 +90,10 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                         .append(entry.id))
 
         coll.update(updatedArticle)
-        return entry
+        return updatedArticle
     }
 
-    override fun removeEntry(articleId: String, entry: Entry): Entry {
+    override fun removeEntry(articleId: String, entry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
         if (!article.entries.contains(entry.id)) throw EntryNotInArticleException()
@@ -91,7 +105,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                         .subtract(entry.id))
 
         coll.update(updatedArticle)
-        return entry
+        return updatedArticle
     }
 
     override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
@@ -109,22 +123,22 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         }
     }
 
-    override fun attachProperty(articleId: String, propertyName: String, property: Entry): Entry {
+    override fun attachProperty(articleId: String, propertyName: String, property: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
         article.properties.attachProperty(propertyName, property)
 
         coll.update(article)
-        return property
+        return article
     }
 
-    override fun detachProperty(articleId: String, propertyName: String): Entry {
+    override fun detachProperty(articleId: String, propertyName: String): Article {
         val article = findByIdOrThrow(articleId)
 
-        val property = article.properties.detachProperty(propertyName)
+        article.properties.detachProperty(propertyName)
 
         coll.update(article)
-        return property
+        return article
     }
 
     override fun searchByFullTitle(searchString: String): List<Article> {
