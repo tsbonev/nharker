@@ -1,18 +1,17 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Entry
-import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.nitrite
-import org.junit.Test
-import java.time.LocalDateTime
-import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Test
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneOffset
+import org.hamcrest.CoreMatchers.`is` as Is
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -64,7 +63,7 @@ class NitriteEntriesTest {
 
     @Test
     fun `Return empty when an entry is not found by id`() {
-        val retrievedEntry = entries.getById("::fake-entry-value::")
+        val retrievedEntry = entries.getById("::fake-entry-id::")
 
         assertThat(retrievedEntry.isPresent, Is(false))
     }
@@ -82,7 +81,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Updating a non-existent entry's content throws exception`() {
-        entries.updateContent("::fake-entry-value::", "::content::")
+        entries.updateContent("::fake-entry-id::", "::content::")
     }
 
     @Test
@@ -98,7 +97,7 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Updating a non-existent entry's links throws exception`() {
-        entries.updateLinks("::fake-entry-value::", mapOf("::new-link::" to "::new-article::"))
+        entries.updateLinks("::fake-entry-id::", mapOf("::new-link::" to "::new-article::"))
     }
 
     @Test
@@ -130,6 +129,6 @@ class NitriteEntriesTest {
 
     @Test(expected = EntryNotFoundException::class)
     fun `Deleting non-existent entry throws exception`() {
-        entries.delete("::fake-entry-value::")
+        entries.delete("::fake-entry-id::")
     }
 }

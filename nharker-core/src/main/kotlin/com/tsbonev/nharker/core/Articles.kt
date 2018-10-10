@@ -32,9 +32,9 @@ interface Articles {
     fun delete(articleId: String): Article
 
     /**
-     * Retrieves an optional article by value.
+     * Retrieves an optional article by id.
      *
-     * @param articleId The value of the article sought.
+     * @param articleId The id of the article sought.
      * @return An optional article.
      */
     fun getById(articleId: String): Optional<Article>
@@ -42,29 +42,29 @@ interface Articles {
     /**
      * Appends an entry to an article.
      *
-     * @param articleId The value of the article targeted.
+     * @param articleId The id of the article targeted.
      * @param entry The entry to append.
-     * @return The updated entry.
+     * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class,
             EntryAlreadyInArticleException::class)
-    fun appendEntry(articleId: String, entry: Entry): Entry
+    fun appendEntry(articleId: String, entry: Entry): Article
 
     /**
-     * Removes an entry from an article, deleting it from persistence.
+     * Removes an entry from an article.
      *
-     * @param articleId The value of the article targeted.
+     * @param articleId The id of the article targeted.
      * @param entry The entry to remove.
-     * @return The removed entry.
+     * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class,
             EntryNotInArticleException::class)
-    fun removeEntry(articleId: String, entry: Entry): Entry
+    fun removeEntry(articleId: String, entry: Entry): Article
 
     /**
      * Switches two entries in an article.
      *
-     * @param articleId The value of the article.
+     * @param articleId The id of the article.
      * @param first The first entry.
      * @param second The second entry.
      * @return The updated article.
@@ -80,21 +80,21 @@ interface Articles {
      * @param articleId: The id of the targeted article.
      * @param propertyName The name of the property.
      * @param property The entry describing the property.
-     * @return The attached property.
+     * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class)
-    fun attachProperty(articleId: String, propertyName: String, property: Entry): Entry
+    fun attachProperty(articleId: String, propertyName: String, property: Entry): Article
 
     /**
      * Detaches a property from an article.
      *
      * @param articleId The id of the targeted article.
      * @param propertyName The name of the property.
-     * @return The removed property.
+     * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class,
             PropertyNotFoundException::class)
-    fun detachProperty(articleId: String, propertyName: String): Entry
+    fun detachProperty(articleId: String, propertyName: String): Article
 
     /**
      * Returns an article with a given link title.

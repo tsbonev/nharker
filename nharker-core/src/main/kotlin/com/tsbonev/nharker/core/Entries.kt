@@ -34,7 +34,7 @@ interface Entries {
     /**
      * Updates the content of an entry.
      *
-     * @param entryId The value of the entry targeted.
+     * @param entryId The id of the entry targeted.
      * @param content The new content of the entry.
      * @return The updated entry.
      */
@@ -44,7 +44,7 @@ interface Entries {
     /**
      * Updates the links of an entry.
      *
-     * @param entryId The value of the entry targeted.
+     * @param entryId The id of the entry targeted.
      * @param links The new links of the entry.
      * @return The updated entry.
      */
@@ -52,9 +52,9 @@ interface Entries {
     fun updateLinks(entryId: String, links: Map<String, String>): Entry
 
     /**
-     * Returns an optional entry by value.
+     * Returns an optional entry by id.
      *
-     * @param entryId The value of the entry sought.
+     * @param entryId The id of the entry sought.
      * @return An optional entry.
      */
     fun getById(entryId: String): Optional<Entry>

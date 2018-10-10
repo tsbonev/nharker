@@ -54,7 +54,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
      * Updates or creates a document object with the global map id
      * and a given map as a value.
      *
-     * @param synonymMap The map whose values to save.
+     * @param synonymMap The map whose ids to save.
      * @return A Document of the map.
      */
     private fun updateOrCreateMap(synonymMap: Map<String, String>): Document {

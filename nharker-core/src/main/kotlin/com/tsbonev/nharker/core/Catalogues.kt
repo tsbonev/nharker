@@ -24,17 +24,17 @@ interface Catalogues {
     fun save(catalogue: Catalogue): Catalogue
 
     /**
-     * Retrieves an article by value.
+     * Retrieves an article by id.
      *
-     * @param catalogueId The value search by.
+     * @param catalogueId The id to search by.
      * @return An optional article.
      */
     fun getById(catalogueId: String): Optional<Catalogue>
 
     /**
-     * Deletes a catalogue by value.
+     * Deletes a catalogue by id.
      *
-     * @param catalogueId The value of the catalogue targeted.
+     * @param catalogueId The id of the catalogue targeted.
      * @return The deleted catalogue.
      */
     @Throws(CatalogueNotFoundException::class)
@@ -43,7 +43,7 @@ interface Catalogues {
     /**
      * Changes the title of a catalogue.
      *
-     * @param catalogueId The value of the catalogue targeted.
+     * @param catalogueId The id of the catalogue targeted.
      * @param newTitle The new title.
      * @return The updated catalogue.
      */
@@ -88,29 +88,29 @@ interface Catalogues {
     /**
      * Appends an article from a catalogue.
      *
-     * @param parentCatalogueId The value of the catalogue targeted.
+     * @param parentCatalogueId The id of the catalogue targeted.
      * @param article The article.
-     * @return The appended article.
+     * @return The updated catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             ArticleAlreadyInCatalogueException::class)
-    fun appendArticle(parentCatalogueId: String, article: Article): Article
+    fun appendArticle(parentCatalogueId: String, article: Article): Catalogue
 
     /**
      * Removes an article from a catalogue.
      *
-     * @param parentCatalogueId The value of the catalogue targeted.
-     * @param article The  article.
-     * @return The removed article.
+     * @param parentCatalogueId The id of the catalogue targeted.
+     * @param article The  article to remove.
+     * @return The updated catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
             ArticleNotInCatalogueException::class)
-    fun removeArticle(parentCatalogueId: String, article: Article): Article
+    fun removeArticle(parentCatalogueId: String, article: Article): Catalogue
 
     /**
      * Switches the order of two articles in a catalogue.
      *
-     * @param catalogueId The value of the catalogue targeted.
+     * @param catalogueId The id of the catalogue targeted.
      * @param first The first article.
      * @param second The second article.
      * @return The updated catalogue.
@@ -122,7 +122,7 @@ interface Catalogues {
     /**
      * Switches the order of two subcatalogues in a catalogue.
      *
-     * @param parentCatalogueId The value of the catalogue targeted.
+     * @param parentCatalogueId The id of the catalogue targeted.
      * @param firstChild The first catalogue.
      * @param secondChild The second catalogue.
      * @return The updated catalogue.

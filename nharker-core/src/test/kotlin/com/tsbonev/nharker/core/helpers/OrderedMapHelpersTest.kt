@@ -1,8 +1,8 @@
 package com.tsbonev.nharker.core.helpers
 
+import org.junit.Assert.assertThat
 import org.junit.Test
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -35,12 +35,12 @@ class OrderedMapHelpersTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Subtracting non-existent value throws exception`() {
-        mutableMap.subtract("::non-existent-value::")
+    fun `Subtracting non-existent id throws exception`() {
+        mutableMap.subtract("::non-existent-id::")
     }
 
     @Test
-    fun `Switching list values reorders`() {
+    fun `Switching list ids reorders`() {
         holderMap = mutableMap.append("One")
         holderMap = holderMap.append("Two")
         holderMap = holderMap.append("Three")
@@ -53,7 +53,7 @@ class OrderedMapHelpersTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Switching non-existent value throws exception`() {
-        mutableMap.switch("::non-existent-value::", "::non-existent-value::")
+    fun `Switching non-existent id throws exception`() {
+        mutableMap.switch("::non-existent-id::", "::non-existent-id::")
     }
 }
