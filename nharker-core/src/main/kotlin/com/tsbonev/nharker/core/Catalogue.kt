@@ -14,14 +14,14 @@ import java.time.LocalDateTime
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-@Indices(Index(value = "parentCatalogue", type = IndexType.NonUnique),
+@Indices(Index(value = "parentId", type = IndexType.NonUnique),
         Index(value = "title", type = IndexType.Unique))
 data class Catalogue(@Id val id: String,
                      val title: String,
                      val creationDate: LocalDateTime,
                      val articles: Map<String, Int> = emptyMap(),
                      val subCatalogues: Map<String, Int> = emptyMap(),
-                     val parentCatalogue: String? = null)
+                     val parentId: String? = null)
 
 class CatalogueNotFoundException : Throwable()
 class CatalogueTitleTakenException : Throwable()

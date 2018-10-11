@@ -39,11 +39,15 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         if (coll.find(Catalogue::title eq catalogueRequest.title).firstOrNull() != null)
             throw CatalogueTitleTakenException()
 
+        if (catalogueRequest.parentId != null
+                && coll.find(Catalogue::title eq catalogueRequest.parentId).firstOrNull() == null)
+            throw CatalogueNotFoundException()
+
         val catalogue = Catalogue(
                 NitriteId.newId().toString(),
                 catalogueRequest.title,
                 LocalDateTime.now(clock),
-                parentCatalogue = catalogueRequest.parentCatalogue
+                parentId = catalogueRequest.parentId
         )
 
         coll.insert(catalogue)
@@ -77,14 +81,14 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     override fun changeParentCatalogue(childCatalogueId: String, parentCatalogue: Catalogue): Catalogue {
         val childCatalogue = findOrThrow(childCatalogueId)
 
-        if (childCatalogue.parentCatalogue == parentCatalogue.id) throw CatalogueAlreadyAChildException()
+        if (childCatalogue.parentId == parentCatalogue.id) throw CatalogueAlreadyAChildException()
 
         if (childCatalogue.id == parentCatalogue.id) throw SelfContainedCatalogueException()
 
-        if (parentCatalogue.parentCatalogue == childCatalogue.id) throw CatalogueCircularInheritanceException()
+        if (parentCatalogue.parentId == childCatalogue.id) throw CatalogueCircularInheritanceException()
 
         val updatedChild = childCatalogue
-                .copy(parentCatalogue = parentCatalogue.id)
+                .copy(parentId = parentCatalogue.id)
         val updatedParent = parentCatalogue
                 .copy(subCatalogues = parentCatalogue.subCatalogues
                         .append(childCatalogueId))
@@ -102,16 +106,16 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     }
 
     override fun appendSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue {
-        if (childCatalogue.parentCatalogue == parentCatalogueId) throw CatalogueAlreadyAChildException()
+        if (childCatalogue.parentId == parentCatalogueId) throw CatalogueAlreadyAChildException()
 
         if (childCatalogue.id == parentCatalogueId) throw SelfContainedCatalogueException()
 
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
-        if (parentCatalogue.parentCatalogue == childCatalogue.id) throw CatalogueCircularInheritanceException()
+        if (parentCatalogue.parentId == childCatalogue.id) throw CatalogueCircularInheritanceException()
 
         val updatedChild = childCatalogue
-                .copy(parentCatalogue = parentCatalogueId)
+                .copy(parentId = parentCatalogueId)
         val updatedParent = parentCatalogue
                 .copy(subCatalogues = parentCatalogue.subCatalogues
                         .append(childCatalogue.id))
@@ -122,12 +126,12 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
     }
 
     override fun removeSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue {
-        if (childCatalogue.parentCatalogue != parentCatalogueId) throw CatalogueNotAChildException()
+        if (childCatalogue.parentId != parentCatalogueId) throw CatalogueNotAChildException()
 
         val parentCatalogue = findOrThrow(parentCatalogueId)
 
         val updatedChild = childCatalogue
-                .copy(parentCatalogue = null)
+                .copy(parentId = null)
 
         val updatedParent = parentCatalogue
                 .copy(subCatalogues = parentCatalogue.subCatalogues
