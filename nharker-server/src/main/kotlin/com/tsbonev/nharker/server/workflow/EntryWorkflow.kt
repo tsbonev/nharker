@@ -30,8 +30,8 @@ class EntryWorkflow(private val eventBus: EventBus,
 
     /**
      * Creates an entry.
-     * @event EntryDeletedEvent
      * @code 201
+     * @event EntryDeletedEvent
      * @payload The created entry.
      */
     @CommandHandler
@@ -44,8 +44,8 @@ class EntryWorkflow(private val eventBus: EventBus,
 
     /**
      * Deletes an entry.
-     * @event EntryDeletedEvent
      * @code 200
+     * @event EntryDeletedEvent
      * @payload The deleted entry.
      *
      * If entry is not found, logs the id.
@@ -65,8 +65,8 @@ class EntryWorkflow(private val eventBus: EventBus,
 
     /**
      * Updates an entry's content.
-     * @event EntryUpdatedEvent
      * @code 200
+     * @event EntryUpdatedEvent
      * @payload The updated entry.
      *
      * If the entry is not, logs the id.
@@ -86,8 +86,8 @@ class EntryWorkflow(private val eventBus: EventBus,
 
     /**
      * Updates an entry's links.
-     * @event EntryUpdatedEvent
      * @code 200
+     * @event EntryUpdatedEvent
      * @payload The updated entry.
      *
      * If the entry is not, logs the id.

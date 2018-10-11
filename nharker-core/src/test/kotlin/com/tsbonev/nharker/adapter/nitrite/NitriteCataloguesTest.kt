@@ -123,7 +123,7 @@ class NitriteCataloguesTest {
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Creating a catalogue with a non-existent parent throws exception`(){
+    fun `Creating a catalogue with a non-existent parent throws exception`() {
         catalogues.create(CatalogueRequest("::new-catalogue::", "::non-existent-parent-id::"))
     }
 
@@ -346,6 +346,16 @@ class NitriteCataloguesTest {
                 db.getRepository(collectionName, Catalogue::class.java)
                         .find(Catalogue::id eq catalogue.id).firstOrNull(),
                 Is(nullValue()))
+    }
+
+    @Test
+    fun `Deleting catalogue with subcatalogues folds their hierarchy ot its parent`(){
+        val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
+
+        val subCatalogue = db.getRepository(collectionName, Catalogue::class.java)
+                .find(Catalogue::id eq deletedCatalogue.subCatalogues.keys.first()).first()
+
+        assertThat(subCatalogue.parentId, Is(deletedCatalogue.parentId))
     }
 
     @Test(expected = CatalogueNotFoundException::class)

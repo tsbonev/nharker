@@ -35,8 +35,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
     /**
      * Creates an article.
-     * @event ArticleCreatedEvent
      * @code 201
+     * @event ArticleCreatedEvent
      * @payload The created article.
      *
      * If the article title is taken, logs the title.
@@ -57,10 +57,10 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
     /**
      * Deletes and article and its entries and properties.
-     * @event ArticleDeletedEvent
-     * @spawn DeleteEntryCommand
      * @code 200
+     * @event ArticleDeletedEvent
      * @payload The deleted article.
+     * @spawn DeleteEntryCommand
      *
      * If the article is not found, logs the id.
      * @code 404
