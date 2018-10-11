@@ -14,7 +14,8 @@ interface Catalogues {
      * @param catalogueRequest The requested catalogue.
      * @return The created catalogue.
      */
-    @Throws(CatalogueTitleTakenException::class)
+    @Throws(CatalogueTitleTakenException::class,
+            CatalogueNotFoundException::class)
     fun create(catalogueRequest: CatalogueRequest): Catalogue
 
     /**
@@ -55,7 +56,7 @@ interface Catalogues {
      * Changes the parent of a catalogue.
      *
      * @param childCatalogueId The id of the catalogue targeted.
-     * @param parentCatalogue The id of the new parent.
+     * @param parentCatalogue The new parent.
      * @return The updated child catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
@@ -66,7 +67,7 @@ interface Catalogues {
      * Appends a catalogue to the targeted catalogue's children list.
      *
      * @param parentCatalogueId The id of the targeted parent catalogue.
-     * @param childCatalogue The id of the child catalogue.
+     * @param childCatalogue The child catalogue to append.
      * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
@@ -78,7 +79,7 @@ interface Catalogues {
      * Removes a catalogue from the targeted catalogue's children list.
      *
      * @param parentCatalogueId The id of the parent catalogue.
-     * @param childCatalogue The id of the child catalogue.
+     * @param childCatalogue The child catalogue to remove.
      * @return The updated parent catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
@@ -89,7 +90,7 @@ interface Catalogues {
      * Appends an article from a catalogue.
      *
      * @param parentCatalogueId The id of the catalogue targeted.
-     * @param article The article.
+     * @param article The article to append.
      * @return The updated catalogue.
      */
     @Throws(CatalogueNotFoundException::class,

@@ -60,14 +60,14 @@ class NitriteCataloguesTest {
             "::catalogue-id-1::",
             "::catalogue-title-1::",
             date,
-            parentCatalogue = "::catalogue-id::"
+            parentId = "::catalogue-id::"
     )
 
     private val secondPresavedSubcatalogue = Catalogue(
             "::catalogue-id-2::",
             "::catalogue-title-2::",
             date,
-            parentCatalogue = "::catalogue-id::"
+            parentId = "::catalogue-id::"
     )
 
     private val subCatalogue = Catalogue(
@@ -122,6 +122,11 @@ class NitriteCataloguesTest {
         catalogues.create(catalogueRequest)
     }
 
+    @Test(expected = CatalogueNotFoundException::class)
+    fun `Creating a catalogue with a non-existent parent throws exception`(){
+        catalogues.create(CatalogueRequest("::new-catalogue::", "::non-existent-parent-id::"))
+    }
+
     @Test
     fun `Save and return catalogue`() {
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
@@ -163,7 +168,7 @@ class NitriteCataloguesTest {
         val updatedChild = catalogues.changeParentCatalogue(subCatalogue.id, catalogue)
 
         assertThat(updatedChild, Is(subCatalogue.copy(
-                parentCatalogue = catalogue.id)))
+                parentId = catalogue.id)))
         assertThat(presavedCatalogue, Is(catalogue.copy(
                 subCatalogues = catalogue.subCatalogues.append(subCatalogue.id))))
     }
@@ -192,7 +197,7 @@ class NitriteCataloguesTest {
     fun `Append catalogue to catalogue subcatalogues`() {
         val appendedChild = catalogues.appendSubCatalogue(catalogue.id, subCatalogue)
 
-        assertThat(appendedChild, Is(subCatalogue.copy(parentCatalogue = catalogue.id)))
+        assertThat(appendedChild, Is(subCatalogue.copy(parentId = catalogue.id)))
         assertThat(presavedCatalogue, Is(catalogue.copy(subCatalogues = catalogue.subCatalogues.plus(
                 subCatalogue.id to catalogue.subCatalogues.count()
         ))))
@@ -222,7 +227,7 @@ class NitriteCataloguesTest {
     fun `Remove subcatalogue from catalogue`() {
         val removedCatalogue = catalogues.removeSubCatalogue(catalogue.id, secondPresavedSubcatalogue)
 
-        assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentCatalogue = null)))
+        assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentId = null)))
         assertThat(presavedCatalogue.subCatalogues, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
     }
 
