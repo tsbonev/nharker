@@ -10,7 +10,7 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.Workflow
-import io.ktor.http.HttpStatusCode
+import com.tsbonev.nharker.server.helpers.HttpStatus
 import org.slf4j.LoggerFactory
 
 /**
@@ -39,7 +39,7 @@ class EntryWorkflow(private val eventBus: EventBus,
         val createdEntry = entries.create(command.entryRequest)
 
         eventBus.publish(EntryCreatedEvent(createdEntry))
-        return CommandResponse(HttpStatusCode.Created.value, createdEntry)
+        return CommandResponse(HttpStatus.Created.value, createdEntry)
     }
 
     /**
@@ -56,10 +56,10 @@ class EntryWorkflow(private val eventBus: EventBus,
         return try {
             val deletedEntry = entries.delete(command.entryId)
             eventBus.publish(EntryDeletedEvent(deletedEntry))
-            CommandResponse(HttpStatusCode.OK.value, deletedEntry)
+            CommandResponse(HttpStatus.OK.value, deletedEntry)
         } catch (e: EntryNotFoundException) {
             logger.error("Failed to delete entry with id ${command.entryId}!")
-            CommandResponse(HttpStatusCode.BadRequest.value)
+            CommandResponse(HttpStatus.BadRequest.value)
         }
     }
 
@@ -77,10 +77,10 @@ class EntryWorkflow(private val eventBus: EventBus,
         return try {
             val updatedEntry = entries.updateContent(command.entryId, command.content)
             eventBus.publish(EntryUpdatedEvent(updatedEntry))
-            CommandResponse(HttpStatusCode.OK.value, updatedEntry)
+            CommandResponse(HttpStatus.OK.value, updatedEntry)
         } catch (ex: EntryNotFoundException) {
             logger.error("Could not find entry with id ${command.entryId}!")
-            CommandResponse(HttpStatusCode.BadRequest.value)
+            CommandResponse(HttpStatus.BadRequest.value)
         }
     }
 
@@ -98,10 +98,10 @@ class EntryWorkflow(private val eventBus: EventBus,
         return try {
             val updatedEntry = entries.updateLinks(command.entryId, command.entryLinks)
             eventBus.publish(EntryUpdatedEvent(updatedEntry))
-            CommandResponse(HttpStatusCode.OK.value, updatedEntry)
+            CommandResponse(HttpStatus.OK.value, updatedEntry)
         } catch (e: EntryNotFoundException) {
             logger.error("Could not find entry with id ${command.entryId}!")
-            CommandResponse(HttpStatusCode.BadRequest.value)
+            CommandResponse(HttpStatus.BadRequest.value)
         }
     }
 
@@ -117,10 +117,10 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun getEntryById(command: GetEntryByIdCommand): CommandResponse {
         val entry = entries.getById(command.entryId)
 
-        return if (entry.isPresent) CommandResponse(HttpStatusCode.OK.value, entry.get())
+        return if (entry.isPresent) CommandResponse(HttpStatus.OK.value, entry.get())
         else {
             logger.error("Could not find entry with id ${command.entryId}!")
-            CommandResponse(HttpStatusCode.NotFound.value)
+            CommandResponse(HttpStatus.NotFound.value)
         }
     }
 
@@ -134,7 +134,7 @@ class EntryWorkflow(private val eventBus: EventBus,
     fun searchEntryContent(command: SearchEntriesByContentCommand): CommandResponse {
         val entryList = entries.getByContent(command.searchText)
 
-        return CommandResponse(HttpStatusCode.OK.value, entryList)
+        return CommandResponse(HttpStatus.OK.value, entryList)
     }
     //endregion
 

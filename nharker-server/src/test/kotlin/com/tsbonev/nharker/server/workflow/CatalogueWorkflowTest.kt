@@ -12,7 +12,7 @@ import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.cqrs.EventBus
-import io.ktor.http.HttpStatusCode
+import com.tsbonev.nharker.server.helpers.HttpStatus
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -67,7 +67,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.createCatalogue(CreateCatalogueCommand(catalogueRequest))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.Created.value))
+        assertThat(response.statusCode, Is(HttpStatus.Created.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -81,7 +81,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.createCatalogue(CreateCatalogueCommand(catalogueRequest))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -94,7 +94,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.createCatalogue(CreateCatalogueCommand(catalogueRequest))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -107,7 +107,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdCommand(catalogue.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -121,7 +121,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdCommand(catalogue.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -137,7 +137,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.deleteCatalogue(DeleteCatalogueCommand(catalogue.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -151,7 +151,7 @@ class CatalogueWorkflowTest {
 
         val response = catalogueWorkflow.deleteCatalogue(DeleteCatalogueCommand(catalogue.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -167,7 +167,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueTitle(
                 ChangeCatalogueTitleCommand(catalogue.id, "::new-title::"))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -182,7 +182,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueTitle(
                 ChangeCatalogueTitleCommand(catalogue.id, "::new-title::"))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -196,7 +196,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueTitle(
                 ChangeCatalogueTitleCommand(catalogue.id, "::new-title::"))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -212,7 +212,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueParent(
                 ChangeCatalogueParentCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -227,7 +227,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueParent(
                 ChangeCatalogueParentCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -241,7 +241,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.changeCatalogueParent(
                 ChangeCatalogueParentCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -257,7 +257,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendSubCatalogue(
                 AppendSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -272,7 +272,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendSubCatalogue(
                 AppendSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -286,7 +286,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendSubCatalogue(
                 AppendSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -300,7 +300,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendSubCatalogue(
                 AppendSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -316,7 +316,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchSubCatalogues(
                 SwitchSubCataloguesCommand(catalogue.id, catalogue, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -331,7 +331,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchSubCatalogues(
                 SwitchSubCataloguesCommand(catalogue.id, catalogue, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -345,7 +345,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchSubCatalogues(
                 SwitchSubCataloguesCommand(catalogue.id, catalogue, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -361,7 +361,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeSubCatalogue(
                 RemoveSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -376,7 +376,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeSubCatalogue(
                 RemoveSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -390,7 +390,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeSubCatalogue(
                 RemoveSubCatalogueCommand(catalogue.id, catalogue))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -406,7 +406,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendArticle(
                 AppendArticleToCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -421,7 +421,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendArticle(
                 AppendArticleToCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -435,7 +435,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.appendArticle(
                 AppendArticleToCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -451,7 +451,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchArticlesInCatalogue(
                 SwitchArticlesInCatalogueCommand(catalogue.id, article, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -466,7 +466,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchArticlesInCatalogue(
                 SwitchArticlesInCatalogueCommand(catalogue.id, article, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -480,7 +480,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.switchArticlesInCatalogue(
                 SwitchArticlesInCatalogueCommand(catalogue.id, article, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -496,7 +496,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeArticle(
                 RemoveArticleFromCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Catalogue, Is(catalogue))
     }
@@ -511,7 +511,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeArticle(
                 RemoveArticleFromCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -525,7 +525,7 @@ class CatalogueWorkflowTest {
         val response = catalogueWorkflow.removeArticle(
                 RemoveArticleFromCatalogueCommand(catalogue.id, article))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
