@@ -11,7 +11,7 @@ import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.cqrs.EventBus
-import io.ktor.http.HttpStatusCode
+import com.tsbonev.nharker.server.helpers.HttpStatus
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -70,7 +70,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.createArticle(CreateArticleCommand(articleRequest))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.Created.value))
+        assertThat(response.statusCode, Is(HttpStatus.Created.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -84,7 +84,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.createArticle(CreateArticleCommand(articleRequest))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -102,7 +102,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.deleteArticle(DeleteArticleCommand(article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -116,7 +116,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.deleteArticle(DeleteArticleCommand(article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -129,7 +129,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.getArticleById(GetArticleByIdCommand(article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -143,7 +143,7 @@ class ArticleWorkflowTest {
 
         val response = articleWorkflow.getArticleById(GetArticleByIdCommand(article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -157,7 +157,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow
                 .getArticleByLinkTitle(GetArticleByLinkTitleCommand(article.linkTitle))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -172,7 +172,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow
                 .getArticleByLinkTitle(GetArticleByLinkTitleCommand(article.linkTitle))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -186,7 +186,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow
                 .searchArticlesByTitle(SearchArticleByTitleCommand(article.fullTitle))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as List<Article>, Is(listOf(article)))
     }
@@ -203,7 +203,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.appendEntryToArticle(
                 AppendEntryToArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -218,7 +218,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.appendEntryToArticle(
                 AppendEntryToArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -232,7 +232,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.appendEntryToArticle(
                 AppendEntryToArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -250,7 +250,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.removeEntryFromArticle(
                 RemoveEntryFromArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -265,7 +265,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.removeEntryFromArticle(
                 RemoveEntryFromArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -279,7 +279,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.removeEntryFromArticle(
                 RemoveEntryFromArticleCommand(propertyEntry, article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -297,7 +297,7 @@ class ArticleWorkflowTest {
                         propertyEntry,
                         article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -314,7 +314,7 @@ class ArticleWorkflowTest {
                         propertyEntry,
                         article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -331,7 +331,7 @@ class ArticleWorkflowTest {
                 DetachPropertyFromArticleCommand("::property-name::",
                         article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -347,7 +347,7 @@ class ArticleWorkflowTest {
                 DetachPropertyFromArticleCommand("::property-name::",
                         article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -362,7 +362,7 @@ class ArticleWorkflowTest {
                 DetachPropertyFromArticleCommand("::property-name::",
                         article.id))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -376,7 +376,7 @@ class ArticleWorkflowTest {
         val response = articleWorkflow.retrieveFullTitles(
                 RetrieveFullTitlesCommand(setOf(article.linkTitle)))
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as List<String>, Is(listOf(article.fullTitle)))
     }
@@ -394,7 +394,7 @@ class ArticleWorkflowTest {
                 SwitchEntriesInArticleCommand(article.id, propertyEntry, propertyEntry)
         )
 
-        assertThat(response.statusCode, Is(HttpStatusCode.OK.value))
+        assertThat(response.statusCode, Is(HttpStatus.OK.value))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Article, Is(article))
     }
@@ -410,7 +410,7 @@ class ArticleWorkflowTest {
                 SwitchEntriesInArticleCommand(article.id, propertyEntry, propertyEntry)
         )
 
-        assertThat(response.statusCode, Is(HttpStatusCode.NotFound.value))
+        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -425,7 +425,7 @@ class ArticleWorkflowTest {
                 SwitchEntriesInArticleCommand(article.id, propertyEntry, propertyEntry)
         )
 
-        assertThat(response.statusCode, Is(HttpStatusCode.BadRequest.value))
+        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
         assertThat(response.payload.isPresent, Is(false))
     }
 
