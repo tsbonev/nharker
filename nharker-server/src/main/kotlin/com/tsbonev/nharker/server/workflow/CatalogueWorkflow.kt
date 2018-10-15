@@ -39,8 +39,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Creates a catalogue.
      * @code 201
-     * @event CatalogueCreatedEvent
      * @payload The created catalogue.
+     * @publishes CatalogueCreatedEvent
      *
      * If the catalogue title is taken, logs the title.
      * @code 400
@@ -67,8 +67,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Deletes a catalogue.
      * @code 200
-     * @event CatalogueDeletedEvent
      * @payload The deleted catalogue.
+     * @publishes CatalogueDeletedEvent
      *
      * If catalogue is not found by id, logs id.
      * @code 404
@@ -88,8 +88,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Changes the title of a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the catalogue title is taken, logs title.
      * @code 400
@@ -115,8 +115,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Changes the parent of a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the catalogue is already a child, logs the catalogue id and the parent title.
      * @code 400
@@ -142,8 +142,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Appends a subcatalogue to a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the parent catalogue is also the child catalogue, logs the catalogue id.
      * @code 400
@@ -175,8 +175,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Switches the order of two subcatalogues.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the catalogue does not contain both subcatalogues, logs the catalogue's id and the subcatalogues' ids.
      * @code 400
@@ -203,8 +203,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Removes a subcatalogue from a parent catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the subcatalogue is not a child, logs the parent's and the child's ids.
      * @code 400
@@ -230,8 +230,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Appends a article to a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the article is already a child, logs the article's and the catalogue's ids.
      * @code 400
@@ -257,8 +257,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Switches the order of two articles in a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the catalogue does not contain both articles, logs the catalogue's id and the articles' ids.
      * @code 400
@@ -285,8 +285,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     /**
      * Removes an article from a catalogue.
      * @code 200
-     * @event CatalogueUpdatedEvent
      * @payload The updated catalogue.
+     * @publishes CatalogueUpdatedEvent
      *
      * If the article is not contained in the catalogue, logs the article's and the catalogue's ids.
      * @code 400

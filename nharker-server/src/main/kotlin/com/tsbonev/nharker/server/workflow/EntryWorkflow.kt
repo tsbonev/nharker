@@ -31,8 +31,8 @@ class EntryWorkflow(private val eventBus: EventBus,
     /**
      * Creates an entry.
      * @code 201
-     * @event EntryDeletedEvent
      * @payload The created entry.
+     * @publishes EntryDeletedEvent
      */
     @CommandHandler
     fun createEntry(command: CreateEntryCommand): CommandResponse {
@@ -45,8 +45,8 @@ class EntryWorkflow(private val eventBus: EventBus,
     /**
      * Deletes an entry.
      * @code 200
-     * @event EntryDeletedEvent
      * @payload The deleted entry.
+     * @publishes EntryDeletedEvent
      *
      * If entry is not found, logs the id.
      * @code 400
@@ -66,8 +66,8 @@ class EntryWorkflow(private val eventBus: EventBus,
     /**
      * Updates an entry's content.
      * @code 200
-     * @event EntryUpdatedEvent
      * @payload The updated entry.
+     * @publishes EntryUpdatedEvent
      *
      * If the entry is not, logs the id.
      * @code 400
@@ -87,8 +87,8 @@ class EntryWorkflow(private val eventBus: EventBus,
     /**
      * Updates an entry's links.
      * @code 200
-     * @event EntryUpdatedEvent
      * @payload The updated entry.
+     * @publishes EntryUpdatedEvent
      *
      * If the entry is not, logs the id.
      * @code 400
