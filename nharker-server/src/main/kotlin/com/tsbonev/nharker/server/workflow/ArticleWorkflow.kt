@@ -36,8 +36,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Creates an article.
      * @code 201
-     * @event ArticleCreatedEvent
      * @payload The created article.
+     * @publishes ArticleCreatedEvent
      *
      * If the article title is taken, logs the title.
      * @code 400
@@ -58,9 +58,9 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Deletes and article and its entries and properties.
      * @code 200
-     * @event ArticleDeletedEvent
      * @payload The deleted article.
-     * @spawn DeleteEntryCommand
+     * @publishes ArticleDeletedEvent
+     * @spawns DeleteEntryCommand
      *
      * If the article is not found, logs the id.
      * @code 404
@@ -113,8 +113,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Appends an entry to an article.
      * @code 200
-     * @event ArticleUpdatedEvent
      * @payload The updated article.
+     * @publishes ArticleUpdatedEvent
      *
      * If an article is not found by id, logs id.
      * @code 404
@@ -140,8 +140,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Removes an entry from an article.
      * @code 200
-     * @event ArticleUpdatedEvent
      * @payload The updated article.
+     * @publishes ArticleUpdatedEvent
      *
      * If an article is not found by id, logs id.
      * @code 404
@@ -169,8 +169,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Attaches a property to an article.
      * @code 200
-     * @event ArticleUpdatedEvent
      * @payload The updated article.
+     * @publishes ArticleUpdatedEvent
      *
      * If the article is not found by id, logs id.
      * @code 404
@@ -194,8 +194,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Detaches a property from an article.
      * @code 200
-     * @event ArticleUpdatedEvent
      * @payload The updated article.
+     * @publishes ArticleUpdatedEvent
      *
      * If the article is not found by id, logs id.
      * @code 404
@@ -224,8 +224,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
     /**
      * Switches two entries' order in an article.
      * @code 200
-     * @event ArticleUpdatedEvent
      * @payload The updated article.
+     * @publishes ArticleUpdatedEvent
      *
      * If the article is not found by id, logs id.
      * @code 404
