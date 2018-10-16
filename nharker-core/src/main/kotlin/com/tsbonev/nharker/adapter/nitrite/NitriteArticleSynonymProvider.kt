@@ -31,7 +31,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
     override fun addSynonym(articleSynonym: String, article: Article): String {
         val map = getSynonymMap().toMutableMap()
 
-        if (map[articleSynonym] != null) throw SynonymAlreadyTakenException()
+        if (map[articleSynonym] != null) throw SynonymAlreadyTakenException(articleSynonym)
 
         map[articleSynonym] = article.linkTitle
 
@@ -42,7 +42,7 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
     override fun removeSynonym(articleSynonym: String): String {
         val map = getSynonymMap().toMutableMap()
 
-        if (map[articleSynonym] == null) throw SynonymNotFoundException()
+        if (map[articleSynonym] == null) throw SynonymNotFoundException(articleSynonym)
 
         map.remove(articleSynonym)
 

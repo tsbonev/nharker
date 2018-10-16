@@ -46,7 +46,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         )
 
         if (coll.find(Article::linkTitle eq article.linkTitle).firstOrNull() != null)
-            throw ArticleTitleTakenException()
+            throw ArticleTitleTakenException(articleRequest.fullTitle)
 
         coll.insert(article)
         return article
@@ -81,7 +81,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun appendEntry(articleId: String, entry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
-        if (article.entries.containsKey(entry.id)) throw EntryAlreadyInArticleException()
+        if (article.entries.containsKey(entry.id))
+            throw EntryAlreadyInArticleException(entry.id, articleId)
 
         handleArticleLinks(article, entry, true)
 
@@ -96,7 +97,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun removeEntry(articleId: String, entry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
-        if (!article.entries.contains(entry.id)) throw EntryNotInArticleException()
+        if (!article.entries.contains(entry.id))
+            throw EntryNotInArticleException(entry.id, articleId)
 
         handleArticleLinks(article, entry, false)
 
@@ -119,7 +121,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
             coll.update(updatedArticle)
             updatedArticle
         } catch (ex: ElementNotInMapException) {
-            throw EntryNotInArticleException()
+            throw EntryNotInArticleException(ex.element as String, articleId)
         }
     }
 
@@ -161,7 +163,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
      * Finds an article by id or throws an exception.
      */
     private fun findByIdOrThrow(articleId: String): Article {
-        return coll.find(Article::id eq articleId).firstOrNull() ?: throw ArticleNotFoundException()
+        return coll.find(Article::id eq articleId).firstOrNull()
+                ?: throw ArticleNotFoundException(articleId)
     }
 
     /**

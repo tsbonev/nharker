@@ -4,10 +4,10 @@ package com.tsbonev.nharker.core.helpers
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
-fun <T> Map<T, Int>.switch(first: T, second: T): Map<T, Int> {
+fun <T : Any> Map<T, Int>.switch(first: T, second: T): Map<T, Int> {
     val mutableMap = this.toMutableMap()
-    val firstVal = mutableMap[first] ?: throw ElementNotInMapException()
-    val secondVal = mutableMap[second] ?: throw ElementNotInMapException()
+    val firstVal = mutableMap[first] ?: throw ElementNotInMapException(first)
+    val secondVal = mutableMap[second] ?: throw ElementNotInMapException(second)
 
     mutableMap[first] = secondVal
     mutableMap[second] = firstVal
@@ -21,9 +21,9 @@ fun <T> Map<T, Int>.append(value: T): Map<T, Int> {
     return mutableMap
 }
 
-fun <T> Map<T, Int>.subtract(value: T): Map<T, Int> {
+fun <T : Any> Map<T, Int>.subtract(value: T): Map<T, Int> {
     val mutableMap = this.toMutableMap()
-    val removedSpace = mutableMap[value] ?: throw ElementNotInMapException()
+    val removedSpace = mutableMap[value] ?: throw ElementNotInMapException(value)
 
     mutableMap.remove(value)
 
@@ -34,4 +34,4 @@ fun <T> Map<T, Int>.subtract(value: T): Map<T, Int> {
     return mutableMap
 }
 
-class ElementNotInMapException : Throwable()
+class ElementNotInMapException(val element: Any) : Throwable()

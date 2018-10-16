@@ -1,26 +1,28 @@
 package com.tsbonev.nharker.server.workflow
+
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleSynonymProvider
 import com.tsbonev.nharker.core.SynonymAlreadyTakenException
 import com.tsbonev.nharker.core.SynonymNotFoundException
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JUnitRuleMockery
-import org.hamcrest.CoreMatchers.`is` as Is
 import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import org.hamcrest.CoreMatchers.`is` as Is
 
 @Suppress("UNCHECKED_CAST")
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class ArticleSynonymWorkflowTest{
+class ArticleSynonymWorkflowTest {
 
     @Rule
     @JvmField
@@ -36,10 +38,12 @@ class ArticleSynonymWorkflowTest{
     private val eventBus = context.mock(EventBus::class.java)
     private val synonymProvider = context.mock(ArticleSynonymProvider::class.java)
 
-    private val synonymWorkflow = ArticleSynonymWorkflow(eventBus, synonymProvider)
+    private val exceptionLogger = ExceptionLogger()
+
+    private val synonymWorkflow = ArticleSynonymWorkflow(eventBus, synonymProvider, exceptionLogger)
 
     @Test
-    fun `Retrieve full global map`(){
+    fun `Retrieve full global map`() {
         val synonymMap = mapOf("::synonym::" to "::link-title::")
 
         context.expecting {
@@ -55,7 +59,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Search synonym map`(){
+    fun `Search synonym map`() {
         val synonymMap = mapOf("::synonym::" to "::link-title::")
 
         context.expecting {
@@ -72,7 +76,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Searching synonym map for non-existent synonym returns not found`(){
+    fun `Searching synonym map for non-existent synonym returns not found`() {
         val synonymMap = mapOf("::synonym::" to "::link-title::")
 
         context.expecting {
@@ -88,7 +92,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Get article synonyms`(){
+    fun `Get article synonyms`() {
         val synonym = "::synonym::"
         val synonymMap = mapOf(synonym to article.linkTitle)
 
@@ -106,7 +110,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Adding synonym returns pair of synonym and article`(){
+    fun `Adding synonym returns pair of synonym and article`() {
         val synonym = "::synonym::"
 
         context.expecting {
@@ -125,12 +129,12 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Adding synonym that already exists returns bad request`(){
+    fun `Adding synonym that already exists returns bad request`() {
         val synonym = "::synonym::"
 
         context.expecting {
             oneOf(synonymProvider).addSynonym(synonym, article)
-            will(throwException(SynonymAlreadyTakenException()))
+            will(throwException(SynonymAlreadyTakenException(synonym)))
         }
 
         val response = synonymWorkflow.addSynonym(
@@ -141,7 +145,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Removing synonym returns it`(){
+    fun `Removing synonym returns it`() {
         val synonym = "::synonym::"
 
         context.expecting {
@@ -160,12 +164,12 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Removing non-existent synonym returns not found`(){
+    fun `Removing non-existent synonym returns not found`() {
         val synonym = "::synonym::"
 
         context.expecting {
             oneOf(synonymProvider).removeSynonym(synonym)
-            will(throwException(SynonymNotFoundException()))
+            will(throwException(SynonymNotFoundException(synonym)))
         }
 
         val response = synonymWorkflow.removeSynonym(
@@ -176,7 +180,7 @@ class ArticleSynonymWorkflowTest{
     }
 
     @Test
-    fun `Deleted articles get synonyms removed`(){
+    fun `Deleted articles get synonyms removed`() {
         val firstSynonym = "::first-synonym::"
         val secondSynonym = "::second-synonym::"
 
@@ -197,7 +201,7 @@ class ArticleSynonymWorkflowTest{
         synonymWorkflow.onArticleDeletedRemoveSynonyms(ArticleDeletedEvent(article))
     }
 
-    private fun Mockery.expecting(block: Expectations.() -> Unit){
-            checking(Expectations().apply(block))
+    private fun Mockery.expecting(block: Expectations.() -> Unit) {
+        checking(Expectations().apply(block))
     }
 }

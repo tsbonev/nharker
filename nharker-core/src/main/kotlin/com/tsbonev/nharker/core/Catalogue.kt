@@ -23,13 +23,13 @@ data class Catalogue(@Id val id: String,
                      val subCatalogues: Map<String, Int> = emptyMap(),
                      val parentId: String? = null)
 
-class CatalogueNotFoundException : Throwable()
-class CatalogueTitleTakenException : Throwable()
+class CatalogueNotFoundException(val catalogueId: String) : Throwable()
+class CatalogueTitleTakenException(val catalogueTitle: String) : Throwable()
 
-class CatalogueAlreadyAChildException : Throwable()
-class CatalogueNotAChildException : Throwable()
-class SelfContainedCatalogueException : Throwable()
-class CatalogueCircularInheritanceException : Throwable()
+class CatalogueAlreadyAChildException(val parentCatalogueId: String, val childCatalogueId: String) : Throwable()
+class CatalogueNotAChildException(val parentCatalogueId: String, val childCatalogueId: String) : Throwable()
+class SelfContainedCatalogueException(val catalogueId: String) : Throwable()
+class CatalogueCircularInheritanceException(val parentCatalogueId: String, val childCatalogueId: String) : Throwable()
 
-class ArticleAlreadyInCatalogueException : Throwable()
-class ArticleNotInCatalogueException : Throwable()
+class ArticleAlreadyInCatalogueException(val catalogueId: String, val articleId: String) : Throwable()
+class ArticleNotInCatalogueException(val catalogueId: String, val articleId: String) : Throwable()

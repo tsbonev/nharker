@@ -12,6 +12,7 @@ import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -23,7 +24,6 @@ import org.junit.Test
 import java.time.LocalDateTime
 import java.util.Optional
 import org.hamcrest.CoreMatchers.`is` as Is
-
 
 @Suppress("UNCHECKED_CAST")
 /**
@@ -38,7 +38,9 @@ class ArticleWorkflowTest {
     private val eventBus = context.mock(EventBus::class.java)
     private val articles = context.mock(Articles::class.java)
 
-    private val articleWorkflow = ArticleWorkflow(eventBus, articles)
+    private val exceptionLogger = ExceptionLogger()
+
+    private val articleWorkflow = ArticleWorkflow(eventBus, articles, exceptionLogger)
 
     private val articleRequest = ArticleRequest(
             "Full title"
@@ -79,7 +81,7 @@ class ArticleWorkflowTest {
     fun `Creating article with a taken title returns bad request`() {
         context.expecting {
             oneOf(articles).create(articleRequest)
-            will(throwException(ArticleTitleTakenException()))
+            will(throwException(ArticleTitleTakenException(articleRequest.fullTitle)))
         }
 
         val response = articleWorkflow.createArticle(CreateArticleCommand(articleRequest))
@@ -111,7 +113,7 @@ class ArticleWorkflowTest {
     fun `Deleting a non-existent article returns not found`() {
         context.expecting {
             oneOf(articles).delete(article.id)
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.deleteArticle(DeleteArticleCommand(article.id))
@@ -212,7 +214,7 @@ class ArticleWorkflowTest {
     fun `Appending entry to non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).appendEntry(article.id, propertyEntry)
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.appendEntryToArticle(
@@ -226,7 +228,7 @@ class ArticleWorkflowTest {
     fun `Appending entry that is already in article returns bad request`() {
         context.expecting {
             oneOf(articles).appendEntry(article.id, propertyEntry)
-            will(throwException(EntryAlreadyInArticleException()))
+            will(throwException(EntryAlreadyInArticleException(propertyEntry.id, article.id)))
         }
 
         val response = articleWorkflow.appendEntryToArticle(
@@ -259,7 +261,7 @@ class ArticleWorkflowTest {
     fun `Removing entry from non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).removeEntry(article.id, propertyEntry)
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.removeEntryFromArticle(
@@ -273,7 +275,7 @@ class ArticleWorkflowTest {
     fun `Removing entry that is not in article returns bad request`() {
         context.expecting {
             oneOf(articles).removeEntry(article.id, propertyEntry)
-            will(throwException(EntryNotInArticleException()))
+            will(throwException(EntryNotInArticleException(propertyEntry.id, article.id)))
         }
 
         val response = articleWorkflow.removeEntryFromArticle(
@@ -306,7 +308,7 @@ class ArticleWorkflowTest {
     fun `Attaching property to non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).attachProperty(article.id, "::property-name::", propertyEntry)
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.attachPropertyToArticle(
@@ -340,7 +342,7 @@ class ArticleWorkflowTest {
     fun `Detaching property from non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).detachProperty(article.id, "::property-name::")
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.detachPropertyFromArticle(
@@ -353,13 +355,15 @@ class ArticleWorkflowTest {
 
     @Test
     fun `Detaching non-existing property from article returns bad request`() {
+        val propertyName = "::property-name::"
+
         context.expecting {
-            oneOf(articles).detachProperty(article.id, "::property-name::")
-            will(throwException(PropertyNotFoundException()))
+            oneOf(articles).detachProperty(article.id, propertyName)
+            will(throwException(PropertyNotFoundException(propertyName)))
         }
 
         val response = articleWorkflow.detachPropertyFromArticle(
-                DetachPropertyFromArticleCommand("::property-name::",
+                DetachPropertyFromArticleCommand(propertyName,
                         article.id))
 
         assertThat(response.statusCode, Is(StatusCode.BadRequest))
@@ -403,7 +407,7 @@ class ArticleWorkflowTest {
     fun `Switching entries' order in non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).switchEntries(article.id, propertyEntry, propertyEntry)
-            will(throwException(ArticleNotFoundException()))
+            will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.switchEntriesInArticle(
@@ -418,7 +422,7 @@ class ArticleWorkflowTest {
     fun `Switching entries' order in article that doesn't contain both returns bad request`() {
         context.expecting {
             oneOf(articles).switchEntries(article.id, propertyEntry, propertyEntry)
-            will(throwException(EntryNotInArticleException()))
+            will(throwException(EntryNotInArticleException(propertyEntry.id, article.id)))
         }
 
         val response = articleWorkflow.switchEntriesInArticle(

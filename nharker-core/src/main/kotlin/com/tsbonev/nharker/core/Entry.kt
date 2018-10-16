@@ -20,4 +20,4 @@ data class Entry(@Id val id: String,
                  val content: String,
                  val links: Map<String, String> = emptyMap())
 
-class EntryNotFoundException : Throwable()
+class EntryNotFoundException(val entryId: String) : Throwable()

@@ -14,9 +14,9 @@ import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
-import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.cqrs.StatusCode
-import org.slf4j.LoggerFactory
+import com.tsbonev.nharker.cqrs.Workflow
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
  * Provides the command handlers that affect articles directly
@@ -28,11 +28,9 @@ import org.slf4j.LoggerFactory
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleWorkflow(private val eventBus: EventBus,
-                      private val articles: Articles) : Workflow {
-    private val logger = LoggerFactory.getLogger("ArticleWorkflow")
-
+                      private val articles: Articles,
+                      private val exceptionLogger: ExceptionLogger) : Workflow {
     //region Command Handlers
-
     /**
      * Creates an article.
      * @code 201
@@ -50,8 +48,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
             CommandResponse(StatusCode.Created, createdArticle)
         } catch (e: ArticleTitleTakenException) {
-            logger.error("There is already an article with the title ${command.articleRequest.fullTitle}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -87,7 +84,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
             CommandResponse(StatusCode.OK, deletedArticle)
         } catch (e: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -106,7 +103,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
         return if (possibleArticle.isPresent) CommandResponse(StatusCode.OK, possibleArticle.get())
         else {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(ArticleNotFoundException(command.articleId))
         }
     }
 
@@ -130,10 +127,9 @@ class ArticleWorkflow(private val eventBus: EventBus,
             eventBus.publish(ArticleUpdatedEvent(updatedArticle))
             CommandResponse(StatusCode.OK, updatedArticle)
         } catch (e: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(e)
         } catch (e: EntryAlreadyInArticleException) {
-            logger.error("The article with id ${command.articleId} already contains the entry with id ${command.entry.id}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -159,10 +155,9 @@ class ArticleWorkflow(private val eventBus: EventBus,
             eventBus.publish(ArticleUpdatedEvent(updatedArticle))
             CommandResponse(StatusCode.OK, updatedArticle)
         } catch (e: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(e)
         } catch (e: EntryNotInArticleException) {
-            logger.error("The article with id ${command.articleId} does not contain an entry with id ${command.entry.id}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -187,7 +182,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
             eventBus.publish(ArticleUpdatedEvent(updatedArticle))
             CommandResponse(StatusCode.OK, updatedArticle)
         } catch (e: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -214,10 +209,9 @@ class ArticleWorkflow(private val eventBus: EventBus,
             eventBus.publish(ArticleUpdatedEvent(updatedArticle))
             CommandResponse(StatusCode.OK, updatedArticle)
         } catch (e: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
+            exceptionLogger.logException(e)
         } catch (e: PropertyNotFoundException) {
-            logger.error("Could not find property named ${command.propertyName} in article with id ${command.articleId}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -240,11 +234,10 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(ArticleUpdatedEvent(updatedArticle))
             CommandResponse(StatusCode.OK, updatedArticle)
-        } catch (ex: ArticleNotFoundException) {
-            logArticleNotFound(command.articleId)
-        } catch (ex: EntryNotInArticleException) {
-            logger.error("Entries with ids ${command.first.id} and ${command.second.id} are not in article with id ${command.articleId}")
-            CommandResponse(StatusCode.BadRequest)
+        } catch (e: ArticleNotFoundException) {
+            exceptionLogger.logException(e)
+        } catch (e: EntryNotInArticleException) {
+            exceptionLogger.logException(e)
         }
     }
 
@@ -262,8 +255,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
         return if (possibleArticle.isPresent) CommandResponse(StatusCode.OK, possibleArticle.get())
         else {
-            logger.error("Could not find article with link title ${command.linkTitle}!")
-            CommandResponse(StatusCode.NotFound)
+            exceptionLogger.logException(ArticleNotFoundException(command.linkTitle))
         }
     }
 
@@ -292,11 +284,6 @@ class ArticleWorkflow(private val eventBus: EventBus,
     //region Event Handlers
 
     //endregion
-
-    private fun logArticleNotFound(id: String): CommandResponse {
-        logger.error("Could not find article with id $id!")
-        return CommandResponse(StatusCode.NotFound)
-    }
 }
 
 //region Queries

@@ -10,9 +10,9 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
-import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.cqrs.StatusCode
-import org.slf4j.LoggerFactory
+import com.tsbonev.nharker.cqrs.Workflow
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
  * Provides the command handlers that are concerned with the
@@ -24,9 +24,8 @@ import org.slf4j.LoggerFactory
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleSynonymWorkflow(private val eventBus: EventBus,
-                             private val synonyms: ArticleSynonymProvider) : Workflow {
-    private val logger = LoggerFactory.getLogger("ArticleSynonymWorkflow")
-
+                             private val synonyms: ArticleSynonymProvider,
+                             private val exceptionLogger: ExceptionLogger) : Workflow {
     //region Command Handlers
     /**
      * Adds a synonym to the global map.
@@ -44,8 +43,7 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
 
             return CommandResponse(StatusCode.Created, Pair(addedSynonym, command.article))
         } catch (e: SynonymAlreadyTakenException) {
-            logger.error("The synonym ${command.synonym} is already present in the synonym map!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -65,8 +63,7 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
 
             return CommandResponse(StatusCode.OK, removedSynonym)
         } catch (e: SynonymNotFoundException) {
-            logger.error("The synonym ${command.synonym} was not found in the map")
-            CommandResponse(StatusCode.NotFound)
+            exceptionLogger.logException(e)
         }
     }
 
