@@ -40,7 +40,7 @@ class SimpleEventBusTest {
 
         @CommandHandler
         fun handle(command: TestCommand): CommandResponse {
-            return CommandResponse(200,
+            return CommandResponse(StatusCode.OK,
                     testCommand.data)
         }
 
@@ -68,7 +68,7 @@ class SimpleEventBusTest {
     fun `Send and handle command`() {
         val commandResponse = eventBus.send(testCommand)
 
-        assertThat(commandResponse.statusCode, Is(200))
+        assertThat(commandResponse.statusCode, Is(StatusCode.OK))
         assertThat(commandResponse.payload.isPresent, Is(true))
         assertThat(commandResponse.payload.get() as String, Is(testCommand.data))
     }
@@ -118,7 +118,7 @@ class SimpleEventBusTest {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(command: SecondTestCommand): CommandResponse {
-                return CommandResponse(200,
+                return CommandResponse(StatusCode.OK,
                         "Parallel workflow received command ${command.data}")
             }
 
@@ -132,7 +132,7 @@ class SimpleEventBusTest {
 
         val commandResponse = eventBus.send(SecondTestCommand("::new-command-data::"))
 
-        assertThat(commandResponse.statusCode, Is(200))
+        assertThat(commandResponse.statusCode, Is(StatusCode.OK))
         assertThat(commandResponse.payload.isPresent, Is(true))
         assertThat(commandResponse.payload.get() as String,
                 Is("Parallel workflow received command ::new-command-data::"))
@@ -167,7 +167,7 @@ class SimpleEventBusTest {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(command: TestCommand): CommandResponse {
-                return CommandResponse(200)
+                return CommandResponse(StatusCode.OK)
             }
         }
 
@@ -179,7 +179,7 @@ class SimpleEventBusTest {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(): CommandResponse {
-                return CommandResponse(200)
+                return CommandResponse(StatusCode.OK)
             }
         }
 
@@ -202,7 +202,7 @@ class SimpleEventBusTest {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(p1: String): CommandResponse {
-                return CommandResponse(200)
+                return CommandResponse(StatusCode.OK)
             }
         }
 

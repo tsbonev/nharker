@@ -4,7 +4,7 @@ import com.tsbonev.nharker.core.ArticleSynonymProvider
 import com.tsbonev.nharker.core.SynonymAlreadyTakenException
 import com.tsbonev.nharker.core.SynonymNotFoundException
 import com.tsbonev.nharker.cqrs.EventBus
-import com.tsbonev.nharker.server.helpers.HttpStatus
+import com.tsbonev.nharker.cqrs.StatusCode
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -49,7 +49,7 @@ class ArticleSynonymWorkflowTest{
 
         val response = synonymWorkflow.getSynonymMap(GetSynonymMapCommand())
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Map<String, String>, Is(synonymMap))
     }
@@ -66,7 +66,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.searchSynonymMap(
                 SearchSynonymMapCommand("::synonym::"))
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as String, Is("::link-title::"))
     }
@@ -83,7 +83,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.searchSynonymMap(
                 SearchSynonymMapCommand("::non-existing-synonym::"))
 
-        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -100,7 +100,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.getSynonymsForArticle(
                 GetSynonymsForArticleCommand(article))
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as List<String>, Is(listOf(synonym)))
     }
@@ -119,7 +119,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.addSynonym(
                 AddSynonymCommand(synonym, article))
 
-        assertThat(response.statusCode, Is(HttpStatus.Created.value))
+        assertThat(response.statusCode, Is(StatusCode.Created))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Pair<String, Article>, Is(Pair(synonym, article)))
     }
@@ -136,7 +136,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.addSynonym(
                 AddSynonymCommand(synonym, article))
 
-        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -154,7 +154,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.removeSynonym(
                 RemoveSynonymCommand(synonym))
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as String, Is(synonym))
     }
@@ -171,7 +171,7 @@ class ArticleSynonymWorkflowTest{
         val response = synonymWorkflow.removeSynonym(
                 RemoveSynonymCommand(synonym))
 
-        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 

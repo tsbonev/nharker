@@ -5,7 +5,7 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
 import com.tsbonev.nharker.cqrs.EventBus
-import com.tsbonev.nharker.server.helpers.HttpStatus
+import com.tsbonev.nharker.cqrs.StatusCode
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -56,7 +56,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.Created.value))
+        assertThat(response.statusCode, Is(StatusCode.Created))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Entry, Is(entry))
     }
@@ -76,7 +76,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Entry, Is(entry))
     }
@@ -94,7 +94,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -115,7 +115,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Entry, Is(entry))
     }
@@ -135,7 +135,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -156,7 +156,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Entry, Is(entry))
     }
@@ -176,7 +176,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.BadRequest.value))
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -193,7 +193,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as Entry, Is(entry))
     }
@@ -211,7 +211,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.NotFound.value))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -231,7 +231,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(HttpStatus.OK.value))
+        assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
         assertThat(response.payload.get() as List<Entry>, Is(entryList))
     }
