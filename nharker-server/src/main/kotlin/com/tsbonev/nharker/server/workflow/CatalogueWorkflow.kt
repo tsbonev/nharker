@@ -16,9 +16,9 @@ import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
-import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.cqrs.StatusCode
-import org.slf4j.LoggerFactory
+import com.tsbonev.nharker.cqrs.Workflow
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
  * Provides the command handlers that affect catalogues directly
@@ -30,11 +30,9 @@ import org.slf4j.LoggerFactory
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class CatalogueWorkflow(private val eventBus: EventBus,
-                        private val catalogues: Catalogues) : Workflow {
-    private val logger = LoggerFactory.getLogger("CatalogueWorkflow")
-
+                        private val catalogues: Catalogues,
+                        private val exceptionLogger: ExceptionLogger) : Workflow {
     //region Command Handlers
-
     /**
      * Creates a catalogue.
      * @code 201
@@ -55,11 +53,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueCreatedEvent(createdCatalogue))
             CommandResponse(StatusCode.Created, createdCatalogue)
         } catch (e: CatalogueTitleTakenException) {
-            logger.error("There is already a catalogue with the title: ${command.catalogueRequest.title}!")
-            return CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logger.error("There is no parent catalogue with id: ${command.catalogueRequest.parentId}!")
-            return CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -80,7 +76,7 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueDeletedEvent(deletedCatalogue))
             CommandResponse(StatusCode.OK, deletedCatalogue)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.catalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -104,10 +100,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueTitleTakenException) {
-            logger.error("A catalogue already exists with the title: ${command.newTitle}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.catalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -131,10 +126,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueAlreadyAChildException) {
-            logger.error("The catalogue with id ${command.catalogueId} is already a parent of catalogue ${command.newParent.title}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.catalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -161,13 +155,11 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueAlreadyAChildException) {
-            logger.error("The catalogue with id ${command.childCatalogue.id} is already a parent of catalogue ${command.parentCatalogueId}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: SelfContainedCatalogueException) {
-            logger.error("Cannot append catalogue with itself: ${command.parentCatalogueId}")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.parentCatalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -192,10 +184,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueNotAChildException) {
-            logger.error("The catalogue with id ${command.catalogueId} does not contain both catalogues with ids: ${command.first.id} and ${command.second.id}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.catalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -219,10 +210,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueNotAChildException) {
-            logger.error("The catalogue with id: ${command.childCatalogue.id} is not a child of the catalogue with id ${command.parentCatalogueId}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.parentCatalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -246,10 +236,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: ArticleAlreadyInCatalogueException) {
-            logger.error("The article with id ${command.article.id} is already in the catalogue with id: ${command.parentCatalogueId}")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.parentCatalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -274,10 +263,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: ArticleNotInCatalogueException) {
-            logger.error("The catalogue with id ${command.catalogueId} does not contain both articles with ids: ${command.first.id} and ${command.second.id}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.catalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -301,10 +289,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: ArticleNotInCatalogueException) {
-            logger.error("The article with id: ${command.article.id} is not in the catalogue with id ${command.parentCatalogueId}!")
-            CommandResponse(StatusCode.BadRequest)
+            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
-            logCatalogueNotFound(command.parentCatalogueId)
+            exceptionLogger.logException(e)
         }
     }
 
@@ -321,7 +308,7 @@ class CatalogueWorkflow(private val eventBus: EventBus,
         val possibleCatalogue = catalogues.getById(command.catalogueId)
 
         return if (possibleCatalogue.isPresent) CommandResponse(StatusCode.OK, possibleCatalogue.get())
-        else logCatalogueNotFound(command.catalogueId)
+        else exceptionLogger.logException(CatalogueNotFoundException(command.catalogueId))
     }
 
     //endregion
@@ -330,11 +317,6 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
 
     //endregion
-
-    private fun logCatalogueNotFound(id: String): CommandResponse {
-        logger.error("Could not find catalogue with id $id!")
-        return CommandResponse(StatusCode.NotFound)
-    }
 }
 
 //region Queries

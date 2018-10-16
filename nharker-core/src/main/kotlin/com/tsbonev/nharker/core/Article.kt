@@ -45,8 +45,8 @@ data class ArticleLinkTitle(val linkTitle: String)
  */
 data class ArticleFullTitle(val fullTitle: String)
 
-class ArticleNotFoundException : Throwable()
-class ArticleTitleTakenException : Throwable()
+class ArticleNotFoundException(val articleId: String) : Throwable()
+class ArticleTitleTakenException(val articleTitle: String) : Throwable()
 
-class EntryAlreadyInArticleException : Throwable()
-class EntryNotInArticleException : Throwable()
+class EntryAlreadyInArticleException(val entryId: String, val articleId: String) : Throwable()
+class EntryNotInArticleException(val entryId: String, val articleId: String) : Throwable()

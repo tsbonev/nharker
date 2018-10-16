@@ -33,5 +33,5 @@ interface ArticleSynonymProvider {
     fun removeSynonym(articleSynonym: String): String
 }
 
-class SynonymNotFoundException : Throwable()
-class SynonymAlreadyTakenException : Throwable()
+class SynonymNotFoundException(val synonym: String) : Throwable()
+class SynonymAlreadyTakenException(val synonym: String) : Throwable()

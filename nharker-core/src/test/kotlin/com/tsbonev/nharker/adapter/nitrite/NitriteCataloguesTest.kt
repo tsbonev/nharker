@@ -349,7 +349,7 @@ class NitriteCataloguesTest {
     }
 
     @Test
-    fun `Deleting catalogue with subcatalogues folds their hierarchy ot its parent`(){
+    fun `Deleting catalogue with subcatalogues folds their hierarchy ot its parent`() {
         val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
 
         val subCatalogue = db.getRepository(collectionName, Catalogue::class.java)

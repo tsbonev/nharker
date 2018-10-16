@@ -13,6 +13,7 @@ import com.tsbonev.nharker.core.Catalogues
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -37,10 +38,13 @@ class CatalogueWorkflowTest {
     private val eventBus = context.mock(EventBus::class.java)
     private val catalogues = context.mock(Catalogues::class.java)
 
-    private val catalogueWorkflow = CatalogueWorkflow(eventBus, catalogues)
+    private val exceptionLogger = ExceptionLogger()
+
+    private val catalogueWorkflow = CatalogueWorkflow(eventBus, catalogues, exceptionLogger)
 
     private val catalogueRequest = CatalogueRequest(
-            "::catalogue-title::"
+            "::catalogue-title::",
+            parentId = "::parent-id::"
     )
 
     private val catalogue = Catalogue(
@@ -76,7 +80,7 @@ class CatalogueWorkflowTest {
     fun `Creating a catalogue with a taken title returns bad request`() {
         context.expecting {
             oneOf(catalogues).create(catalogueRequest)
-            will(throwException(CatalogueTitleTakenException()))
+            will(throwException(CatalogueTitleTakenException(catalogueRequest.title)))
         }
 
         val response = catalogueWorkflow.createCatalogue(CreateCatalogueCommand(catalogueRequest))
@@ -86,15 +90,15 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Creating a catalogue with a non-existing parent returns bad request`() {
+    fun `Creating a catalogue with a non-existing parent returns not found`() {
         context.expecting {
             oneOf(catalogues).create(catalogueRequest)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogueRequest.parentId!!)))
         }
 
         val response = catalogueWorkflow.createCatalogue(CreateCatalogueCommand(catalogueRequest))
 
-        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -146,7 +150,7 @@ class CatalogueWorkflowTest {
     fun `Deleting non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).delete(catalogue.id)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.deleteCatalogue(DeleteCatalogueCommand(catalogue.id))
@@ -174,13 +178,15 @@ class CatalogueWorkflowTest {
 
     @Test
     fun `Changing catalogue title to a taken one returns bad request`() {
+        val newTitle = "::new-title::"
+
         context.expecting {
-            oneOf(catalogues).changeTitle(catalogue.id, "::new-title::")
-            will(throwException(CatalogueTitleTakenException()))
+            oneOf(catalogues).changeTitle(catalogue.id, newTitle)
+            will(throwException(CatalogueTitleTakenException(newTitle)))
         }
 
         val response = catalogueWorkflow.changeCatalogueTitle(
-                ChangeCatalogueTitleCommand(catalogue.id, "::new-title::"))
+                ChangeCatalogueTitleCommand(catalogue.id, newTitle))
 
         assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
@@ -188,13 +194,15 @@ class CatalogueWorkflowTest {
 
     @Test
     fun `Changing title of non-existing catalogue returns not found`() {
+        val newTitle = "::new-title::"
+
         context.expecting {
-            oneOf(catalogues).changeTitle(catalogue.id, "::new-title::")
-            will(throwException(CatalogueNotFoundException()))
+            oneOf(catalogues).changeTitle(catalogue.id, newTitle)
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.changeCatalogueTitle(
-                ChangeCatalogueTitleCommand(catalogue.id, "::new-title::"))
+                ChangeCatalogueTitleCommand(catalogue.id, newTitle))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
@@ -221,7 +229,7 @@ class CatalogueWorkflowTest {
     fun `Changing catalogue parent to the same parent returns bad request`() {
         context.expecting {
             oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueAlreadyAChildException()))
+            will(throwException(CatalogueAlreadyAChildException(catalogue.id, catalogue.id)))
         }
 
         val response = catalogueWorkflow.changeCatalogueParent(
@@ -235,7 +243,7 @@ class CatalogueWorkflowTest {
     fun `Changing parent of non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.changeCatalogueParent(
@@ -266,7 +274,7 @@ class CatalogueWorkflowTest {
     fun `Appending catalogue to itself returns bad request`() {
         context.expecting {
             oneOf(catalogues).appendSubCatalogue(catalogue.id, catalogue)
-            will(throwException(SelfContainedCatalogueException()))
+            will(throwException(SelfContainedCatalogueException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.appendSubCatalogue(
@@ -280,7 +288,7 @@ class CatalogueWorkflowTest {
     fun `Appending catalogue that is already a child returns bad request`() {
         context.expecting {
             oneOf(catalogues).appendSubCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueAlreadyAChildException()))
+            will(throwException(CatalogueAlreadyAChildException(catalogue.id, catalogue.id)))
         }
 
         val response = catalogueWorkflow.appendSubCatalogue(
@@ -294,7 +302,7 @@ class CatalogueWorkflowTest {
     fun `Appending subcatalogue to a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).appendSubCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.appendSubCatalogue(
@@ -325,7 +333,7 @@ class CatalogueWorkflowTest {
     fun `Switching subcatalogue orders in a catalogue that does not contain both returns bad request`() {
         context.expecting {
             oneOf(catalogues).switchSubCatalogues(catalogue.id, catalogue, catalogue)
-            will(throwException(CatalogueNotAChildException()))
+            will(throwException(CatalogueNotAChildException(catalogue.id, catalogue.id)))
         }
 
         val response = catalogueWorkflow.switchSubCatalogues(
@@ -339,7 +347,7 @@ class CatalogueWorkflowTest {
     fun `Switching subcatalogue orders in a non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).switchSubCatalogues(catalogue.id, catalogue, catalogue)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.switchSubCatalogues(
@@ -370,7 +378,7 @@ class CatalogueWorkflowTest {
     fun `Removing subcatalogue from non-parent catalogue returns bad request`() {
         context.expecting {
             oneOf(catalogues).removeSubCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueNotAChildException()))
+            will(throwException(CatalogueNotAChildException(catalogue.id, catalogue.id)))
         }
 
         val response = catalogueWorkflow.removeSubCatalogue(
@@ -384,7 +392,7 @@ class CatalogueWorkflowTest {
     fun `Removing subcatalogue from a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).removeSubCatalogue(catalogue.id, catalogue)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.removeSubCatalogue(
@@ -415,7 +423,7 @@ class CatalogueWorkflowTest {
     fun `Appending article that is already contained in the catalogue returns bad request`() {
         context.expecting {
             oneOf(catalogues).appendArticle(catalogue.id, article)
-            will(throwException(ArticleAlreadyInCatalogueException()))
+            will(throwException(ArticleAlreadyInCatalogueException(catalogue.id, article.id)))
         }
 
         val response = catalogueWorkflow.appendArticle(
@@ -429,7 +437,7 @@ class CatalogueWorkflowTest {
     fun `Appending article to a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).appendArticle(catalogue.id, article)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.appendArticle(
@@ -460,7 +468,7 @@ class CatalogueWorkflowTest {
     fun `Switching article orders in a catalogue that does not contain both returns bad request`() {
         context.expecting {
             oneOf(catalogues).switchArticles(catalogue.id, article, article)
-            will(throwException(ArticleNotInCatalogueException()))
+            will(throwException(ArticleNotInCatalogueException(catalogue.id, article.id)))
         }
 
         val response = catalogueWorkflow.switchArticlesInCatalogue(
@@ -474,7 +482,7 @@ class CatalogueWorkflowTest {
     fun `Switching article orders in a non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).switchArticles(catalogue.id, article, article)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.switchArticlesInCatalogue(
@@ -505,7 +513,7 @@ class CatalogueWorkflowTest {
     fun `Removing article that is not contained in catalogue returns bad request`() {
         context.expecting {
             oneOf(catalogues).removeArticle(catalogue.id, article)
-            will(throwException(ArticleNotInCatalogueException()))
+            will(throwException(ArticleNotInCatalogueException(catalogue.id, article.id)))
         }
 
         val response = catalogueWorkflow.removeArticle(
@@ -519,7 +527,7 @@ class CatalogueWorkflowTest {
     fun `Removing article from a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).removeArticle(catalogue.id, article)
-            will(throwException(CatalogueNotFoundException()))
+            will(throwException(CatalogueNotFoundException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.removeArticle(

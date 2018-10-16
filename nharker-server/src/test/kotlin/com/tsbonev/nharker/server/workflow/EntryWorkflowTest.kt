@@ -6,6 +6,7 @@ import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
+import com.tsbonev.nharker.server.helpers.ExceptionLogger
 import org.jmock.AbstractExpectations.returnValue
 import org.jmock.AbstractExpectations.throwException
 import org.jmock.Expectations
@@ -31,7 +32,9 @@ class EntryWorkflowTest {
     private val eventBus = context.mock(EventBus::class.java)
     private val entries = context.mock(Entries::class.java)
 
-    private val entryWorkflow = EntryWorkflow(eventBus, entries)
+    private val exceptionLogger = ExceptionLogger()
+
+    private val entryWorkflow = EntryWorkflow(eventBus, entries, exceptionLogger)
 
     private val entryRequest = EntryRequest("::content::",
             emptyMap())
@@ -82,10 +85,10 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Deleting a non-existing entry returns bad request`() {
+    fun `Deleting a non-existing entry returns not found`() {
         context.expecting {
             oneOf(entries).delete(entry.id)
-            will(throwException(EntryNotFoundException()))
+            will(throwException(EntryNotFoundException(entry.id)))
         }
 
         val response = entryWorkflow.deleteEntry(
@@ -94,7 +97,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -121,12 +124,12 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Updating non-existent entry returns bad request`() {
+    fun `Updating non-existent entry returns not found`() {
         val newContent = "::new-content::"
 
         context.expecting {
             oneOf(entries).updateContent(entry.id, newContent)
-            will(throwException(EntryNotFoundException()))
+            will(throwException(EntryNotFoundException(entry.id)))
         }
 
         val response = entryWorkflow.updateEntryContent(
@@ -135,7 +138,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
@@ -162,12 +165,12 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Updating entry links of non-existing entry returns bad request`() {
+    fun `Updating entry links of non-existing entry returns not found`() {
         val newLinks = mapOf("::content::" to "::link::")
 
         context.expecting {
             oneOf(entries).updateLinks(entry.id, newLinks)
-            will(throwException(EntryNotFoundException()))
+            will(throwException(EntryNotFoundException(entry.id)))
         }
 
         val response = entryWorkflow.updateEntryLinks(
@@ -176,7 +179,7 @@ class EntryWorkflowTest {
                 )
         )
 
-        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 

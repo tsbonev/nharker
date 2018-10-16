@@ -13,11 +13,11 @@ data class ArticleProperties(private val map: MutableMap<String, Entry> = mutabl
     }
 
     fun detachProperty(propertyName: String): Entry {
-        val entry = map[propertyName] ?: throw PropertyNotFoundException()
+        val entry = map[propertyName] ?: throw PropertyNotFoundException(propertyName)
         map.remove(propertyName)
 
         return entry
     }
 }
 
-class PropertyNotFoundException : Throwable()
+class PropertyNotFoundException(val property: String) : Throwable()
