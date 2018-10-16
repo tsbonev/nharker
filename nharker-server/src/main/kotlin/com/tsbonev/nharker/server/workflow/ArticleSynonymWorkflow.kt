@@ -11,7 +11,7 @@ import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.Workflow
-import com.tsbonev.nharker.server.helpers.HttpStatus
+import com.tsbonev.nharker.cqrs.StatusCode
 import org.slf4j.LoggerFactory
 
 /**
@@ -42,10 +42,10 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
             val addedSynonym = synonyms.addSynonym(command.synonym, command.article)
             eventBus.publish(SynonymAddedEvent(addedSynonym, command.article))
 
-            return CommandResponse(HttpStatus.Created.value, Pair(addedSynonym, command.article))
+            return CommandResponse(StatusCode.Created, Pair(addedSynonym, command.article))
         } catch (e: SynonymAlreadyTakenException) {
             logger.error("The synonym ${command.synonym} is already present in the synonym map!")
-            CommandResponse(HttpStatus.BadRequest.value)
+            CommandResponse(StatusCode.BadRequest)
         }
     }
 
@@ -63,10 +63,10 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
             val removedSynonym = synonyms.removeSynonym(command.synonym)
             eventBus.publish(SynonymRemovedEvent(removedSynonym))
 
-            return CommandResponse(HttpStatus.OK.value, removedSynonym)
+            return CommandResponse(StatusCode.OK, removedSynonym)
         } catch (e: SynonymNotFoundException) {
             logger.error("The synonym ${command.synonym} was not found in the map")
-            CommandResponse(HttpStatus.NotFound.value)
+            CommandResponse(StatusCode.NotFound)
         }
     }
 
@@ -78,7 +78,7 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
     @Suppress("UNUSED_PARAMETER")
     @CommandHandler
     fun getSynonymMap(command: GetSynonymMapCommand): CommandResponse {
-        return CommandResponse(HttpStatus.OK.value, synonyms.getSynonymMap())
+        return CommandResponse(StatusCode.OK, synonyms.getSynonymMap())
     }
 
     /**
@@ -94,7 +94,7 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
                 .filter { it.value == command.article.linkTitle }
                 .mapTo(synonymList) { it.key }
 
-        return CommandResponse(HttpStatus.OK.value, synonymList)
+        return CommandResponse(StatusCode.OK, synonymList)
     }
 
     /**
@@ -110,9 +110,9 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
         val foundLink = synonyms.getSynonymMap()[command.searchString]
 
         return if (foundLink != null) {
-            CommandResponse(HttpStatus.OK.value, foundLink)
+            CommandResponse(StatusCode.OK, foundLink)
         } else {
-            CommandResponse(HttpStatus.NotFound.value)
+            CommandResponse(StatusCode.NotFound)
         }
     }
     //endregion

@@ -8,7 +8,7 @@ import java.util.Optional
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class CommandResponse(val statusCode: Int,
+data class CommandResponse(val statusCode: StatusCode,
                            val rawPayload: Any? = null) {
     val payload: Optional<Any> =
             if (rawPayload == null) Optional.empty()
