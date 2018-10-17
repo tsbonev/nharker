@@ -5,18 +5,21 @@ import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleNotInCatalogueException
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
+import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
 import com.tsbonev.nharker.core.CatalogueNotAChildException
 import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.PaginationException
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.SynonymAlreadyTakenException
 import com.tsbonev.nharker.core.SynonymNotFoundException
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.StatusCode
+import com.tsbonev.nharker.server.workflow.NoPaginatorRegisteredException
 import org.slf4j.LoggerFactory
 
 /**
@@ -89,6 +92,11 @@ class ExceptionLogger {
                 CommandResponse(StatusCode.BadRequest)
             }
 
+            is CatalogueCircularInheritanceException -> {
+                logger.error("Circular inheritance not allowed! Catalogue with id ${e.parentCatalogueId} is a child of catalogue with id ${e.childCatalogueId}!")
+                CommandResponse(StatusCode.BadRequest)
+            }
+
             is CatalogueAlreadyAChildException -> {
                 logger.error("The catalogue with id ${e.parentCatalogueId} is already a parent of catalogue ${e.childCatalogueId}!")
                 CommandResponse(StatusCode.BadRequest)
@@ -117,6 +125,18 @@ class ExceptionLogger {
             is SynonymNotFoundException -> {
                 logger.error("The synonym ${e.synonym} was not found in the map")
                 CommandResponse(StatusCode.NotFound)
+            }
+            //endregion
+
+            //region Pagination Exceptions
+            is PaginationException -> {
+                logger.error("Cannot paginate with page of ${e.page} and page siez of ${e.pageSize}!")
+                CommandResponse(StatusCode.BadRequest)
+            }
+
+            is NoPaginatorRegisteredException -> {
+                logger.error("No paginator registered for class ${e.objectType}!")
+                CommandResponse(StatusCode.BadRequest)
             }
             //endregion
 

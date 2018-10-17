@@ -26,7 +26,7 @@ class NitritePaginator<T>(private val coll: ObjectRepository<T>) : Paginator<T> 
 
         val pageOffset = (page - 1) * pageSize
 
-        if(coll.find().count() < pageOffset) return emptyList()
+        if (coll.find().count() < pageOffset) return emptyList()
 
         return coll.find(FindOptions.sort("creationDate", sortOrder)
                 .thenLimit(pageOffset, pageSize)).toList()

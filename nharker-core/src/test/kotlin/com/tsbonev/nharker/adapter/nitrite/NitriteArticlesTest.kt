@@ -149,12 +149,12 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Retrieve all articles`(){
+    fun `Retrieve all articles`() {
         assertThat(articles.getAll(SortBy.ASCENDING), Is(listOf(presavedArticle)))
     }
 
     @Test
-    fun `Retrieve all articles, paginated`(){
+    fun `Retrieve all articles, paginated`() {
         assertThat(articles.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedArticle)))
         assertThat(articles.getAll(SortBy.ASCENDING, 2, 3), Is(emptyList()))
     }

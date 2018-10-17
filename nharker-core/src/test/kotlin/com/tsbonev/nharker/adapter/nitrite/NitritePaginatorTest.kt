@@ -4,12 +4,12 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.PaginationException
 import com.tsbonev.nharker.core.SortBy
 import org.dizitart.kno2.nitrite
+import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
-import org.junit.Before
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -37,12 +37,12 @@ class NitritePaginatorTest {
     )
 
     @Before
-    fun setUp(){
+    fun setUp() {
         db.getRepository(Entry::class.java).insert(arrayOf(firstEntry, secondEntry, thirdEntry))
     }
 
     @Test
-    fun `Get all objects sorted`(){
+    fun `Get all objects sorted`() {
         val paginatedDescendingList = paginator.getAll(SortBy.DESCENDING)
         val paginatedAscendingList = paginator.getAll(SortBy.ASCENDING)
 
@@ -51,7 +51,7 @@ class NitritePaginatorTest {
     }
 
     @Test
-    fun `Get paginated objects`(){
+    fun `Get paginated objects`() {
         val paginatedDescendingList = paginator.getAll(SortBy.DESCENDING, 2, 2)
         val paginatedAscendingList = paginator.getAll(SortBy.ASCENDING, 1, 3)
 
@@ -60,24 +60,24 @@ class NitritePaginatorTest {
     }
 
     @Test
-    fun `Larger page sizes get filled`(){
+    fun `Larger page sizes get filled`() {
         assertThat(paginator.getAll(SortBy.ASCENDING, 1, 100),
                 Is(listOf(firstEntry, secondEntry, thirdEntry)))
     }
 
     @Test
-    fun `Overextended pages return empty`(){
+    fun `Overextended pages return empty`() {
         assertThat(paginator.getAll(SortBy.ASCENDING, 2, 100),
                 Is(emptyList()))
     }
 
     @Test(expected = PaginationException::class)
-    fun `Paginating with size less than zero exception`(){
+    fun `Paginating with size less than zero exception`() {
         paginator.getAll(SortBy.ASCENDING, 1, -1)
     }
 
     @Test(expected = PaginationException::class)
-    fun `Paginating with page less than one exception`(){
+    fun `Paginating with page less than one exception`() {
         paginator.getAll(SortBy.ASCENDING, 0, 2)
     }
 }

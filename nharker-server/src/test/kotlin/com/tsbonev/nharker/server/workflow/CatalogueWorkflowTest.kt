@@ -5,6 +5,7 @@ import com.tsbonev.nharker.core.ArticleAlreadyInCatalogueException
 import com.tsbonev.nharker.core.ArticleNotInCatalogueException
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
+import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
 import com.tsbonev.nharker.core.CatalogueNotAChildException
 import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
@@ -240,6 +241,20 @@ class CatalogueWorkflowTest {
     }
 
     @Test
+    fun `Changing catalogue parent to its child returns bad request`() {
+        context.expecting {
+            oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
+            will(throwException(CatalogueCircularInheritanceException(catalogue.id, catalogue.id)))
+        }
+
+        val response = catalogueWorkflow.changeCatalogueParent(
+                ChangeCatalogueParentCommand(catalogue.id, catalogue))
+
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.payload.isPresent, Is(false))
+    }
+
+    @Test
     fun `Changing parent of non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
@@ -275,6 +290,20 @@ class CatalogueWorkflowTest {
         context.expecting {
             oneOf(catalogues).appendSubCatalogue(catalogue.id, catalogue)
             will(throwException(SelfContainedCatalogueException(catalogue.id)))
+        }
+
+        val response = catalogueWorkflow.appendSubCatalogue(
+                AppendSubCatalogueCommand(catalogue.id, catalogue))
+
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.payload.isPresent, Is(false))
+    }
+
+    @Test
+    fun `Appending catalogue to its child returns bad request`() {
+        context.expecting {
+            oneOf(catalogues).appendSubCatalogue(catalogue.id, catalogue)
+            will(throwException(CatalogueCircularInheritanceException(catalogue.id, catalogue.id)))
         }
 
         val response = catalogueWorkflow.appendSubCatalogue(

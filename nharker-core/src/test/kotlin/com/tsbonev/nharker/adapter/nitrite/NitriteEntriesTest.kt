@@ -70,12 +70,12 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Retrieve all entries`(){
+    fun `Retrieve all entries`() {
         assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
     }
 
     @Test
-    fun `Retrieve all entries, paginated`(){
+    fun `Retrieve all entries, paginated`() {
         assertThat(entries.getAll(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
         assertThat(entries.getAll(SortBy.DESCENDING, 2, 2), Is(emptyList()))
     }
