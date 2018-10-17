@@ -11,6 +11,7 @@ import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.PropertyNotFoundException
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
@@ -145,6 +146,17 @@ class NitriteArticlesTest {
     @Test
     fun `Return empty when article isn't found by link title`() {
         assertThat(articles.getByLinkTitle("::non-existing-link-title::").isPresent, Is(false))
+    }
+
+    @Test
+    fun `Retrieve all articles`(){
+        assertThat(articles.getAll(SortBy.ASCENDING), Is(listOf(presavedArticle)))
+    }
+
+    @Test
+    fun `Retrieve all articles, paginated`(){
+        assertThat(articles.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedArticle)))
+        assertThat(articles.getAll(SortBy.ASCENDING, 2, 3), Is(emptyList()))
     }
 
     @Test

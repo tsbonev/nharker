@@ -11,6 +11,8 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.Paginator
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.ElementNotInMapException
 import com.tsbonev.nharker.core.helpers.append
 import com.tsbonev.nharker.core.helpers.subtract
@@ -32,10 +34,14 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                       private val collectionName: String = "Articles",
                       private val entryLinker: EntryLinker,
                       private val clock: Clock = Clock.systemUTC())
-    : Articles {
+    : Articles, Paginator<Article> {
 
     private val coll: ObjectRepository<Article>
         get() = nitriteDb.getRepository(collectionName, Article::class.java)
+
+    private val paginator: Paginator<Article> by lazy {
+        NitritePaginator(coll)
+    }
 
     override fun create(articleRequest: ArticleRequest): Article {
         val article = Article(
@@ -55,6 +61,14 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun save(article: Article): Article {
         coll.update(article, true)
         return article
+    }
+
+    override fun getAll(order: SortBy): List<Article> {
+        return paginator.getAll(order)
+    }
+
+    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<Article> {
+        return paginator.getAll(order, page, pageSize)
     }
 
     override fun getById(articleId: String): Optional<Article> {

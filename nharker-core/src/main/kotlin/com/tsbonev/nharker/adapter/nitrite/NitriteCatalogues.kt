@@ -11,7 +11,9 @@ import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
+import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.ElementNotInMapException
 import com.tsbonev.nharker.core.helpers.append
 import com.tsbonev.nharker.core.helpers.subtract
@@ -30,10 +32,14 @@ import java.util.Optional
 class NitriteCatalogues(private val nitriteDb: Nitrite,
                         private val collectionName: String = "Catalogues",
                         private val clock: Clock = Clock.systemUTC())
-    : Catalogues {
+    : Catalogues, Paginator<Catalogue> {
 
     private val coll: ObjectRepository<Catalogue>
         get() = nitriteDb.getRepository(collectionName, Catalogue::class.java)
+
+    private val paginator: Paginator<Catalogue> by lazy {
+        NitritePaginator(coll)
+    }
 
     override fun create(catalogueRequest: CatalogueRequest): Catalogue {
         if (coll.find(Catalogue::title eq catalogueRequest.title).firstOrNull() != null)
@@ -64,6 +70,14 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                 ?: return Optional.empty()
 
         return Optional.of(catalogue)
+    }
+
+    override fun getAll(order: SortBy): List<Catalogue> {
+        return paginator.getAll(order)
+    }
+
+    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<Catalogue> {
+        return paginator.getAll(order, page, pageSize)
     }
 
     override fun changeTitle(catalogueId: String, newTitle: String): Catalogue {
