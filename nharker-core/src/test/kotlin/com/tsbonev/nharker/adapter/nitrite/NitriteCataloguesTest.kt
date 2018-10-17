@@ -11,6 +11,7 @@ import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
 import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
@@ -143,6 +144,22 @@ class NitriteCataloguesTest {
     @Test
     fun `Retrieving non-existent catalogue returns empty`() {
         assertThat(catalogues.getById("fake-catalogue-id::").isPresent, Is(false))
+    }
+
+    @Test
+    fun `Retrieve all articles`(){
+        assertThat(catalogues.getAll(SortBy.DESCENDING),
+                Is(listOf(presavedCatalogue,
+                        subCatalogue,
+                        firstPresavedSubcatalogue,
+                        secondPresavedSubcatalogue
+                        ).sortedBy { it.creationDate }))
+    }
+
+    @Test
+    fun `Retrieve all articles, paginated`(){
+        assertThat(catalogues.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedCatalogue)))
+        assertThat(catalogues.getAll(SortBy.ASCENDING, 3, 4), Is(emptyList()))
     }
 
     @Test

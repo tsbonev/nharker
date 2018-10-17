@@ -3,6 +3,7 @@ package com.tsbonev.nharker.adapter.nitrite
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.nitrite
 import org.junit.Assert.assertThat
@@ -66,6 +67,17 @@ class NitriteEntriesTest {
         val retrievedEntry = entries.getById("::fake-entry-id::")
 
         assertThat(retrievedEntry.isPresent, Is(false))
+    }
+
+    @Test
+    fun `Retrieve all entries`(){
+        assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
+    }
+
+    @Test
+    fun `Retrieve all entries, paginated`(){
+        assertThat(entries.getAll(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
+        assertThat(entries.getAll(SortBy.DESCENDING, 2, 2), Is(emptyList()))
     }
 
     @Test
