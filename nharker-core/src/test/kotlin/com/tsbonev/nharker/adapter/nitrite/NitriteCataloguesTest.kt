@@ -147,17 +147,17 @@ class NitriteCataloguesTest {
     }
 
     @Test
-    fun `Retrieve all articles`(){
+    fun `Retrieve all articles`() {
         assertThat(catalogues.getAll(SortBy.DESCENDING),
                 Is(listOf(presavedCatalogue,
                         subCatalogue,
                         firstPresavedSubcatalogue,
                         secondPresavedSubcatalogue
-                        ).sortedBy { it.creationDate }))
+                ).sortedBy { it.creationDate }))
     }
 
     @Test
-    fun `Retrieve all articles, paginated`(){
+    fun `Retrieve all articles, paginated`() {
         assertThat(catalogues.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedCatalogue)))
         assertThat(catalogues.getAll(SortBy.ASCENDING, 3, 4), Is(emptyList()))
     }

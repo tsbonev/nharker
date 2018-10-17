@@ -6,7 +6,7 @@ package com.tsbonev.nharker.core
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
-interface Paginator<T>{
+interface Paginator<T> {
     /**
      * Retrieves all stored domain objects.
      *
@@ -23,10 +23,11 @@ interface Paginator<T>{
      * @param pageSize The size of the page.
      * @return A list of domain objects, paginated.
      */
+    @Throws(PaginationException::class)
     fun getAll(order: SortBy, page: Int, pageSize: Int): List<T>
 }
 
-enum class SortBy{
+enum class SortBy {
     ASCENDING,
     DESCENDING
 }

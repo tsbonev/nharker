@@ -60,7 +60,8 @@ interface Catalogues {
      * @return The updated child catalogue.
      */
     @Throws(CatalogueNotFoundException::class,
-            CatalogueAlreadyAChildException::class)
+            CatalogueAlreadyAChildException::class,
+            CatalogueCircularInheritanceException::class)
     fun changeParentCatalogue(childCatalogueId: String, parentCatalogue: Catalogue): Catalogue
 
     /**
@@ -72,7 +73,8 @@ interface Catalogues {
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueAlreadyAChildException::class,
-            SelfContainedCatalogueException::class)
+            SelfContainedCatalogueException::class,
+            CatalogueCircularInheritanceException::class)
     fun appendSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
 
     /**

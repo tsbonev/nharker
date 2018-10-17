@@ -5,6 +5,7 @@ import com.tsbonev.nharker.core.ArticleAlreadyInCatalogueException
 import com.tsbonev.nharker.core.ArticleNotInCatalogueException
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
+import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
 import com.tsbonev.nharker.core.CatalogueNotAChildException
 import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
@@ -112,7 +113,10 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the catalogue is already a child, logs the catalogue id and the parent title.
+     * If the catalogue is already a child, logs the catalogue id and the parent id.
+     * @code 400
+     *
+     * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
      * @code 400
      *
      * If the catalogue is not found by id, logs the id.
@@ -126,6 +130,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueAlreadyAChildException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueCircularInheritanceException) {
             exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
             exceptionLogger.logException(e)
@@ -144,6 +150,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * If the child catalogue is already a child, logs the parent's and the child's ids.
      * @code 400
      *
+     * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
+     * @code 400
+     *
      * If the parent catalogue is not found by id, logs the id.
      * @code 404
      */
@@ -157,6 +166,8 @@ class CatalogueWorkflow(private val eventBus: EventBus,
         } catch (e: CatalogueAlreadyAChildException) {
             exceptionLogger.logException(e)
         } catch (e: SelfContainedCatalogueException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueCircularInheritanceException) {
             exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
             exceptionLogger.logException(e)
