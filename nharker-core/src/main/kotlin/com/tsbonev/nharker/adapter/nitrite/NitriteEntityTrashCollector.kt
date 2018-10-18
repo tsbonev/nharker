@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
+import com.tsbonev.nharker.core.Entity
 import com.tsbonev.nharker.core.EntityCannotBeCastException
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.TrashCollector
@@ -30,7 +31,7 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
         return entityList
     }
 
-    override fun trash(entity: Any): String {
+    override fun trash(entity: Entity): String {
 
         val documentEntity = entity.toDocument()
 

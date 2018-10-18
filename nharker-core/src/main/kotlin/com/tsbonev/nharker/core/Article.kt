@@ -16,13 +16,13 @@ import java.time.LocalDateTime
  */
 @Indices(Index(value = "linkTitle", type = IndexType.NonUnique),
         Index(value = "fullTitle", type = IndexType.Fulltext))
-data class Article(@Id val id: String,
+data class Article(@Id override val id: String,
                    val linkTitle: String,
                    val fullTitle: String,
-                   val creationDate: LocalDateTime,
+                   override val creationDate: LocalDateTime,
                    val properties: ArticleProperties = ArticleProperties(),
                    val entries: Map<String, Int> = emptyMap(),
-                   val links: ArticleLinks = ArticleLinks(mutableMapOf()))
+                   val links: ArticleLinks = ArticleLinks(mutableMapOf())) : Entity
 
 /**
  * Converts a full text title to a lowercase, dash-concatenated string.

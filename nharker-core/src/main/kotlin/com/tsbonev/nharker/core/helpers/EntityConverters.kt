@@ -1,8 +1,8 @@
 package com.tsbonev.nharker.core.helpers
 
 import com.google.gson.Gson
+import com.tsbonev.nharker.core.Entity
 import org.dizitart.no2.Document
-import org.dizitart.no2.NitriteId
 
 /**
  * Converters used by the trash store.
@@ -11,12 +11,12 @@ import org.dizitart.no2.NitriteId
  */
 
 /**
- * Converts object to a document with three fields:
+ * Converts an entity to a document with three fields:
  * a class, an id and a json body.
  */
-fun Any.toDocument(): Document {
+fun Entity.toDocument(): Document {
     val document = Document()
-    document["entityId"] = NitriteId.newId().toString()
+    document["entityId"] = this.id
     document["json"] = Gson().toJson(this)
     document["class"] = this::class.java.name
     return document
