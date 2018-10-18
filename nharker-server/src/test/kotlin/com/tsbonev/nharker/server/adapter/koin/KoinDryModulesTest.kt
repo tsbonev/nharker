@@ -17,6 +17,6 @@ class KoinDryModulesTest : KoinTest {
 
     @Test
     fun `Check Koin modules`() {
-        checkModules(listOf(fakeNitrite, loggingTrashHandler))
+        checkModules(listOf(fakeNitrite))
     }
 }

@@ -9,6 +9,8 @@ import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
 import com.tsbonev.nharker.core.CatalogueNotAChildException
 import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
+import com.tsbonev.nharker.core.EntityCannotBeCastException
+import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryNotInArticleException
@@ -136,6 +138,18 @@ class ExceptionLogger {
 
             is NoPaginatorRegisteredException -> {
                 logger.error("No paginator registered for class ${e.objectType}!")
+                CommandResponse(StatusCode.BadRequest)
+            }
+            //endregion
+
+            //region Trash Exceptions
+            is EntityNotInTrashException -> {
+                logger.error("Cannot find trashed entity with id ${e.entityId} and class ${e.entityClass}!")
+                CommandResponse(StatusCode.NotFound)
+            }
+
+            is EntityCannotBeCastException -> {
+                logger.error("Cannot cast trashed entity with id ${e.entityId} to class ${e.entityClass}!")
                 CommandResponse(StatusCode.BadRequest)
             }
             //endregion

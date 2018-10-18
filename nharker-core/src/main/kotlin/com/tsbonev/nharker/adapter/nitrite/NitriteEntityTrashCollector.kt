@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
+import com.tsbonev.nharker.core.EntityCannotBeCastException
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.TrashCollector
 import com.tsbonev.nharker.core.helpers.toDocument
@@ -38,12 +39,17 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
         return documentEntity.get("entityId", String::class.java)
     }
 
-    override fun restore(id: String): Any {
+    override fun <T> restore(id: String, entityClass: Class<T>): T {
         val restoredDoc = coll.find("entityId" eq id).firstOrNull()
-                ?: throw EntityNotInTrashException()
+                ?: throw EntityNotInTrashException(id, entityClass)
 
-        coll.remove(restoredDoc)
-        return restoredDoc.toEntity()
+        return try {
+            val castDoc = entityClass.cast(restoredDoc.toEntity())
+            coll.remove(restoredDoc)
+            castDoc
+        } catch (e: ClassCastException) {
+            throw EntityCannotBeCastException(id, entityClass)
+        }
     }
 
     override fun clear() {

@@ -433,6 +433,24 @@ class ArticleWorkflowTest {
         assertThat(response.payload.isPresent, Is(false))
     }
 
+    @Test
+    fun `Save article when restored`() {
+        context.expecting {
+            oneOf(articles).save(article)
+        }
+
+        articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))
+    }
+
+    @Test
+    fun `Ignore foreign restored entities`() {
+        context.expecting {
+            never(articles).save(article)
+        }
+
+        articleWorkflow.onArticleRestored(EntityRestoredEvent(article, String::class.java))
+    }
+
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
     }

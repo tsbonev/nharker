@@ -4,6 +4,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleProperties
+import com.tsbonev.nharker.core.EntityCannotBeCastException
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.helpers.toDocument
@@ -82,21 +83,26 @@ class NitriteEntityTrashCollectorTest {
 
     @Test
     fun `Restore entity from trash`() {
-        val restoredEntry = trashCollector.restore(trashedId) as Entry
+        val restoredEntry = trashCollector.restore(trashedId, Entry::class.java)
 
         assertThat(restoredEntry, Is(trashedEntry))
     }
 
     @Test
     fun `Restoring entity removes it from trash`() {
-        trashCollector.restore(trashedId)
+        trashCollector.restore(trashedId, Entry::class.java)
 
         assertThat(coll.find("entityId" eq trashedId).firstOrNull(), Is(nullValue()))
     }
 
     @Test(expected = EntityNotInTrashException::class)
     fun `Restoring non-trashed entity throws exception`() {
-        trashCollector.restore(entry.id)
+        trashCollector.restore(entry.id, Entry::class.java)
+    }
+
+    @Test(expected = EntityCannotBeCastException::class)
+    fun `Restoring entity and casting it to wrong type throws exception`() {
+        trashCollector.restore(trashedId, Article::class.java)
     }
 
     @Test
