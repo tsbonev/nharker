@@ -239,6 +239,25 @@ class EntryWorkflowTest {
         assertThat(response.payload.get() as List<Entry>, Is(entryList))
     }
 
+    @Test
+    fun `Save entry when restored`() {
+        context.expecting {
+            oneOf(entries).save(entry)
+        }
+
+        entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
+    }
+
+    @Test
+    fun `Ignore foreign restored entities`() {
+        context.expecting {
+            never(entries).save(entry)
+        }
+
+        entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, String::class.java))
+    }
+
+
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
     }

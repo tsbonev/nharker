@@ -9,6 +9,7 @@ import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
+import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -133,7 +134,15 @@ class EntryWorkflow(private val eventBus: EventBus,
     //endregion
 
     //region Event Handlers
-
+    /**
+     * Saves a restored entry.
+     */
+    @EventHandler
+    fun onEntryRestored(event: EntityRestoredEvent) {
+        if (event.entityClass == Entry::class.java && event.entity is Entry) {
+            entries.save(event.entity)
+        }
+    }
     //endregion
 }
 

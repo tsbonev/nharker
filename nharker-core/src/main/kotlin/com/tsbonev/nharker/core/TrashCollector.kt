@@ -30,8 +30,9 @@ interface TrashCollector {
      * @param id The id of the entity.
      * @return The restored entity.
      */
-    @Throws(EntityNotInTrashException::class)
-    fun restore(id: String): Any
+    @Throws(EntityNotInTrashException::class,
+            EntityCannotBeCastException::class)
+    fun <T> restore(id: String, entityClass: Class<T>): T
 
     /**
      * Clears all trashed entities.
@@ -39,4 +40,5 @@ interface TrashCollector {
     fun clear()
 }
 
-class EntityNotInTrashException : Throwable()
+class EntityNotInTrashException(val entityId: String, val entityClass: Class<*>) : Throwable()
+class EntityCannotBeCastException(val entityId: String, val entityClass: Class<*>) : Throwable()

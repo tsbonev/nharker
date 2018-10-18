@@ -14,6 +14,7 @@ import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
+import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -282,7 +283,15 @@ class ArticleWorkflow(private val eventBus: EventBus,
     //endregion
 
     //region Event Handlers
-
+    /**
+     * Saves a restored article.
+     */
+    @EventHandler
+    fun onArticleRestored(event: EntityRestoredEvent) {
+        if (event.entityClass == Article::class.java && event.entity is Article) {
+            articles.save(event.entity)
+        }
+    }
     //endregion
 }
 

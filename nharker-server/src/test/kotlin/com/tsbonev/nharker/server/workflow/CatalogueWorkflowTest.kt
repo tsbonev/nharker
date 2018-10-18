@@ -566,6 +566,24 @@ class CatalogueWorkflowTest {
         assertThat(response.payload.isPresent, Is(false))
     }
 
+    @Test
+    fun `Save catalogue when restored`() {
+        context.expecting {
+            oneOf(catalogues).save(catalogue)
+        }
+
+        catalogueWorkflow.onCatalogueRestored(EntityRestoredEvent(catalogue, Catalogue::class.java))
+    }
+
+    @Test
+    fun `Ignore foreign restored entities`() {
+        context.expecting {
+            never(catalogues).save(catalogue)
+        }
+
+        catalogueWorkflow.onCatalogueRestored(EntityRestoredEvent(catalogue, String::class.java))
+    }
+
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
     }
