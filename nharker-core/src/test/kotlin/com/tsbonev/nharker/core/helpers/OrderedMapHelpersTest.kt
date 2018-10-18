@@ -56,4 +56,23 @@ class OrderedMapHelpersTest {
     fun `Switching non-existent id throws exception`() {
         mutableMap.switch("::non-existent-id::", "::non-existent-id::")
     }
+
+    @Test
+    fun `Orders map by values`(){
+        holderMap = mapOf(
+                "Three" to 2,
+                "One" to 0,
+                "Two" to 1
+        )
+
+        holderMap = holderMap.sortByValues()
+
+        assertThat(holderMap, Is(
+                mapOf(
+                        "One" to 0,
+                        "Two" to 1,
+                        "Three" to 2
+                )
+        ))
+    }
 }

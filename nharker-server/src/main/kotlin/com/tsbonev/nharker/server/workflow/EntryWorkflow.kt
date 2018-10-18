@@ -12,6 +12,7 @@ import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
+import com.tsbonev.nharker.cqrs.isSuccess
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
@@ -135,15 +136,41 @@ class EntryWorkflow(private val eventBus: EventBus,
 
     //region Event Handlers
     /**
-     * Saves a restored entry.
+     * Saves a restored entry and verifies its explicit links for existence.
      */
     @EventHandler
     fun onEntryRestored(event: EntityRestoredEvent) {
         if (event.entityClass == Entry::class.java && event.entity is Entry) {
-            entries.save(event.entity)
+            val restoredEntry = event.entity
+
+            val verifiedEntry = restoredEntry.verifyLinks()
+
+            entries.save(verifiedEntry)
         }
     }
     //endregion
+
+    /**
+     * Verified the explicit links of an entry by going through them and fetching them.
+     * Ignores the missing phrases and links.
+     *
+     * @return The Entry with verified explicit links.
+     */
+    private fun Entry.verifyLinks() : Entry {
+        val rebuiltEntryLinks= mutableMapOf<String, String>()
+
+        this.links.forEach { phrase, link ->
+            val response = eventBus.send(GetArticleByLinkTitleCommand(link))
+            if(response.statusCode.isSuccess()){
+                rebuiltEntryLinks[phrase] = link
+            }
+        }
+
+        return Entry(this.id,
+                this.creationDate,
+                this.content,
+                rebuiltEntryLinks)
+    }
 }
 
 //region Queries
