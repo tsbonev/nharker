@@ -1,6 +1,7 @@
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.ArticleLinks
 import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
@@ -10,6 +11,7 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.PropertyNotFoundException
+import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -44,6 +46,12 @@ class ArticleWorkflowTest {
 
     private val articleRequest = ArticleRequest(
             "Full title"
+    )
+
+    private val entry = Entry(
+            "::entry-id::",
+            LocalDateTime.now(),
+            "::content::"
     )
 
     private val propertyEntry = Entry(
@@ -434,9 +442,86 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Save article when restored`() {
+    fun `Save article when completely restored`() {
         context.expecting {
+            //Restoring the entries
+            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, entry)))
+
+            //Restoring the properties
+            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
+
+            //Restoring the links
+            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, entry)))
+
             oneOf(articles).save(article)
+        }
+
+        articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))
+    }
+
+    @Test
+    fun `Restoring article restores its deleted references and relinks itself`(){
+        val entryWithLinks = entry.copy(
+                links = mapOf("::phrase::" to "::link::")
+        )
+
+        val propertyWithLinks = propertyEntry.copy(
+                links = mapOf("::phrase::" to "::link::")
+        )
+
+        context.expecting {
+            //Restoring the entries
+            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(eventBus).send(RestoreTrashedEntityCommand(entry.id, Entry::class.java))
+            will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
+
+            //Restoring the properties
+            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
+            will(returnValue(CommandResponse(StatusCode.OK, propertyWithLinks)))
+
+            //Restoring the links
+            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
+
+            oneOf(articles).save(article.copy(
+                    properties = ArticleProperties(mutableMapOf("::property::" to propertyWithLinks)),
+                    links = ArticleLinks(mutableMapOf("::link::" to 2))
+            ))
+        }
+
+        articleWorkflow.onArticleRestored(EntityRestoredEvent(article.copy(), Article::class.java))
+    }
+
+    @Test
+    fun `Restoring article ignores missing references`(){
+        context.expecting {
+            //Restoring the entries
+            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(eventBus).send(RestoreTrashedEntityCommand(entry.id, Entry::class.java))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            //Restoring the properties
+            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(articles).save(article.copy(
+                    entries = emptyMap(),
+                    properties = ArticleProperties(),
+                    links = ArticleLinks(mutableMapOf())
+            ))
         }
 
         articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))

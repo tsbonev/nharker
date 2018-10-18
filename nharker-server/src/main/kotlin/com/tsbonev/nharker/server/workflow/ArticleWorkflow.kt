@@ -2,6 +2,7 @@ package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
@@ -9,6 +10,8 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.PropertyNotFoundException
+import com.tsbonev.nharker.core.helpers.append
+import com.tsbonev.nharker.core.helpers.sortByValues
 import com.tsbonev.nharker.cqrs.Command
 import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
@@ -17,6 +20,7 @@ import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
+import com.tsbonev.nharker.cqrs.isSuccess
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
@@ -284,15 +288,124 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
     //region Event Handlers
     /**
-     * Saves a restored article.
+     * Saves a restored article and restores its linked entries.
+     * @spawns EntryRestoredEvent
      */
     @EventHandler
     fun onArticleRestored(event: EntityRestoredEvent) {
         if (event.entityClass == Article::class.java && event.entity is Article) {
-            articles.save(event.entity)
+
+            val restoredArticle = event.entity
+
+            val rebuiltArticle = restoredArticle
+                    .rebuild()
+                    .restoreEntries(restoredArticle.entries)
+                    .restoreProperties(restoredArticle.properties)
+                    .restoreLinks()
+
+            articles.save(rebuiltArticle)
         }
     }
     //endregion
+
+    /**
+     * Sets up an Article for rebuilding by recreating the
+     * article with the same id, titles and creation date but
+     * leaving out the entries and properties.
+     */
+    private fun Article.rebuild(): Article {
+        return Article(
+                this.id,
+                this.linkTitle,
+                this.fullTitle,
+                this.creationDate
+        )
+    }
+
+    /**
+     * Restores the entries of an article by either
+     * assuring that they exist or by restoring them from
+     * the trash. If an entry does not exist and is not found in the trash
+     * it is skipped.
+     *
+     * @param oldEntries The entries to restore.
+     * @return The article with restored entries.
+     */
+    private fun Article.restoreEntries(oldEntries: Map<String, Int>): Article {
+        var newEntries = mapOf<String, Int>()
+
+        oldEntries
+                .sortByValues()
+                .forEach { entryId, _ ->
+                    val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
+                    if (getResponse.statusCode.isSuccess()) {
+                        val fetchedEntry = getResponse.payload.get() as Entry
+                        newEntries = newEntries.append(fetchedEntry.id)
+                    } else {
+                        val restoreResponse = eventBus.send(
+                                RestoreTrashedEntityCommand(entryId, Entry::class.java))
+                        if (restoreResponse.statusCode.isSuccess()) {
+                            val restoredEntry = restoreResponse.payload.get() as Entry
+                            newEntries = newEntries.append(restoredEntry.id)
+                        }
+                    }
+                }
+        return this.copy(entries = newEntries)
+    }
+
+    /**
+     * Restores the properties of an entry by either
+     * fetching them by id and attaching them or restoring them
+     * from the trash store. If an entry is not found in persistence or
+     * the trash it is skipped.
+     *
+     * @param oldProperties The properties to restore.
+     * @return The article with restored properties.
+     */
+    private fun Article.restoreProperties(oldProperties: ArticleProperties): Article {
+        oldProperties.getAll()
+                .forEach { propName, propEntry ->
+                    val getResponse = eventBus.send(GetEntryByIdCommand(propEntry.id))
+                    if (getResponse.statusCode.isSuccess()) {
+                        this.properties.attachProperty(propName, getResponse.payload.get() as Entry)
+                    }else{
+                        val restoreResponse = eventBus.send(
+                                RestoreTrashedEntityCommand(propEntry.id, Entry::class.java))
+                        if (restoreResponse.statusCode.isSuccess()) {
+                            val restoredEntry = restoreResponse.payload.get() as Entry
+                            this.properties.attachProperty(propName, restoredEntry)
+                        }
+                    }
+                }
+        return this
+    }
+
+    /**
+     * Restores the links of an article by going through its
+     * entries and properties and adding their links to its own.
+     *
+     * @return The article with restored links.
+     */
+    private fun Article.restoreLinks(): Article {
+        this.properties.getAll().forEach { _, propEntry ->
+            propEntry.links.forEach { _, link ->
+                this.links.addLink(link)
+            }
+        }
+
+        this.entries.forEach { entryId, _ ->
+            val response = eventBus.send(
+                    GetEntryByIdCommand(entryId))
+            if (response.statusCode.isSuccess()) {
+                val restoredEntry = response.payload.get() as Entry
+                restoredEntry.links.forEach { _, link ->
+                    this.links.addLink(link)
+                }
+            }
+        }
+
+        return this
+    }
 }
 
 //region Queries

@@ -1,9 +1,11 @@
 package com.tsbonev.nharker.server.workflow
 
+import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Entries
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
+import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -240,9 +242,56 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Save entry when restored`() {
+    fun `Save entry when completely restored`() {
         context.expecting {
             oneOf(entries).save(entry)
+        }
+
+        entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
+    }
+
+    @Test
+    fun `Restoring an entry verifies its links`(){
+        val article = Article(
+                "::article-id::",
+                "full-title",
+                "Full title",
+                LocalDateTime.now()
+        )
+
+        val entry = Entry(
+                "::entry-id::",
+                LocalDateTime.now(),
+                "::content::",
+                mapOf("::phrase::" to "::link::")
+        )
+
+        context.expecting {
+            oneOf(eventBus).send(GetArticleByLinkTitleCommand("::link::"))
+            will(returnValue(CommandResponse(StatusCode.OK, article)))
+
+            oneOf(entries).save(entry)
+        }
+
+        entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
+    }
+
+    @Test
+    fun `Restoring entry skips unverified explicit links`(){
+        val entry = Entry(
+                "::entry-id::",
+                LocalDateTime.now(),
+                "::content::",
+                mapOf("::phrase::" to "::link::")
+        )
+
+        context.expecting {
+            oneOf(eventBus).send(GetArticleByLinkTitleCommand("::link::"))
+            will(returnValue(CommandResponse(StatusCode.NotFound)))
+
+            oneOf(entries).save(entry.copy(
+                    links = emptyMap()
+            ))
         }
 
         entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))

@@ -1,27 +1,53 @@
 package com.tsbonev.nharker.core
 
 /**
+ * Provides the methods to modify a mutable map by
+ * keeping track of how many times a link has been mentioned.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleLinks(val links: MutableMap<String, Int>) {
+data class ArticleLinks(val links: MutableMap<String, Int> = mutableMapOf()) {
 
-    fun get(articleTitle: String): Int? {
-        return links[articleTitle]
+    /**
+     * Returns the amount of times an article has been mentioned.
+     *
+     * @param articleLinkTitle The link title of the article.
+     * @return A nullable integer.
+     */
+    fun get(articleLinkTitle: String): Int? {
+        return links[articleLinkTitle]
     }
 
-    fun contains(articleTitle: String): Boolean {
-        return links[articleTitle] != null
+    /**
+     * Checks whether an article is mentioned.
+     *
+     * @param articleLinkTitle The article to check.
+     * @return Whether or not it is mentioned.
+     */
+    fun contains(articleLinkTitle: String): Boolean {
+        return links[articleLinkTitle] != null
     }
 
-    fun addLink(articleTitle: String) {
-        links[articleTitle] = (links[articleTitle] ?: 0) + 1
+    /**
+     * Adds a link to the map, incrementing its mentioned counter.
+     *
+     * @param articleLinkTitle The link to add.
+     */
+    fun addLink(articleLinkTitle: String) {
+        links[articleLinkTitle] = (links[articleLinkTitle] ?: 0) + 1
     }
 
-    fun removeLink(articleTitle: String) {
-        if (contains(articleTitle)) {
-            val timesMentioned = links[articleTitle]!! - 1
-            if (timesMentioned <= 0) links.remove(articleTitle)
-            else links[articleTitle] = timesMentioned
+    /**
+     * Removes a link mention from the map, decrementing its mentioned counter
+     * and removing it completely if it reaches zero.
+     *
+     * @param articleLinkTitle The link to decrement.
+     */
+    fun removeLink(articleLinkTitle: String) {
+        if (contains(articleLinkTitle)) {
+            val timesMentioned = links[articleLinkTitle]!! - 1
+            if (timesMentioned <= 0) links.remove(articleLinkTitle)
+            else links[articleLinkTitle] = timesMentioned
         }
     }
 }

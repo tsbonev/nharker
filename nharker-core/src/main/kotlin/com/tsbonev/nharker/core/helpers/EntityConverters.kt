@@ -13,6 +13,8 @@ import org.dizitart.no2.Document
 /**
  * Converts an entity to a document with three fields:
  * a class, an id and a json body.
+ *
+ * @return The converted document.
  */
 fun Entity.toDocument(): Document {
     val document = Document()
@@ -25,6 +27,8 @@ fun Entity.toDocument(): Document {
 /**
  * Converts any document with a class and json field to
  * that class.
+ *
+ * @return The converted entity.
  */
 fun Document.toEntity(): Any {
     return Gson().fromJson(this["json"].toString(),
