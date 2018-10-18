@@ -15,9 +15,9 @@ import java.time.LocalDateTime
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Indices(Index(value = "content", type = IndexType.Fulltext))
-data class Entry(@Id val id: String,
-                 val creationDate: LocalDateTime,
+data class Entry(@Id override val id: String,
+                 override val creationDate: LocalDateTime,
                  val content: String,
-                 val links: Map<String, String> = emptyMap())
+                 val links: Map<String, String> = emptyMap()) : Entity
 
 class EntryNotFoundException(val entryId: String) : Throwable()

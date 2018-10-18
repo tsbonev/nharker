@@ -19,10 +19,10 @@ interface TrashCollector {
     /**
      * Stores an entity into the trash collection.
      *
-     * @param entity Entity to trash.
+     * @param entity The entity to trash.
      * @return The id of the trashed entity.
      */
-    fun trash(entity: Any): String
+    fun trash(entity: Entity): String
 
     /**
      * Retrieves an entity from the trash.

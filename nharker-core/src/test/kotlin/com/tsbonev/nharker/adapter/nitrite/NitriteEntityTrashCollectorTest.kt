@@ -49,7 +49,6 @@ class NitriteEntityTrashCollectorTest {
             properties = ArticleProperties(mutableMapOf("::property::" to entry))
     )
 
-    private lateinit var trashedId: String
 
     private val entryTrashCollectionName = "Test_entries_trash"
 
@@ -60,8 +59,6 @@ class NitriteEntityTrashCollectorTest {
     @Before
     fun setUp() {
         val trashedDoc = trashedEntry.toDocument()
-        trashedId = trashedDoc.get("entityId", String::class.java)
-
         coll.insert(trashedDoc)
     }
 
@@ -83,16 +80,16 @@ class NitriteEntityTrashCollectorTest {
 
     @Test
     fun `Restore entity from trash`() {
-        val restoredEntry = trashCollector.restore(trashedId, Entry::class.java)
+        val restoredEntry = trashCollector.restore(trashedEntry.id, Entry::class.java)
 
         assertThat(restoredEntry, Is(trashedEntry))
     }
 
     @Test
     fun `Restoring entity removes it from trash`() {
-        trashCollector.restore(trashedId, Entry::class.java)
+        trashCollector.restore(trashedEntry.id, Entry::class.java)
 
-        assertThat(coll.find("entityId" eq trashedId).firstOrNull(), Is(nullValue()))
+        assertThat(coll.find("entityId" eq trashedEntry.id).firstOrNull(), Is(nullValue()))
     }
 
     @Test(expected = EntityNotInTrashException::class)
@@ -102,7 +99,7 @@ class NitriteEntityTrashCollectorTest {
 
     @Test(expected = EntityCannotBeCastException::class)
     fun `Restoring entity and casting it to wrong type throws exception`() {
-        trashCollector.restore(trashedId, Article::class.java)
+        trashCollector.restore(trashedEntry.id, Article::class.java)
     }
 
     @Test

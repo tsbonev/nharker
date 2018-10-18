@@ -2,6 +2,7 @@ package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.Entity
 import com.tsbonev.nharker.core.EntityCannotBeCastException
 import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.Entry
@@ -126,7 +127,7 @@ class TrashingWorkflowTest {
 
     @Suppress("UNCHECKED_CAST")
     @Test
-    fun `Clearin trash store returns cleared entities`() {
+    fun `Clearing trash store returns cleared entities`() {
         val entityList = listOf(entry, article, catalogue)
 
         context.expecting {
@@ -142,7 +143,7 @@ class TrashingWorkflowTest {
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as List<Any>, Is(entityList))
+        assertThat(response.payload.get() as List<Entity>, Is(entityList))
     }
 
     @Suppress("UNCHECKED_CAST")
