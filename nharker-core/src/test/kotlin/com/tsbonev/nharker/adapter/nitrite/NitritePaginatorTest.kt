@@ -23,16 +23,19 @@ class NitritePaginatorTest {
     private val firstEntry = Entry(
             "::first-entry-id::",
             LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC),
+            "::article-id::",
             "::content::"
     )
     private val secondEntry = Entry(
             "::second-entry-id::",
             LocalDateTime.ofEpochSecond(2, 2, ZoneOffset.UTC),
+            "::article-id::",
             "::content::"
     )
     private val thirdEntry = Entry(
             "::third-entry-id::",
             LocalDateTime.ofEpochSecond(3, 3, ZoneOffset.UTC),
+            "::article-id::",
             "::content::"
     )
 

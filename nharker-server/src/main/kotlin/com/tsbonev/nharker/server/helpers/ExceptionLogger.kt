@@ -1,8 +1,6 @@
 package com.tsbonev.nharker.server.helpers
 
-import com.tsbonev.nharker.core.ArticleAlreadyInCatalogueException
 import com.tsbonev.nharker.core.ArticleNotFoundException
-import com.tsbonev.nharker.core.ArticleNotInCatalogueException
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
 import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
@@ -72,16 +70,6 @@ class ExceptionLogger {
             is CatalogueNotFoundException -> {
                 logger.error("Could not find catalogue with id ${e.catalogueId}!")
                 CommandResponse(StatusCode.NotFound)
-            }
-
-            is ArticleNotInCatalogueException -> {
-                logger.error("The article with id ${e.articleId} is not in the catalogue with id ${e.catalogueId}!")
-                CommandResponse(StatusCode.BadRequest)
-            }
-
-            is ArticleAlreadyInCatalogueException -> {
-                logger.error("The article with id ${e.articleId} is already in the catalogue with id ${e.catalogueId}")
-                CommandResponse(StatusCode.BadRequest)
             }
 
             is CatalogueNotAChildException -> {

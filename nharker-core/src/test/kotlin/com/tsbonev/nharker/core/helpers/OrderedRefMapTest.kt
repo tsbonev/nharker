@@ -7,9 +7,9 @@ import org.hamcrest.CoreMatchers.`is` as Is
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class OrderedMapHelpersTest {
+class OrderedRefMapTest {
 
-    private lateinit var holderMap: Map<String, Int>
+    private lateinit var holderMap: OrderedRefMap
     private val mutableMap = mutableMapOf<String, Int>()
 
     @Test

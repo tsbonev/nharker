@@ -1,8 +1,5 @@
 package com.tsbonev.nharker.server.workflow
 
-import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleAlreadyInCatalogueException
-import com.tsbonev.nharker.core.ArticleNotInCatalogueException
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
 import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
@@ -140,7 +137,7 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     }
 
     /**
-     * Appends a subcatalogue to a catalogue.
+     * Appends a child catalogue to a catalogue.
      * @code 200
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
@@ -158,9 +155,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @code 404
      */
     @CommandHandler
-    fun appendSubCatalogue(command: AppendSubCatalogueCommand): CommandResponse {
+    fun appendChildCatalogue(command: AppendChildCatalogueCommand): CommandResponse {
         return try {
-            val updatedCatalogue = catalogues.appendSubCatalogue(command.parentCatalogueId, command.childCatalogue)
+            val updatedCatalogue = catalogues.appendChildCatalogue(command.parentCatalogueId, command.childCatalogue)
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
@@ -176,21 +173,21 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     }
 
     /**
-     * Switches the order of two subcatalogues.
+     * Switches the order of two child catalogues.
      * @code 200
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the catalogue does not contain both subcatalogues, logs the catalogue's id and the subcatalogues' ids.
+     * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
      * @code 400
      *
      * If the catalogue is not found by id, logs the id
      * @code 404
      */
     @CommandHandler
-    fun switchSubCatalogues(command: SwitchSubCataloguesCommand): CommandResponse {
+    fun switchChildCatalogues(command: SwitchChildCataloguesCommand): CommandResponse {
         return try {
-            val updatedCatalogue = catalogues.switchSubCatalogues(
+            val updatedCatalogue = catalogues.switchChildCatalogues(
                     command.catalogueId, command.first, command.second)
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
@@ -203,104 +200,25 @@ class CatalogueWorkflow(private val eventBus: EventBus,
     }
 
     /**
-     * Removes a subcatalogue from a parent catalogue.
+     * Removes a child catalogue from a parent catalogue.
      * @code 200
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the subcatalogue is not a child, logs the parent's and the child's ids.
+     * If the child catalogue is not a child, logs the parent's and the child's ids.
      * @code 400
      *
      * If the parent catalogue is not found by id, logs the id.
      * @code 404
      */
     @CommandHandler
-    fun removeSubCatalogue(command: RemoveSubCatalogueCommand): CommandResponse {
+    fun removeChildCatalogue(command: RemoveChildCatalogueCommand): CommandResponse {
         return try {
-            val updatedCatalogue = catalogues.removeSubCatalogue(command.parentCatalogueId, command.childCatalogue)
+            val updatedCatalogue = catalogues.removeChildCatalogue(command.parentCatalogueId, command.childCatalogue)
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
         } catch (e: CatalogueNotAChildException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        }
-    }
-
-    /**
-     * Appends a article to a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the article is already a child, logs the article's and the catalogue's ids.
-     * @code 400
-     *
-     * If the parent catalogue is not found by id, logs the id.
-     * @code 404
-     */
-    @CommandHandler
-    fun appendArticle(command: AppendArticleToCatalogueCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.appendArticle(command.parentCatalogueId, command.article)
-
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: ArticleAlreadyInCatalogueException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        }
-    }
-
-    /**
-     * Switches the order of two articles in a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the catalogue does not contain both articles, logs the catalogue's id and the articles' ids.
-     * @code 400
-     *
-     * If the catalogue is not found by id, logs the id
-     * @code 404
-     */
-    @CommandHandler
-    fun switchArticlesInCatalogue(command: SwitchArticlesInCatalogueCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.switchArticles(
-                    command.catalogueId, command.first, command.second)
-
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: ArticleNotInCatalogueException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        }
-    }
-
-    /**
-     * Removes an article from a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the article is not contained in the catalogue, logs the article's and the catalogue's ids.
-     * @code 400
-     *
-     * If the parent catalogue is not found by id, logs the id.
-     * @code 404
-     */
-    @CommandHandler
-    fun removeArticle(command: RemoveArticleFromCatalogueCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.removeArticle(command.parentCatalogueId, command.article)
-
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: ArticleNotInCatalogueException) {
             exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
             exceptionLogger.logException(e)
@@ -354,12 +272,9 @@ data class CatalogueDeletedEvent(val catalogue: Catalogue) : Event
 
 data class ChangeCatalogueTitleCommand(val catalogueId: String, val newTitle: String) : Command
 data class ChangeCatalogueParentCommand(val catalogueId: String, val newParent: Catalogue) : Command
-data class AppendSubCatalogueCommand(val parentCatalogueId: String, val childCatalogue: Catalogue) : Command
-data class RemoveSubCatalogueCommand(val parentCatalogueId: String, val childCatalogue: Catalogue) : Command
-data class AppendArticleToCatalogueCommand(val parentCatalogueId: String, val article: Article) : Command
-data class RemoveArticleFromCatalogueCommand(val parentCatalogueId: String, val article: Article) : Command
-data class SwitchArticlesInCatalogueCommand(val catalogueId: String, val first: Article, val second: Article) : Command
-data class SwitchSubCataloguesCommand(val catalogueId: String, val first: Catalogue, val second: Catalogue) : Command
+data class AppendChildCatalogueCommand(val parentCatalogueId: String, val childCatalogue: Catalogue) : Command
+data class RemoveChildCatalogueCommand(val parentCatalogueId: String, val childCatalogue: Catalogue) : Command
+data class SwitchChildCataloguesCommand(val catalogueId: String, val first: Catalogue, val second: Catalogue) : Command
 data class CatalogueUpdatedEvent(val catalogue: Catalogue) : Event
 
 //endregion

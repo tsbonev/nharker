@@ -41,6 +41,7 @@ class TrashingWorkflowTest {
     private val entry = Entry(
             "::entry-id::",
             LocalDateTime.now(),
+            "::article-id::",
             "::content::"
     )
 

@@ -39,10 +39,12 @@ class EntryWorkflowTest {
     private val entryWorkflow = EntryWorkflow(eventBus, entries, exceptionLogger)
 
     private val entryRequest = EntryRequest("::content::",
+            "::article-id::",
             emptyMap())
 
     private val entry = Entry("::entryId::",
             LocalDateTime.now(),
+            "::article-id::",
             "::content::",
             emptyMap())
 
@@ -252,28 +254,29 @@ class EntryWorkflowTest {
 
     @Test
     fun `Restoring an entry verifies its links`(){
-        val article = Article(
+        val restoredArticle = Article(
                 "::article-id::",
                 "full-title",
                 "Full title",
                 LocalDateTime.now()
         )
 
-        val entry = Entry(
+        val restoredEntry = Entry(
                 "::entry-id::",
                 LocalDateTime.now(),
+                "::article-id::",
                 "::content::",
                 mapOf("::phrase::" to "::link::")
         )
 
         context.expecting {
             oneOf(eventBus).send(GetArticleByLinkTitleCommand("::link::"))
-            will(returnValue(CommandResponse(StatusCode.OK, article)))
+            will(returnValue(CommandResponse(StatusCode.OK, restoredArticle)))
 
-            oneOf(entries).save(entry)
+            oneOf(entries).save(restoredEntry)
         }
 
-        entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
+        entryWorkflow.onEntryRestored(EntityRestoredEvent(restoredEntry, Entry::class.java))
     }
 
     @Test
@@ -281,6 +284,7 @@ class EntryWorkflowTest {
         val entry = Entry(
                 "::entry-id::",
                 LocalDateTime.now(),
+                "::article-id::",
                 "::content::",
                 mapOf("::phrase::" to "::link::")
         )

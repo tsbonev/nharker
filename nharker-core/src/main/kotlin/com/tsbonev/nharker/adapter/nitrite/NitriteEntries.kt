@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
+import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Entries
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
@@ -34,6 +35,7 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         val entry = Entry(
                 NitriteId.newId().toString(),
                 LocalDateTime.now(clock),
+                entryRequest.articleId,
                 entryRequest.content,
                 entryRequest.links
         )
@@ -77,6 +79,15 @@ class NitriteEntries(private val nitriteDb: Nitrite,
     override fun updateLinks(entryId: String, links: Map<String, String>): Entry {
         val entry = findByIdOrThrow(entryId)
         val updatedEntry = entry.copy(links = links)
+
+        coll.update(updatedEntry)
+        return updatedEntry
+    }
+
+    override fun changeArticle(entryId: String, article: Article): Entry {
+        val entry = findByIdOrThrow(entryId)
+        val updatedEntry = entry.copy(articleId = article.id)
+
 
         coll.update(updatedEntry)
         return updatedEntry

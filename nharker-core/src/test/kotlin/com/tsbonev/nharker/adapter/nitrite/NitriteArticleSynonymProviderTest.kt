@@ -29,13 +29,13 @@ class NitriteArticleSynonymProviderTest {
     )
 
     private val article = Article(
-            "::articleId::",
+            "::article-id::",
             "article-title",
             "Article title",
             LocalDateTime.now()
     )
 
-    private val synonymMap = mapOf("::presavedSynonym::" to "article-title")
+    private val synonymMap = mapOf("::presaved-synonym::" to "article-title")
 
     @Suppress("UNCHECKED_CAST")
     private val presavedMap: Map<String, String>
@@ -77,12 +77,12 @@ class NitriteArticleSynonymProviderTest {
 
     @Test(expected = SynonymAlreadyTakenException::class)
     fun `Adding existing synonym throws exception`() {
-        synonymMapProvider.addSynonym("::presavedSynonym::", article)
+        synonymMapProvider.addSynonym("::presaved-synonym::", article)
     }
 
     @Test
     fun `Remove synonym from map`() {
-        synonymMapProvider.removeSynonym("::presavedSynonym::")
+        synonymMapProvider.removeSynonym("::presaved-synonym::")
 
 
         assertThat(presavedMap, Is(emptyMap()))

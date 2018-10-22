@@ -168,6 +168,7 @@ class EntryWorkflow(private val eventBus: EventBus,
 
         return Entry(this.id,
                 this.creationDate,
+                this.articleId,
                 this.content,
                 rebuiltEntryLinks)
     }
