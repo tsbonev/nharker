@@ -40,6 +40,37 @@ interface Articles {
     fun getById(articleId: String): Optional<Article>
 
     /**
+     * Retrieves a list of articles who have a given catalogue id
+     * in their catalogues list.
+     *
+     * @param catalogue The catalogue sought.
+     * @return A list of articles.
+     */
+    fun getByCatalogue(catalogue: Catalogue) : List<Article>
+
+    /**
+     * Adds a catalogue id to an article's catalogues list.
+     *
+     * @param articleId The id of the article.
+     * @param catalogue The catalogue to add.
+     *
+     * @return The updated article.
+     */
+    @Throws(ArticleNotFoundException::class)
+    fun addCatalogue(articleId: String, catalogue: Catalogue) : Article
+
+    /**
+     * Removes a catalogue's id from an article's catalogues list.
+     *
+     * @param articleId The id of the article.
+     * @param catalogue The catalogue to remove.
+     *
+     * @return The updated article.
+     */
+    @Throws(ArticleNotFoundException::class)
+    fun removeCatalogue(articleId: String, catalogue: Catalogue) : Article
+
+    /**
      * Appends an entry to an article.
      *
      * @param articleId The id of the article targeted.
@@ -97,7 +128,7 @@ interface Articles {
     fun detachProperty(articleId: String, propertyName: String): Article
 
     /**
-     * Returns an article with a given link title.
+     * Retrieves an article with a given link title.
      *
      * @param linkTitle The link title to search for.
      * @return An optional article.
@@ -113,7 +144,7 @@ interface Articles {
     fun searchByFullTitle(searchString: String): List<Article>
 
     /**
-     * Returns a list of all article titles that match a set of
+     * Retrieves a list of all article titles that match a set of
      * link titles.
      *
      * @param linkTitleList The links to match to.

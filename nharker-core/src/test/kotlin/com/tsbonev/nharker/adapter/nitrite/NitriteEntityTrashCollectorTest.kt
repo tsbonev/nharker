@@ -30,23 +30,25 @@ class NitriteEntityTrashCollectorTest {
     private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
 
     private val entry = Entry(
-            "::entryId::",
+            "::entry-id::",
             date,
+            articleId = "::article-id::",
             content = "::content::"
     )
 
     private val trashedEntry = Entry(
-            "::trashedEntryId::",
+            "::trashed-entry-id::",
             date,
+            "::article-id::",
             content = "::content::"
     )
 
     private val article = Article(
-            "::articleId::",
-            "article-id",
-            "Article id",
+            "::article-id::",
+            "article-title",
+            "Article title",
             date,
-            properties = ArticleProperties(mutableMapOf("::property::" to entry))
+            properties = ArticleProperties(mutableMapOf("::property-name::" to entry))
     )
 
 

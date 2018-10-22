@@ -7,6 +7,17 @@ package com.tsbonev.nharker.core.helpers
  */
 
 /**
+ * Aliases to better convey what the parts of an ordered ref map are.
+ */
+typealias Order = Int
+typealias Reference = String
+
+/**
+ * An alias used to identify an ordered reference map.
+ */
+typealias OrderedRefMap = Map<Reference, Order>
+
+/**
  * Switches the order of two elements in a map.
  *
  * @param first The first element to switch.
@@ -15,7 +26,7 @@ package com.tsbonev.nharker.core.helpers
  *
  * If one of the elements is not in the map, throws exception.
  */
-fun <T : Any> Map<T, Int>.switch(first: T, second: T): Map<T, Int> {
+fun <T : Any> Map<T, Order>.switch(first: T, second: T): Map<T, Order> {
     val mutableMap = this.toMutableMap()
     val firstVal = mutableMap[first] ?: throw ElementNotInMapException(first)
     val secondVal = mutableMap[second] ?: throw ElementNotInMapException(second)
@@ -32,7 +43,7 @@ fun <T : Any> Map<T, Int>.switch(first: T, second: T): Map<T, Int> {
  * @param value The element to append.
  * @return A new map with the appended element.
  */
-fun <T> Map<T, Int>.append(value: T): Map<T, Int> {
+fun <T> Map<T, Order>.append(value: T): Map<T, Order> {
     val mutableMap = this.toMutableMap()
     mutableMap[value] = mutableMap.size
     return mutableMap
@@ -45,7 +56,7 @@ fun <T> Map<T, Int>.append(value: T): Map<T, Int> {
  * @param value The value to subtract.
  * @return A new map with the value subtracted.
  */
-fun <T : Any> Map<T, Int>.subtract(value: T): Map<T, Int> {
+fun <T : Any> Map<T, Order>.subtract(value: T): Map<T, Order> {
     val mutableMap = this.toMutableMap()
     val removedSpace = mutableMap[value] ?: throw ElementNotInMapException(value)
 
@@ -63,7 +74,7 @@ fun <T : Any> Map<T, Int>.subtract(value: T): Map<T, Int> {
  *
  * @return A new map with sorted by value pairs.
  */
-fun <T> Map<T, Int>.sortByValues(): Map<T, Int> {
+fun <T> Map<T, Order>.sortByValues(): Map<T, Order> {
     return this.toList()
             .sortedBy {
                 (_, order) -> order

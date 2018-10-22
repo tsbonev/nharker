@@ -7,6 +7,7 @@ import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
+import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryLinker
@@ -18,8 +19,10 @@ import com.tsbonev.nharker.core.helpers.append
 import com.tsbonev.nharker.core.helpers.subtract
 import com.tsbonev.nharker.core.helpers.switch
 import com.tsbonev.nharker.core.toLinkTitle
+import org.dizitart.kno2.filters.elemMatch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
+import org.dizitart.kno2.filters.within
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
@@ -78,6 +81,10 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return Optional.of(article)
     }
 
+    override fun getByCatalogue(catalogue: Catalogue): List<Article> {
+        return coll.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
+    }
+
     override fun getByLinkTitle(linkTitle: String): Optional<Article> {
         val article = coll.find(Article::linkTitle eq linkTitle).firstOrNull()
                 ?: return Optional.empty()
@@ -90,6 +97,26 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         coll.remove(article)
         return article
+    }
+
+    override fun addCatalogue(articleId: String, catalogue: Catalogue): Article {
+        val article = findByIdOrThrow(articleId)
+
+        val updatedArticle = article.copy(catalogues = article.catalogues.plus(catalogue.id))
+
+        coll.update(updatedArticle)
+
+        return updatedArticle
+    }
+
+    override fun removeCatalogue(articleId: String, catalogue: Catalogue): Article {
+        val article = findByIdOrThrow(articleId)
+
+        val updatedArticle = article.copy(catalogues = article.catalogues.minus(catalogue.id))
+
+        coll.update(updatedArticle)
+
+        return updatedArticle
     }
 
     override fun appendEntry(articleId: String, entry: Entry): Article {

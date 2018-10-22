@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.core
 
+import com.tsbonev.nharker.core.helpers.OrderedRefMap
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -8,9 +9,9 @@ import java.time.LocalDateTime
 
 /**
  * Catalogues are the entity that groups together
- * articles into coherent categories. Catalogues
- * can nest each other and order articles and
- * their nested subcatalogues.
+ * articles into coherent categories, as such
+ * Catalogues are only concerned with the underlying
+ * inheritance tree that they make up.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -19,8 +20,7 @@ import java.time.LocalDateTime
 data class Catalogue(@Id override val id: String,
                      val title: String,
                      override val creationDate: LocalDateTime,
-                     val articles: Map<String, Int> = emptyMap(),
-                     val subCatalogues: Map<String, Int> = emptyMap(),
+                     val childrenIds: OrderedRefMap = emptyMap(),
                      val parentId: String? = null) : Entity
 
 class CatalogueNotFoundException(val catalogueId: String) : Throwable()
@@ -30,6 +30,3 @@ class CatalogueAlreadyAChildException(val parentCatalogueId: String, val childCa
 class CatalogueNotAChildException(val parentCatalogueId: String, val childCatalogueId: String) : Throwable()
 class SelfContainedCatalogueException(val catalogueId: String) : Throwable()
 class CatalogueCircularInheritanceException(val parentCatalogueId: String, val childCatalogueId: String) : Throwable()
-
-class ArticleAlreadyInCatalogueException(val catalogueId: String, val articleId: String) : Throwable()
-class ArticleNotInCatalogueException(val catalogueId: String, val articleId: String) : Throwable()

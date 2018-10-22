@@ -13,6 +13,7 @@ import org.hamcrest.CoreMatchers.`is` as Is
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
+@Suppress("SpellCheckingInspection")
 class SimpleEntryLinkerTest {
 
     @Rule
@@ -48,8 +49,9 @@ class SimpleEntryLinkerTest {
             "The College of Conciliators is home to conciliators."
 
     private val entry = Entry(
-            "::entryId::",
+            "::entry-id::",
             LocalDateTime.now(),
+            "::article-id::",
             content,
             explicitEntryLinks
     )
@@ -95,8 +97,9 @@ class SimpleEntryLinkerTest {
         }
 
         val entry = Entry(
-                "::entryId::",
+                "::entry-id::",
                 LocalDateTime.now(),
+                "::article-id::",
                 "There are no articles that have any of these words as a link title."
         )
 

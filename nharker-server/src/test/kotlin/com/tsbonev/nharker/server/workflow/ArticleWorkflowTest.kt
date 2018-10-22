@@ -45,26 +45,29 @@ class ArticleWorkflowTest {
     private val articleWorkflow = ArticleWorkflow(eventBus, articles, exceptionLogger)
 
     private val articleRequest = ArticleRequest(
-            "Full title"
+            "Full title",
+            listOf("::catalogue-id::")
     )
 
     private val entry = Entry(
             "::entry-id::",
             LocalDateTime.now(),
+            "::id::",
             "::content::"
     )
 
     private val propertyEntry = Entry(
             "::property-id::",
             LocalDateTime.now(),
+            "::article-id::",
             "::content::"
     )
-
     private val article = Article(
-            "::id::",
-            "full-title",
-            "Full title",
+            "::article-id::",
+            "article-title",
+            "Article title",
             LocalDateTime.now(),
+            catalogues = setOf("::catalogue-id::"),
             entries = mapOf("::entry-id::" to 0),
             properties = ArticleProperties(mutableMapOf("::property::" to propertyEntry))
     )

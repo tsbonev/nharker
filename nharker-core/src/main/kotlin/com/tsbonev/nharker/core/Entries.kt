@@ -52,7 +52,18 @@ interface Entries {
     fun updateLinks(entryId: String, links: Map<String, String>): Entry
 
     /**
-     * Returns an optional entry by id.
+     * Changes the parent article of an entry.
+     *
+     * @param entryId The id of the entry.
+     * @param article The new article that holds the entry.
+     *
+     * @return The updated entry.
+     */
+    @Throws(EntryNotFoundException::class)
+    fun changeArticle(entryId: String, article: Article): Entry
+
+    /**
+     * Retrieves an optional entry by id.
      *
      * @param entryId The id of the entry sought.
      * @return An optional entry.
@@ -60,7 +71,7 @@ interface Entries {
     fun getById(entryId: String): Optional<Entry>
 
     /**
-     * Returns a list of entries matching a text search.
+     * Retrieves a list of entries matching a text search.
      *
      * @param searchText The text to search by.
      * @return A list of matching entries.

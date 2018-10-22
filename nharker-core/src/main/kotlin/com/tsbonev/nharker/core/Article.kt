@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.core
 
+import com.tsbonev.nharker.core.helpers.OrderedRefMap
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -10,7 +11,8 @@ import java.time.LocalDateTime
  * Articles are the main building block of
  * NHarker's organization scheme, they keep track
  * of entries and handle automatically linking
- * to each other based on each entry's content.
+ * to each other based on each entry's content, as
+ * well as keeping track of the catalogues they are a part of.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -20,8 +22,9 @@ data class Article(@Id override val id: String,
                    val linkTitle: String,
                    val fullTitle: String,
                    override val creationDate: LocalDateTime,
+                   val catalogues: Set<String> = emptySet(),
                    val properties: ArticleProperties = ArticleProperties(),
-                   val entries: Map<String, Int> = emptyMap(),
+                   val entries: OrderedRefMap = emptyMap(),
                    val links: ArticleLinks = ArticleLinks(mutableMapOf())) : Entity
 
 /**
@@ -31,6 +34,7 @@ fun String.toLinkTitle(): String {
     return this.toLowerCase()
             .replace("\\s+".toRegex(), "-")
             .replace("\'", "")
+            .replace(":", "")
             .replace(",", "")
             .replace(".", "")
 }

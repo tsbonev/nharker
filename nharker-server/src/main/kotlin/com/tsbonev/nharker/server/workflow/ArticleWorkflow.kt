@@ -318,7 +318,8 @@ class ArticleWorkflow(private val eventBus: EventBus,
                 this.id,
                 this.linkTitle,
                 this.fullTitle,
-                this.creationDate
+                this.creationDate,
+                this.catalogues
         )
     }
 

@@ -75,7 +75,7 @@ interface Catalogues {
             CatalogueAlreadyAChildException::class,
             SelfContainedCatalogueException::class,
             CatalogueCircularInheritanceException::class)
-    fun appendSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
+    fun appendChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
 
     /**
      * Removes a catalogue from the targeted catalogue's children list.
@@ -86,44 +86,10 @@ interface Catalogues {
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueNotAChildException::class)
-    fun removeSubCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
+    fun removeChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
 
     /**
-     * Appends an article from a catalogue.
-     *
-     * @param parentCatalogueId The id of the catalogue targeted.
-     * @param article The article to append.
-     * @return The updated catalogue.
-     */
-    @Throws(CatalogueNotFoundException::class,
-            ArticleAlreadyInCatalogueException::class)
-    fun appendArticle(parentCatalogueId: String, article: Article): Catalogue
-
-    /**
-     * Removes an article from a catalogue.
-     *
-     * @param parentCatalogueId The id of the catalogue targeted.
-     * @param article The  article to remove.
-     * @return The updated catalogue.
-     */
-    @Throws(CatalogueNotFoundException::class,
-            ArticleNotInCatalogueException::class)
-    fun removeArticle(parentCatalogueId: String, article: Article): Catalogue
-
-    /**
-     * Switches the order of two articles in a catalogue.
-     *
-     * @param catalogueId The id of the catalogue targeted.
-     * @param first The first article.
-     * @param second The second article.
-     * @return The updated catalogue.
-     */
-    @Throws(CatalogueNotFoundException::class,
-            ArticleNotInCatalogueException::class)
-    fun switchArticles(catalogueId: String, first: Article, second: Article): Catalogue
-
-    /**
-     * Switches the order of two subcatalogues in a catalogue.
+     * Switches the order of two children catalogues in a parent catalogue.
      *
      * @param parentCatalogueId The id of the catalogue targeted.
      * @param firstChild The first catalogue.
@@ -132,5 +98,5 @@ interface Catalogues {
      */
     @Throws(CatalogueNotFoundException::class,
             CatalogueNotAChildException::class)
-    fun switchSubCatalogues(parentCatalogueId: String, firstChild: Catalogue, secondChild: Catalogue): Catalogue
+    fun switchChildCatalogues(parentCatalogueId: String, firstChild: Catalogue, secondChild: Catalogue): Catalogue
 }
