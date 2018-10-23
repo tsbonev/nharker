@@ -72,7 +72,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
             val deletedArticle = articles.delete(command.articleId)
 
             deletedArticle.properties
-                    .getAll()
+                    .raw()
                     .values
                     .forEach {
                         eventBus.send(DeleteEntryCommand(it))
@@ -296,11 +296,14 @@ class ArticleWorkflow(private val eventBus: EventBus,
 
             val restoredArticle = event.entity
 
+            val restoredEntries = mutableListOf<Entry>()
+            val restoredProperties = mutableListOf<Entry>()
+
             val rebuiltArticle = restoredArticle
                     .rebuild()
-                    .restoreEntries(restoredArticle.entries)
-                    .restoreProperties(restoredArticle.properties)
-                    .restoreLinks()
+                    .restoreEntries(restoredArticle.entries, restoredEntries)
+                    .restoreProperties(restoredArticle.properties, restoredProperties)
+                    .restoreLinks(restoredEntries, restoredProperties)
 
             articles.save(rebuiltArticle)
         }
@@ -329,27 +332,20 @@ class ArticleWorkflow(private val eventBus: EventBus,
      * it is skipped.
      *
      * @param oldEntries The entries to restore.
+     * @param restoredEntries The list to keep the restored entries in.
      * @return The article with restored entries.
      */
-    private fun Article.restoreEntries(oldEntries: OrderedReferenceMap): Article {
-        val newEntries = mutableMapOf<String, Int>()
+    private fun Article.restoreEntries(oldEntries: OrderedReferenceMap,
+                                       restoredEntries: MutableList<Entry>): Article {
+        val entryIds = oldEntries.raw().keys
 
-        oldEntries.raw()
-                .forEach { entryId, _ ->
-                    val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
-                    if (getResponse.statusCode.isSuccess()) {
-                        val fetchedEntry = getResponse.payload.get() as Entry
-                        newEntries[fetchedEntry.id] = newEntries.count()
-                    } else {
-                        val restoreResponse = eventBus.send(
-                                RestoreTrashedEntityCommand(entryId, Entry::class.java))
-                        if (restoreResponse.statusCode.isSuccess()) {
-                            val restoredEntry = restoreResponse.payload.get() as Entry
-                            newEntries[restoredEntry.id] = newEntries.count()
-                        }
-                    }
-                }
-        return this.copy(entries = OrderedReferenceMap(newEntries as LinkedHashMap<String, Int>))
+        restoreEntriesFromIds(entryIds).mapTo(restoredEntries) { it -> it }
+
+        restoredEntries.forEach {
+            this.entries.append(it.id)
+        }
+
+        return this
     }
 
     /**
@@ -359,55 +355,70 @@ class ArticleWorkflow(private val eventBus: EventBus,
      * the trash it is skipped.
      *
      * @param oldProperties The properties to restore.
+     * @param restoredProperties The list to keep the restored properties in.
      * @return The article with restored properties.
      */
-    private fun Article.restoreProperties(oldProperties: ArticleProperties): Article {
-        oldProperties.getAll()
-                .forEach { propName, entryId ->
-                    val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
-                    if (getResponse.statusCode.isSuccess()) {
-                        val restoredEntry = getResponse.payload.get() as Entry
-                        this.properties.attachProperty(propName, restoredEntry.id)
-                    } else {
-                        val restoreResponse = eventBus.send(
-                                RestoreTrashedEntityCommand(entryId, Entry::class.java))
-                        if (restoreResponse.statusCode.isSuccess()) {
-                            val restoredEntry = restoreResponse.payload.get() as Entry
-                            this.properties.attachProperty(propName, restoredEntry.id)
-                        }
-                    }
-                }
+    private fun Article.restoreProperties(oldProperties: ArticleProperties,
+                                          restoredProperties: MutableList<Entry>): Article {
+        val entryIds = oldProperties.raw().values
+
+        restoreEntriesFromIds(entryIds).mapTo(restoredProperties) { it -> it }
+
+        oldProperties.raw().forEach { propertyName, propertyReference ->
+            if (restoredProperties.filter { it.id == propertyReference }.any()) {
+                this.properties.attachProperty(propertyName, propertyReference)
+            }
+        }
+
         return this
+    }
+
+    /**
+     * Restores a list of entries by a given list of ids.
+     *
+     * @param refList The list of ids to restore.
+     * @return A list of restored entries.
+     */
+    private fun restoreEntriesFromIds(refList: Collection<String>): List<Entry> {
+        val entryList = mutableListOf<Entry>()
+
+        refList.forEach {
+            val getResponse = eventBus.send(GetEntryByIdCommand(it))
+            if (getResponse.statusCode.isSuccess()) {
+                val fetchedEntry = getResponse.payload.get() as Entry
+                entryList.add(fetchedEntry)
+            } else {
+                val restoreResponse = eventBus.send(
+                        RestoreTrashedEntityCommand(it, Entry::class.java))
+                if (restoreResponse.statusCode.isSuccess()) {
+                    val restoredEntry = restoreResponse.payload.get() as Entry
+                    entryList.add(restoredEntry)
+                }
+            }
+        }
+
+        return entryList
     }
 
     /**
      * Restores the links of an article by going through its
      * entries and properties and adding their links to its own.
      *
+     * @param entries The restored entries.
+     * @param properties The restored properties.
+     *
      * @return The article with restored links.
      */
-    private fun Article.restoreLinks(): Article {
-        this.properties.getAll().forEach { link, entryId ->
-            val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
-            if (getResponse.statusCode.isSuccess()) {
+    private fun Article.restoreLinks(entries: List<Entry>, properties: List<Entry>): Article {
+        entries.forEach {
+            it.links.forEach { _, link ->
                 this.links.addLink(link)
-            } else {
-                val restoreResponse = eventBus.send(
-                        RestoreTrashedEntityCommand(entryId, Entry::class.java))
-                if (restoreResponse.statusCode.isSuccess()) {
-                    this.links.addLink(link)
-                }
             }
         }
 
-        this.entries.raw().forEach { entryId, _ ->
-            val response = eventBus.send(
-                    GetEntryByIdCommand(entryId))
-            if (response.statusCode.isSuccess()) {
-                val restoredEntry = response.payload.get() as Entry
-                restoredEntry.links.forEach { _, link ->
-                    this.links.addLink(link)
-                }
+        properties.forEach {
+            it.links.forEach { _, link ->
+                this.links.addLink(link)
             }
         }
 

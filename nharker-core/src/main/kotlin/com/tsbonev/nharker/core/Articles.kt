@@ -46,7 +46,7 @@ interface Articles {
      * @param catalogue The catalogue sought.
      * @return A list of articles.
      */
-    fun getByCatalogue(catalogue: Catalogue) : List<Article>
+    fun getByCatalogue(catalogue: Catalogue): List<Article>
 
     /**
      * Adds a catalogue id to an article's catalogues list.
@@ -57,7 +57,7 @@ interface Articles {
      * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class)
-    fun addCatalogue(articleId: String, catalogue: Catalogue) : Article
+    fun addCatalogue(articleId: String, catalogue: Catalogue): Article
 
     /**
      * Removes a catalogue's id from an article's catalogues list.
@@ -68,7 +68,7 @@ interface Articles {
      * @return The updated article.
      */
     @Throws(ArticleNotFoundException::class)
-    fun removeCatalogue(articleId: String, catalogue: Catalogue) : Article
+    fun removeCatalogue(articleId: String, catalogue: Catalogue): Article
 
     /**
      * Appends an entry to an article.

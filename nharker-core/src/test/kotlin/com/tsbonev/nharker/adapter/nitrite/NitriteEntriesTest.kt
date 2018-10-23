@@ -126,7 +126,7 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Change entry article`(){
+    fun `Change entry article`() {
         val updatedEntry = entries.changeArticle(entry.id, article.copy("::new-article-id::"))
 
         assertThat(presavedEntry, Is(entry.copy(articleId = "::new-article-id::")))
@@ -134,7 +134,7 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Changing the article of a non-existent entry throws exception`(){
+    fun `Changing the article of a non-existent entry throws exception`() {
         entries.changeArticle("::non-existent-entry::", article)
     }
 

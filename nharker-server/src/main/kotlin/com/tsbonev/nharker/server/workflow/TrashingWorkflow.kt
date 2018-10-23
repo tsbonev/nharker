@@ -115,14 +115,18 @@ class TrashingWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
+
 data class ViewTrashedEntitiesCommand(val entityClass: Class<*>) : Command
+
 //endregion
 
 //region Commands
+
 data class RestoreTrashedEntityCommand(val entityId: String, val entityClass: Class<*>) : Command
 
 data class EntityRestoredEvent(val entity: Any, val entityClass: Class<*>) : Event
 
 class ClearTrashStoreCommand : Command
 data class TrashStoreClearedEvent(val deletedEntities: List<Any>) : Event
+
 //endregion

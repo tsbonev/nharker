@@ -253,7 +253,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Restoring an entry verifies its links`(){
+    fun `Restoring an entry verifies its links`() {
         val restoredArticle = Article(
                 "::article-id::",
                 "full-title",
@@ -280,7 +280,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Restoring entry skips unverified explicit links`(){
+    fun `Restoring entry skips unverified explicit links`() {
         val entry = Entry(
                 "::entry-id::",
                 LocalDateTime.now(),

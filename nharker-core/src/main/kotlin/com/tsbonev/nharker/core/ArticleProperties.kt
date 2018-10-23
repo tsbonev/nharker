@@ -25,7 +25,7 @@ data class ArticleProperties(private val map: MutableMap<PropertyName, EntryRefe
      *
      * @return A map of Property Names and Entry ids.
      */
-    fun getAll(): Map<PropertyName, EntryReference> {
+    fun raw(): Map<PropertyName, EntryReference> {
         return this.map
     }
 

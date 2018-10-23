@@ -66,6 +66,7 @@ class PaginationWorkflow(private val paginators: Map<Class<*>, Paginator<*>>,
     }
 
     //endregion
+
     /**
      * Returns the correct paginator for a given class.
      */
@@ -75,6 +76,7 @@ class PaginationWorkflow(private val paginators: Map<Class<*>, Paginator<*>>,
 }
 
 //region Queries
+
 data class GetPaginatedDomainObjectsCommand(val order: SortBy,
                                             val page: Int,
                                             val pageSize: Int,
@@ -82,6 +84,7 @@ data class GetPaginatedDomainObjectsCommand(val order: SortBy,
 
 data class GetAllDomainObjectsCommand(val order: SortBy,
                                       val objectType: Class<*>) : Command
+
 //endregion
 
 /**
