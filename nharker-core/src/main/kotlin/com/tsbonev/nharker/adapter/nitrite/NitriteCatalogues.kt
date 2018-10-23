@@ -115,8 +115,8 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                 .raw()
                 .keys
                 .forEach {
-                    val subCatalogue = coll.find(Catalogue::id eq it).first()
-                    coll.update(Catalogue::id eq it, subCatalogue.copy(parentId = catalogue.parentId))
+                    val childCatalogue = coll.find(Catalogue::id eq it).first()
+                    coll.update(Catalogue::id eq it, childCatalogue.copy(parentId = catalogue.parentId))
                 }
 
         coll.remove(Catalogue::id eq catalogueId)
