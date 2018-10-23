@@ -8,15 +8,11 @@ import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
+import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.SortBy
-import com.tsbonev.nharker.core.helpers.ElementNotInMapException
-import com.tsbonev.nharker.core.helpers.append
-import com.tsbonev.nharker.core.helpers.subtract
-import com.tsbonev.nharker.core.helpers.switch
 import org.dizitart.kno2.filters.eq
-import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
@@ -104,19 +100,21 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val updatedChild = childCatalogue
                 .copy(parentId = parentCatalogue.id)
-        val updatedParent = parentCatalogue
-                .copy(childrenIds = parentCatalogue.childrenIds
-                        .append(childCatalogueId))
+
+        parentCatalogue.childrenIds.append(childCatalogueId)
 
         coll.update(updatedChild)
-        coll.update(updatedParent)
+        coll.update(parentCatalogue)
         return updatedChild
     }
 
     override fun delete(catalogueId: String): Catalogue {
         val catalogue = findOrThrow(catalogueId)
 
-        catalogue.childrenIds.keys.forEach {
+        catalogue.childrenIds
+                .raw()
+                .keys
+                .forEach {
             val subCatalogue = coll.find(Catalogue::id eq it).first()
             coll.update(Catalogue::id eq it, subCatalogue.copy(parentId = catalogue.parentId))
         }
@@ -139,12 +137,11 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
         val updatedChild = childCatalogue
                 .copy(parentId = parentCatalogueId)
-        val updatedParent = parentCatalogue
-                .copy(childrenIds = parentCatalogue.childrenIds
-                        .append(childCatalogue.id))
+
+        parentCatalogue.childrenIds.append(childCatalogue.id)
 
         coll.update(updatedChild)
-        coll.update(updatedParent)
+        coll.update(parentCatalogue)
         return updatedChild
     }
 
@@ -157,12 +154,10 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val updatedChild = childCatalogue
                 .copy(parentId = null)
 
-        val updatedParent = parentCatalogue
-                .copy(childrenIds = parentCatalogue.childrenIds
-                        .subtract(childCatalogue.id))
+        parentCatalogue.childrenIds.subtract(childCatalogue.id)
 
         coll.update(updatedChild)
-        coll.update(updatedParent)
+        coll.update(parentCatalogue)
         return updatedChild
     }
 
@@ -172,14 +167,12 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val catalogue = findOrThrow(parentCatalogueId)
 
         return try {
-            val updatedCatalogue = catalogue
-                    .copy(childrenIds = catalogue.childrenIds
-                            .switch(firstChild.id, secondChild.id))
+            catalogue.childrenIds.switch(firstChild.id, secondChild.id)
 
-            coll.update(updatedCatalogue)
-            updatedCatalogue
+            coll.update(catalogue)
+            catalogue
         } catch (ex: ElementNotInMapException) {
-            throw CatalogueNotAChildException(parentCatalogueId, ex.element as String)
+            throw CatalogueNotAChildException(parentCatalogueId, ex.reference as String)
         }
     }
 

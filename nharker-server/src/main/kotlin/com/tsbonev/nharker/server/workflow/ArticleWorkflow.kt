@@ -9,9 +9,8 @@ import com.tsbonev.nharker.core.Articles
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
-import com.tsbonev.nharker.core.helpers.append
-import com.tsbonev.nharker.core.helpers.sortByValues
 import com.tsbonev.nharker.cqrs.Command
 import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
@@ -76,10 +75,10 @@ class ArticleWorkflow(private val eventBus: EventBus,
                     .getAll()
                     .values
                     .forEach {
-                        eventBus.send(DeleteEntryCommand(it.id))
+                        eventBus.send(DeleteEntryCommand(it))
                     }
 
-            deletedArticle.entries
+            deletedArticle.entries.raw()
                     .keys
                     .forEach {
                         eventBus.send(DeleteEntryCommand(it))
@@ -332,26 +331,25 @@ class ArticleWorkflow(private val eventBus: EventBus,
      * @param oldEntries The entries to restore.
      * @return The article with restored entries.
      */
-    private fun Article.restoreEntries(oldEntries: Map<String, Int>): Article {
-        var newEntries = mapOf<String, Int>()
+    private fun Article.restoreEntries(oldEntries: OrderedReferenceMap): Article {
+        val newEntries = mutableMapOf<String, Int>()
 
-        oldEntries
-                .sortByValues()
+        oldEntries.raw()
                 .forEach { entryId, _ ->
                     val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
                     if (getResponse.statusCode.isSuccess()) {
                         val fetchedEntry = getResponse.payload.get() as Entry
-                        newEntries = newEntries.append(fetchedEntry.id)
+                        newEntries[fetchedEntry.id] = newEntries.count()
                     } else {
                         val restoreResponse = eventBus.send(
                                 RestoreTrashedEntityCommand(entryId, Entry::class.java))
                         if (restoreResponse.statusCode.isSuccess()) {
                             val restoredEntry = restoreResponse.payload.get() as Entry
-                            newEntries = newEntries.append(restoredEntry.id)
+                            newEntries[restoredEntry.id] = newEntries.count()
                         }
                     }
                 }
-        return this.copy(entries = newEntries)
+        return this.copy(entries = OrderedReferenceMap(newEntries as LinkedHashMap<String, Int>))
     }
 
     /**
@@ -365,16 +363,17 @@ class ArticleWorkflow(private val eventBus: EventBus,
      */
     private fun Article.restoreProperties(oldProperties: ArticleProperties): Article {
         oldProperties.getAll()
-                .forEach { propName, propEntry ->
-                    val getResponse = eventBus.send(GetEntryByIdCommand(propEntry.id))
+                .forEach { propName, entryId ->
+                    val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
                     if (getResponse.statusCode.isSuccess()) {
-                        this.properties.attachProperty(propName, getResponse.payload.get() as Entry)
-                    }else{
+                        val restoredEntry = getResponse.payload.get() as Entry
+                        this.properties.attachProperty(propName, restoredEntry.id)
+                    } else {
                         val restoreResponse = eventBus.send(
-                                RestoreTrashedEntityCommand(propEntry.id, Entry::class.java))
+                                RestoreTrashedEntityCommand(entryId, Entry::class.java))
                         if (restoreResponse.statusCode.isSuccess()) {
                             val restoredEntry = restoreResponse.payload.get() as Entry
-                            this.properties.attachProperty(propName, restoredEntry)
+                            this.properties.attachProperty(propName, restoredEntry.id)
                         }
                     }
                 }
@@ -388,13 +387,20 @@ class ArticleWorkflow(private val eventBus: EventBus,
      * @return The article with restored links.
      */
     private fun Article.restoreLinks(): Article {
-        this.properties.getAll().forEach { _, propEntry ->
-            propEntry.links.forEach { _, link ->
+        this.properties.getAll().forEach { link, entryId ->
+            val getResponse = eventBus.send(GetEntryByIdCommand(entryId))
+            if (getResponse.statusCode.isSuccess()) {
                 this.links.addLink(link)
+            } else {
+                val restoreResponse = eventBus.send(
+                        RestoreTrashedEntityCommand(entryId, Entry::class.java))
+                if (restoreResponse.statusCode.isSuccess()) {
+                    this.links.addLink(link)
+                }
             }
         }
 
-        this.entries.forEach { entryId, _ ->
+        this.entries.raw().forEach { entryId, _ ->
             val response = eventBus.send(
                     GetEntryByIdCommand(entryId))
             if (response.statusCode.isSuccess()) {

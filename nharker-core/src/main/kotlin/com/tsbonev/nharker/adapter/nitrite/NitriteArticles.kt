@@ -8,21 +8,17 @@ import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
 import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SortBy
-import com.tsbonev.nharker.core.helpers.ElementNotInMapException
-import com.tsbonev.nharker.core.helpers.append
-import com.tsbonev.nharker.core.helpers.subtract
-import com.tsbonev.nharker.core.helpers.switch
 import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.elemMatch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
-import org.dizitart.kno2.filters.within
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
@@ -122,17 +118,15 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     override fun appendEntry(articleId: String, entry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
-        if (article.entries.containsKey(entry.id))
+        if (article.entries.raw().containsKey(entry.id))
             throw EntryAlreadyInArticleException(entry.id, articleId)
 
         handleArticleLinks(article, entry, true)
 
-        val updatedArticle = article
-                .copy(entries = article.entries
-                        .append(entry.id))
+        article.entries.append(entry.id)
 
-        coll.update(updatedArticle)
-        return updatedArticle
+        coll.update(article)
+        return article
     }
 
     override fun removeEntry(articleId: String, entry: Entry): Article {
@@ -143,33 +137,29 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         handleArticleLinks(article, entry, false)
 
-        val updatedArticle = article
-                .copy(entries = article.entries
-                        .subtract(entry.id))
+        article.entries.subtract(entry.id)
 
-        coll.update(updatedArticle)
-        return updatedArticle
+        coll.update(article)
+        return article
     }
 
     override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
         return try {
-            val updatedArticle = article
-                    .copy(entries = article.entries
-                            .switch(first.id, second.id))
+            article.entries.switch(first.id, second.id)
 
-            coll.update(updatedArticle)
-            updatedArticle
+            coll.update(article)
+            article
         } catch (ex: ElementNotInMapException) {
-            throw EntryNotInArticleException(ex.element as String, articleId)
+            throw EntryNotInArticleException(ex.reference, articleId)
         }
     }
 
     override fun attachProperty(articleId: String, propertyName: String, property: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
-        article.properties.attachProperty(propertyName, property)
+        article.properties.attachProperty(propertyName, property.id)
 
         coll.update(article)
         return article

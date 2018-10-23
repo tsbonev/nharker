@@ -11,6 +11,7 @@ import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
@@ -87,9 +88,9 @@ class NitriteArticlesTest {
             "article-title",
             "Article title",
             date,
-            properties = ArticleProperties(mutableMapOf("::property-name::" to articleProperty)),
-            entries = mapOf(firstPresavedEntry.id to 0,
-                    secondPresavedEntry.id to 1),
+            properties = ArticleProperties(mutableMapOf("::property-name::" to articleProperty.id)),
+            entries = OrderedReferenceMap(linkedMapOf(firstPresavedEntry.id to 0,
+                    secondPresavedEntry.id to 1)),
             links = ArticleLinks(mutableMapOf("article-title-1" to 2,
                     "article-title-2" to 1)),
             catalogues = setOf("::catalogue-id::")
@@ -188,40 +189,40 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Retrieve article by catalogue`(){
+    fun `Retrieve article by catalogue`() {
         val articleList = articles.getByCatalogue(catalogue)
 
         assertThat(articleList, Is(listOf(presavedArticle)))
     }
 
     @Test
-    fun `Return empty when no articles match the catalogue`(){
+    fun `Return empty when no articles match the catalogue`() {
         val articleList = articles.getByCatalogue(catalogue.copy(id = "::non-referenced-id::"))
 
         assertThat(articleList, Is(emptyList()))
     }
 
     @Test
-    fun `Add catalogue to article`(){
+    fun `Add catalogue to article`() {
         val updatedArticle = articles.addCatalogue(article.id, catalogue)
 
         assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Adding catalogue to non-existent article throws exception`(){
+    fun `Adding catalogue to non-existent article throws exception`() {
         articles.addCatalogue("::non-existent-article-id::", catalogue)
     }
 
     @Test
-    fun `Remove catalogue from article`(){
+    fun `Remove catalogue from article`() {
         val updatedArticle = articles.removeCatalogue(article.id, catalogue)
 
         assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Removing catalogue to non-existent article throws exception`(){
+    fun `Removing catalogue to non-existent article throws exception`() {
         articles.removeCatalogue("::non-existent-article-id::", catalogue)
     }
 
@@ -316,8 +317,8 @@ class NitriteArticlesTest {
 
         articles.removeEntry(article.id, firstPresavedEntry)
 
-        assertThat(presavedArticle.entries.count(), Is(1))
-        assertThat(presavedArticle.entries[secondPresavedEntry.id], Is(0))
+        assertThat(presavedArticle.entries.raw().count(), Is(1))
+        assertThat(presavedArticle.entries.raw()[secondPresavedEntry.id], Is(0))
     }
 
     @Test
@@ -348,10 +349,9 @@ class NitriteArticlesTest {
     fun `Switch entries in an article`() {
         val updatedArticle = articles.switchEntries(article.id, firstPresavedEntry, secondPresavedEntry)
 
-        assertThat(updatedArticle, Is(presavedArticle.copy(
-                entries = mapOf(secondPresavedEntry.id to 0,
-                        firstPresavedEntry.id to 1)
-        )))
+        assertThat(updatedArticle.entries.raw(), Is(mapOf(secondPresavedEntry.id to 0,
+                firstPresavedEntry.id to 1)
+        ))
     }
 
     @Test(expected = ArticleNotFoundException::class)

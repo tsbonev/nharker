@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.helpers.OrderedRefMap
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -24,8 +23,8 @@ data class Article(@Id override val id: String,
                    override val creationDate: LocalDateTime,
                    val catalogues: Set<String> = emptySet(),
                    val properties: ArticleProperties = ArticleProperties(),
-                   val entries: OrderedRefMap = emptyMap(),
-                   val links: ArticleLinks = ArticleLinks(mutableMapOf())) : Entity
+                   val entries: OrderedReferenceMap = OrderedReferenceMap(),
+                   val links: ArticleLinks = ArticleLinks()) : Entity
 
 /**
  * Converts a full text title to a lowercase, dash-concatenated string.

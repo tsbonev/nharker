@@ -1,28 +1,31 @@
 package com.tsbonev.nharker.core
 
+typealias PropertyName = String
+typealias EntryReference = String
+
 /**
  * Provides the methods to handle a map of properties.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleProperties(private val map: MutableMap<String, Entry> = mutableMapOf()) {
+data class ArticleProperties(private val map: MutableMap<PropertyName, EntryReference> = mutableMapOf()) {
 
     /**
      * Attaches a property to the map, replacing it if present already.
      *
      * @param propertyName The name of the property.
-     * @param property The entry describing the property.
+     * @param entryId The id of the entry describing the property.
      */
-    fun attachProperty(propertyName: String, property: Entry) {
-        this.map[propertyName] = property
+    fun attachProperty(propertyName: String, entryId: String) {
+        this.map[propertyName] = entryId
     }
 
     /**
      * Returns the raw map.
      *
-     * @return A map of Property Names and Entries.
+     * @return A map of Property Names and Entry ids.
      */
-    fun getAll(): Map<String, Entry> {
+    fun getAll(): Map<PropertyName, EntryReference> {
         return this.map
     }
 
@@ -31,9 +34,9 @@ data class ArticleProperties(private val map: MutableMap<String, Entry> = mutabl
      * if it is not found.
      *
      * @param propertyName The name of the property to remove.
-     * @return The removed property Entry.
+     * @return The removed id of the removed property entry.
      */
-    fun detachProperty(propertyName: String): Entry {
+    fun detachProperty(propertyName: String): String {
         val entry = map[propertyName] ?: throw PropertyNotFoundException(propertyName)
         map.remove(propertyName)
 

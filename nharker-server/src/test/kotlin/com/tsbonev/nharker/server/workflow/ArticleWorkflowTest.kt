@@ -10,6 +10,7 @@ import com.tsbonev.nharker.core.Articles
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.EventBus
@@ -68,8 +69,8 @@ class ArticleWorkflowTest {
             "Article title",
             LocalDateTime.now(),
             catalogues = setOf("::catalogue-id::"),
-            entries = mapOf("::entry-id::" to 0),
-            properties = ArticleProperties(mutableMapOf("::property::" to propertyEntry))
+            entries = OrderedReferenceMap(linkedMapOf("::entry-id::" to 0)),
+            properties = ArticleProperties(mutableMapOf("::property::" to propertyEntry.id))
     )
 
     @Test
@@ -459,7 +460,10 @@ class ArticleWorkflowTest {
             oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
             will(returnValue(CommandResponse(StatusCode.OK, entry)))
 
-            oneOf(articles).save(article)
+            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
+
+            oneOf(articles).save(article.copy(links = ArticleLinks(mutableMapOf("::property::" to 1))))
         }
 
         articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))
@@ -494,9 +498,12 @@ class ArticleWorkflowTest {
             oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
             will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
 
+            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
+
             oneOf(articles).save(article.copy(
-                    properties = ArticleProperties(mutableMapOf("::property::" to propertyWithLinks)),
-                    links = ArticleLinks(mutableMapOf("::link::" to 2))
+                    properties = ArticleProperties(mutableMapOf("::property::" to propertyWithLinks.id)),
+                    links = ArticleLinks(mutableMapOf("::property::" to 1, "::link::" to 1))
             ))
         }
 
@@ -521,7 +528,7 @@ class ArticleWorkflowTest {
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(articles).save(article.copy(
-                    entries = emptyMap(),
+                    entries = OrderedReferenceMap(),
                     properties = ArticleProperties(),
                     links = ArticleLinks(mutableMapOf())
             ))
