@@ -53,6 +53,8 @@ data class OrderedReferenceMap(private val map: LinkedHashMap<String, Int> = lin
 
     /**
      * Returns the raw map.
+     *
+     * @return The ordered map.
      */
     fun raw(): Map<String, Int> {
         return map
@@ -64,17 +66,17 @@ data class OrderedReferenceMap(private val map: LinkedHashMap<String, Int> = lin
      * @param reference The reference to check for.
      * @return Whether the reference is in the map or not.
      */
-    fun contains(reference: String) : Boolean {
+    fun contains(reference: String): Boolean {
         return map.containsKey(reference)
     }
 
     /**
      * Sorts a map by its int values.
      */
-    private fun sortByValues(){
+    private fun sortByValues() {
         map.toList()
-                .sortedBy {
-                    (_, order) -> order
+                .sortedBy { (_, order) ->
+                    order
                 }
                 .toMap(map)
     }

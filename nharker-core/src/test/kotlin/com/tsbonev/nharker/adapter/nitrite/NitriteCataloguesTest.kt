@@ -62,8 +62,8 @@ class NitriteCataloguesTest {
             "::catalogue-title::",
             date,
             OrderedReferenceMap(
-            linkedMapOf(firstPresavedSubcatalogue.id to 0,
-                    secondPresavedSubcatalogue.id to 1))
+                    linkedMapOf(firstPresavedSubcatalogue.id to 0,
+                            secondPresavedSubcatalogue.id to 1))
     )
 
     private val presavedCatalogue: Catalogue

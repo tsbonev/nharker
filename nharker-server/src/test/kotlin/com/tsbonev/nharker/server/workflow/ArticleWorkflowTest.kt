@@ -456,21 +456,14 @@ class ArticleWorkflowTest {
             oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
             will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
 
-            //Restoring the links
-            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
-            will(returnValue(CommandResponse(StatusCode.OK, entry)))
-
-            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
-            will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
-
-            oneOf(articles).save(article.copy(links = ArticleLinks(mutableMapOf("::property::" to 1))))
+            oneOf(articles).save(article)
         }
 
         articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))
     }
 
     @Test
-    fun `Restoring article restores its deleted references and relinks itself`(){
+    fun `Restoring article restores its deleted references and relinks itself`() {
         val entryWithLinks = entry.copy(
                 links = mapOf("::phrase::" to "::link::")
         )
@@ -494,16 +487,9 @@ class ArticleWorkflowTest {
             oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
             will(returnValue(CommandResponse(StatusCode.OK, propertyWithLinks)))
 
-            //Restoring the links
-            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
-            will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
-
-            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
-            will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
-
             oneOf(articles).save(article.copy(
                     properties = ArticleProperties(mutableMapOf("::property::" to propertyWithLinks.id)),
-                    links = ArticleLinks(mutableMapOf("::property::" to 1, "::link::" to 1))
+                    links = ArticleLinks(mutableMapOf("::link::" to 2))
             ))
         }
 
@@ -511,7 +497,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Restoring article ignores missing references`(){
+    fun `Restoring article ignores missing references`() {
         context.expecting {
             //Restoring the entries
             oneOf(eventBus).send(GetEntryByIdCommand(entry.id))

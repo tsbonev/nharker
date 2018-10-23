@@ -50,7 +50,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                 LocalDateTime.now(clock)
         )
 
-        if (coll.find(Article::linkTitle eq article.linkTitle).firstOrNull() != null)
+        if (coll.find(Article::linkTitle eq article.linkTitle).any())
             throw ArticleTitleTakenException(articleRequest.fullTitle)
 
         coll.insert(article)

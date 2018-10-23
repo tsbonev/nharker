@@ -156,12 +156,12 @@ class EntryWorkflow(private val eventBus: EventBus,
      *
      * @return The Entry with verified explicit links.
      */
-    private fun Entry.verifyLinks() : Entry {
-        val rebuiltEntryLinks= mutableMapOf<String, String>()
+    private fun Entry.verifyLinks(): Entry {
+        val rebuiltEntryLinks = mutableMapOf<String, String>()
 
         this.links.forEach { phrase, link ->
             val response = eventBus.send(GetArticleByLinkTitleCommand(link))
-            if(response.statusCode.isSuccess()){
+            if (response.statusCode.isSuccess()) {
                 rebuiltEntryLinks[phrase] = link
             }
         }
@@ -175,12 +175,15 @@ class EntryWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
+
 data class GetEntryByIdCommand(val entryId: String) : Command
 
 data class SearchEntriesByContentCommand(val searchText: String) : Command
+
 //endregion
 
 //region Commands
+
 data class CreateEntryCommand(val entryRequest: EntryRequest) : Command
 
 data class EntryCreatedEvent(val entry: Entry) : Event
@@ -191,4 +194,5 @@ data class EntryDeletedEvent(val entry: Entry) : Event
 data class UpdateEntryContentCommand(val entryId: String, val content: String) : Command
 data class UpdateEntryLinksCommand(val entryId: String, val entryLinks: Map<String, String>) : Command
 data class EntryUpdatedEvent(val entry: Entry) : Event
+
 //endregion

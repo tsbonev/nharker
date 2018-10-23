@@ -19,10 +19,15 @@ class OrderedReferenceMapTest {
         assertThat(map.contains("One"), Is(true))
         assertThat(map.contains("Two"), Is(true))
         assertThat(map.contains("Three"), Is(false))
+
+        assertThat(map.raw(), Is(mapOf(
+                "One" to 0,
+                "Two" to 1
+        )))
     }
 
     @Test
-    fun `Subtracting from map reorders`() {
+    fun `Subtracting from map keeps order`() {
         map.append("One")
         map.append("Two")
         map.append("Three")
@@ -31,6 +36,11 @@ class OrderedReferenceMapTest {
 
         assertThat(map.raw()["One"]!!, Is(0))
         assertThat(map.raw()["Three"]!!, Is(1))
+
+        assertThat(map.raw(), Is(mapOf(
+                "One" to 0,
+                "Three" to 1
+        )))
     }
 
     @Test(expected = ElementNotInMapException::class)
@@ -39,7 +49,7 @@ class OrderedReferenceMapTest {
     }
 
     @Test
-    fun `Switching list ids reorders`() {
+    fun `Switching references reorders the list`() {
         map.append("One")
         map.append("Two")
         map.append("Three")
@@ -49,6 +59,12 @@ class OrderedReferenceMapTest {
         assertThat(map.raw()["One"]!!, Is(2))
         assertThat(map.raw()["Three"]!!, Is(0))
         assertThat(map.raw()["Two"]!!, Is(1))
+
+        assertThat(map.raw(), Is(mapOf(
+                "Three" to 0,
+                "Two" to 1,
+                "One" to 2
+        )))
     }
 
     @Test(expected = ElementNotInMapException::class)

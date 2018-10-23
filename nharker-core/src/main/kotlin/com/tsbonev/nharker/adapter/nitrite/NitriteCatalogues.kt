@@ -115,9 +115,9 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                 .raw()
                 .keys
                 .forEach {
-            val subCatalogue = coll.find(Catalogue::id eq it).first()
-            coll.update(Catalogue::id eq it, subCatalogue.copy(parentId = catalogue.parentId))
-        }
+                    val subCatalogue = coll.find(Catalogue::id eq it).first()
+                    coll.update(Catalogue::id eq it, subCatalogue.copy(parentId = catalogue.parentId))
+                }
 
         coll.remove(Catalogue::id eq catalogueId)
         return catalogue
@@ -172,7 +172,7 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
             coll.update(catalogue)
             catalogue
         } catch (ex: ElementNotInMapException) {
-            throw CatalogueNotAChildException(parentCatalogueId, ex.reference as String)
+            throw CatalogueNotAChildException(parentCatalogueId, ex.reference)
         }
     }
 
