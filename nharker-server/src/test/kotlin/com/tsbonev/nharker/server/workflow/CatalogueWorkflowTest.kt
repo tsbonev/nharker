@@ -267,7 +267,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Append subcatalogue to catalogue`() {
+    fun `Append child catalogue to catalogue`() {
         context.expecting {
             oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
             will(returnValue(catalogue))
@@ -326,7 +326,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Appending subcatalogue to a non-existent catalogue returns not found`() {
+    fun `Appending child catalogue to a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueNotFoundException(catalogue.id)))
@@ -340,7 +340,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Switch subcatalogue order in catalogue`() {
+    fun `Switch child catalogue order in catalogue`() {
         context.expecting {
             oneOf(catalogues).switchChildCatalogues(catalogue.id, catalogue, catalogue)
             will(returnValue(catalogue))
@@ -357,7 +357,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Switching subcatalogue orders in a catalogue that does not contain both returns bad request`() {
+    fun `Switching child catalogue orders in a catalogue that does not contain both returns bad request`() {
         context.expecting {
             oneOf(catalogues).switchChildCatalogues(catalogue.id, catalogue, catalogue)
             will(throwException(CatalogueNotAChildException(catalogue.id, catalogue.id)))
@@ -371,7 +371,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Switching subcatalogue orders in a non-existing catalogue returns not found`() {
+    fun `Switching child catalogue orders in a non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).switchChildCatalogues(catalogue.id, catalogue, catalogue)
             will(throwException(CatalogueNotFoundException(catalogue.id)))
@@ -385,7 +385,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Remove subcatalogue from catalogue`() {
+    fun `Remove child catalogue from catalogue`() {
         context.expecting {
             oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
             will(returnValue(catalogue))
@@ -402,7 +402,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Removing subcatalogue from non-parent catalogue returns bad request`() {
+    fun `Removing child catalogue from non-parent catalogue returns bad request`() {
         context.expecting {
             oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueNotAChildException(catalogue.id, catalogue.id)))
@@ -416,7 +416,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Removing subcatalogue from a non-existent catalogue returns not found`() {
+    fun `Removing child catalogue from a non-existent catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueNotFoundException(catalogue.id)))
