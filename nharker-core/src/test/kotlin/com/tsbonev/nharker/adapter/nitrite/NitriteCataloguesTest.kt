@@ -7,10 +7,10 @@ import com.tsbonev.nharker.core.CatalogueNotAChildException
 import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
-import com.tsbonev.nharker.core.helpers.append
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
@@ -61,8 +61,9 @@ class NitriteCataloguesTest {
             "::catalogue-id::",
             "::catalogue-title::",
             date,
-            mapOf(firstPresavedSubcatalogue.id to 0,
-                    secondPresavedSubcatalogue.id to 1)
+            OrderedReferenceMap(
+            linkedMapOf(firstPresavedSubcatalogue.id to 0,
+                    secondPresavedSubcatalogue.id to 1))
     )
 
     private val presavedCatalogue: Catalogue
@@ -88,7 +89,7 @@ class NitriteCataloguesTest {
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
 
         assertThat(catalogues.create(catalogueRequest).copy(id = catalogue.id),
-                Is(catalogue.copy(childrenIds = emptyMap())))
+                Is(catalogue.copy(childrenIds = OrderedReferenceMap())))
     }
 
     @Test(expected = CatalogueTitleTakenException::class)
@@ -159,8 +160,7 @@ class NitriteCataloguesTest {
 
         assertThat(updatedChild, Is(subCatalogue.copy(
                 parentId = catalogue.id)))
-        assertThat(presavedCatalogue, Is(catalogue.copy(
-                childrenIds = catalogue.childrenIds.append(subCatalogue.id))))
+        assertThat(presavedCatalogue.childrenIds.contains(subCatalogue.id), Is(true))
     }
 
     @Test(expected = CatalogueAlreadyAChildException::class)
@@ -184,13 +184,13 @@ class NitriteCataloguesTest {
     }
 
     @Test
-    fun `Append catalogue to catalogue subcatalogues`() {
+    fun `Append catalogue to parent catalogue's children`() {
         val appendedChild = catalogues.appendChildCatalogue(catalogue.id, subCatalogue)
 
         assertThat(appendedChild, Is(subCatalogue.copy(parentId = catalogue.id)))
-        assertThat(presavedCatalogue, Is(catalogue.copy(childrenIds = catalogue.childrenIds.plus(
-                subCatalogue.id to catalogue.childrenIds.count()
-        ))))
+        assertThat(presavedCatalogue.childrenIds.raw(), Is(catalogue.childrenIds.raw().plus(
+                subCatalogue.id to catalogue.childrenIds.raw().count()
+        )))
     }
 
     @Test(expected = CatalogueCircularInheritanceException::class)
@@ -218,14 +218,14 @@ class NitriteCataloguesTest {
         val removedCatalogue = catalogues.removeChildCatalogue(catalogue.id, secondPresavedSubcatalogue)
 
         assertThat(removedCatalogue, Is(secondPresavedSubcatalogue.copy(parentId = null)))
-        assertThat(presavedCatalogue.childrenIds, Is(mapOf(firstPresavedSubcatalogue.id to 0)))
+        assertThat(presavedCatalogue.childrenIds.raw(), Is(mapOf(firstPresavedSubcatalogue.id to 0)))
     }
 
     @Test
     fun `Reorder subcatalogues after deletion`() {
         catalogues.removeChildCatalogue(catalogue.id, firstPresavedSubcatalogue)
 
-        assertThat(presavedCatalogue.childrenIds, Is(mapOf(secondPresavedSubcatalogue.id to 0)))
+        assertThat(presavedCatalogue.childrenIds.raw(), Is(mapOf(secondPresavedSubcatalogue.id to 0)))
     }
 
     @Test(expected = CatalogueNotAChildException::class)
@@ -244,10 +244,10 @@ class NitriteCataloguesTest {
         val updatedCatalogue = catalogues.switchChildCatalogues(catalogue.id,
                 firstPresavedSubcatalogue, secondPresavedSubcatalogue)
 
-        assertThat(updatedCatalogue, Is(presavedCatalogue.copy(childrenIds = mapOf(
+        assertThat(updatedCatalogue.childrenIds.raw(), Is(mapOf(
                 secondPresavedSubcatalogue.id to 0,
                 firstPresavedSubcatalogue.id to 1
-        ))))
+        )))
     }
 
     @Test(expected = CatalogueNotAChildException::class)
@@ -279,7 +279,7 @@ class NitriteCataloguesTest {
         val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
 
         val subCatalogue = db.getRepository(collectionName, Catalogue::class.java)
-                .find(Catalogue::id eq deletedCatalogue.childrenIds.keys.first()).first()
+                .find(Catalogue::id eq deletedCatalogue.childrenIds.raw().keys.first()).first()
 
         assertThat(subCatalogue.parentId, Is(deletedCatalogue.parentId))
     }

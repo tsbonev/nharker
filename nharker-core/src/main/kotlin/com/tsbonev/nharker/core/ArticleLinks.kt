@@ -6,7 +6,7 @@ package com.tsbonev.nharker.core
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleLinks(val links: MutableMap<String, Int> = mutableMapOf()) {
+data class ArticleLinks(private val links: MutableMap<String, Int> = mutableMapOf()) {
 
     /**
      * Returns the amount of times an article has been mentioned.

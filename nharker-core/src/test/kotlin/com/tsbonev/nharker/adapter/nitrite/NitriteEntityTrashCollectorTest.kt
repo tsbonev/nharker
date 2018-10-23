@@ -48,7 +48,7 @@ class NitriteEntityTrashCollectorTest {
             "article-title",
             "Article title",
             date,
-            properties = ArticleProperties(mutableMapOf("::property-name::" to entry))
+            properties = ArticleProperties(mutableMapOf("::property-name::" to entry.id))
     )
 
 

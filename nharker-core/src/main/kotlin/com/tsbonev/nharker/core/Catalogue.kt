@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.core
 
-import com.tsbonev.nharker.core.helpers.OrderedRefMap
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.objects.Id
 import org.dizitart.no2.objects.Index
@@ -20,7 +19,7 @@ import java.time.LocalDateTime
 data class Catalogue(@Id override val id: String,
                      val title: String,
                      override val creationDate: LocalDateTime,
-                     val childrenIds: OrderedRefMap = emptyMap(),
+                     val childrenIds: OrderedReferenceMap = OrderedReferenceMap(),
                      val parentId: String? = null) : Entity
 
 class CatalogueNotFoundException(val catalogueId: String) : Throwable()
