@@ -4,7 +4,7 @@ package com.tsbonev.nharker.core
  * Provides the methods to store a deleted entity in a
  * collection and be retrieved on a later basis.
  *
- * An Entity is any domain object.
+ * An Entity is any domain object with an id and creationDate field.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -14,7 +14,7 @@ interface TrashCollector {
      *
      * @return The list of trashed entities.
      */
-    fun view(): List<Any>
+    fun view(): List<Entity>
 
     /**
      * Stores an entity into the trash collection.
@@ -28,7 +28,12 @@ interface TrashCollector {
      * Retrieves an entity from the trash.
      *
      * @param id The id of the entity.
+     * @param entityClass The class of the entity.
      * @return The restored entity.
+     *
+     * @exception EntityNotInTrashException thrown when the entity is not found.
+     * @exception EntityCannotBeCastException thrown when the entity cannot be cast to the
+     * given class.
      */
     @Throws(EntityNotInTrashException::class,
             EntityCannotBeCastException::class)
@@ -36,8 +41,10 @@ interface TrashCollector {
 
     /**
      * Clears all trashed entities.
+     *
+     * @return The list of cleared entities.
      */
-    fun clear()
+    fun clear(): List<Entity>
 }
 
 class EntityNotInTrashException(val entityId: String, val entityClass: Class<*>) : Throwable()

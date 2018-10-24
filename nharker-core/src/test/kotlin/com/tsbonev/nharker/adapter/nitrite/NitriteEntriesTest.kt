@@ -20,25 +20,25 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntriesTest {
-
     private val db = nitrite { }
+
+    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+    private val stubClock = StubClock()
+
+    private val collectionName = "Test_entries"
 
     private val entryRequest = EntryRequest(
             "::content::",
             "::article-id::",
-            mapOf("::phrase::" to "::article-link-title::")
+            mapOf("::phrase::" to "::article-id::")
     )
-
-    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
-    private val stubClock = StubClock()
-    private val collectionName = "TestEntries"
 
     private val entry = Entry(
             "::entry-id::",
             date,
             "::article-id::",
             "::content::",
-            mapOf("::phrase::" to "::article-link-title::")
+            mapOf("::phrase::" to "::article-id::")
     )
 
     private val article = Article(
@@ -48,11 +48,11 @@ class NitriteEntriesTest {
             date
     )
 
-    private val entries = NitriteEntries(db, collectionName, stubClock)
-
     private val presavedEntry: Entry
         get() = db.getRepository(collectionName, Entry::class.java)
                 .find(Entry::id eq entry.id).first()
+
+    private val entries = NitriteEntries(db, collectionName, stubClock)
 
     @Before
     fun setUp() {
@@ -60,19 +60,19 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Create and return entry`() {
+    fun `Creating entry returns it`() {
         assertThat(entries.create(entryRequest).copy(id = "::entry-id::"), Is(entry))
     }
 
     @Test
-    fun `Save and return entry`() {
+    fun `Saving entry returns it`() {
         val savedEntry = entries.save(entry)
 
         assertThat(presavedEntry, Is(savedEntry))
     }
 
     @Test
-    fun `Retrieve entry by id`() {
+    fun `Retrieves entry by id`() {
         val retrievedEntry = entries.getById("::entry-id::")
 
         assertThat(retrievedEntry.isPresent, Is(true))
@@ -80,25 +80,25 @@ class NitriteEntriesTest {
     }
 
     @Test
-    fun `Return empty when an entry is not found by id`() {
+    fun `Returns empty when an entry is not found by id`() {
         val retrievedEntry = entries.getById("::fake-entry-id::")
 
         assertThat(retrievedEntry.isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve all entries`() {
+    fun `Retrieves all entries`() {
         assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
     }
 
     @Test
-    fun `Retrieve all entries, paginated`() {
-        assertThat(entries.getAll(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
-        assertThat(entries.getAll(SortBy.DESCENDING, 2, 2), Is(emptyList()))
+    fun `Retrieves all entries, paginated`() {
+        assertThat(entries.getPaginated(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
+        assertThat(entries.getPaginated(SortBy.DESCENDING, 2, 2), Is(emptyList()))
     }
 
     @Test
-    fun `Update entry content`() {
+    fun `Updates entry content`() {
         val content = "::new-content::"
 
         entries.updateContent(entry.id, content)
@@ -107,12 +107,12 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existent entry's content throws exception`() {
+    fun `Updating a non-existing entry's content throws exception`() {
         entries.updateContent("::fake-entry-id::", "::content::")
     }
 
     @Test
-    fun `Update entry links`() {
+    fun `Updates entry links`() {
         val links = mapOf("::new-link::" to "::new-article::")
 
         entries.updateLinks(entry.id, links)
@@ -121,12 +121,12 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existent entry's links throws exception`() {
+    fun `Updating a non-existing entry's links throws exception`() {
         entries.updateLinks("::fake-entry-id::", mapOf("::new-link::" to "::new-article::"))
     }
 
     @Test
-    fun `Change entry article`() {
+    fun `Changes entry article`() {
         val updatedEntry = entries.changeArticle(entry.id, article.copy("::new-article-id::"))
 
         assertThat(presavedEntry, Is(entry.copy(articleId = "::new-article-id::")))
@@ -134,12 +134,12 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Changing the article of a non-existent entry throws exception`() {
-        entries.changeArticle("::non-existent-entry::", article)
+    fun `Changing the article of a non-existing entry throws exception`() {
+        entries.changeArticle("::non-existing-entry::", article)
     }
 
     @Test
-    fun `Query entries by content`() {
+    fun `Retrieves entries by content`() {
         val firstEntry = entries.create(entryRequest.copy(content = "apples"))
         val secondEntry = entries.create(entryRequest.copy(content = "apples and oranges"))
         val thirdEntry = entries.create(entryRequest.copy(content = "only oranges"))
@@ -166,7 +166,7 @@ class NitriteEntriesTest {
     }
 
     @Test(expected = EntryNotFoundException::class)
-    fun `Deleting non-existent entry throws exception`() {
+    fun `Deleting non-existing entry throws exception`() {
         entries.delete("::fake-entry-id::")
     }
 }

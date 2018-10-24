@@ -1,16 +1,13 @@
 package com.tsbonev.nharker.core
 
-typealias ArticleId = String
-typealias TimesMentioned = Int
-
 /**
  * Provides the methods to modify a mutable map by
- * keeping track of how many times a link has been mentioned.
+ * keeping track of how many times an id reference in the
+ * form of a string has been mentioned.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleLinks(private val links: MutableMap<ArticleId, TimesMentioned> = mutableMapOf()) {
-
+data class ArticleLinks(private val links: MutableMap<String, Int> = mutableMapOf()) {
     /**
      * Returns the amount of times an article has been mentioned, if any.
      *

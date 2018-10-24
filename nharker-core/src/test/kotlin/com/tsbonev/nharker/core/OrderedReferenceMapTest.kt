@@ -8,7 +8,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class OrderedReferenceMapTest {
-
     private val map = OrderedReferenceMap()
 
     @Test
@@ -44,8 +43,8 @@ class OrderedReferenceMapTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Subtracting non-existent id throws exception`() {
-        map.subtract("::non-existent-id::")
+    fun `Subtracting non-existing id throws exception`() {
+        map.subtract("::non-existing-id::")
     }
 
     @Test
@@ -68,7 +67,7 @@ class OrderedReferenceMapTest {
     }
 
     @Test(expected = ElementNotInMapException::class)
-    fun `Switching non-existent id throws exception`() {
-        map.switch("::non-existent-id::", "::non-existent-id::")
+    fun `Switching non-existing id throws exception`() {
+        map.switch("::non-existing-id::", "::non-existing-id::")
     }
 }

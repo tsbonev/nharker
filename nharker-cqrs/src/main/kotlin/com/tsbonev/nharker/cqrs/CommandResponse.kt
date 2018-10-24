@@ -2,6 +2,8 @@ package com.tsbonev.nharker.cqrs
 
 import java.util.Optional
 
+typealias QueryResponse = CommandResponse
+
 /**
  * An object that Command Handlers return to clue in the caller
  * what has happened with their command.

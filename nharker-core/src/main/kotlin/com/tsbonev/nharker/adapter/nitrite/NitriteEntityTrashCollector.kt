@@ -11,7 +11,6 @@ import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteCollection
 
 /**
- *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
@@ -21,10 +20,10 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
     private val coll: NitriteCollection
         get() = nitriteDb.getCollection(collectionName)
 
-    override fun view(): List<Any> {
+    override fun view(): List<Entity> {
         val docList = coll.find().toList()
 
-        val entityList = mutableListOf<Any>()
+        val entityList = mutableListOf<Entity>()
 
         docList.forEach { entityList.add(it.toEntity()) }
 
@@ -32,11 +31,9 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
     }
 
     override fun trash(entity: Entity): String {
-
         val documentEntity = entity.toDocument()
 
         coll.insert(documentEntity)
-
         return documentEntity.get("entityId", String::class.java)
     }
 
@@ -53,7 +50,12 @@ class NitriteEntityTrashCollector(private val nitriteDb: Nitrite,
         }
     }
 
-    override fun clear() {
+    override fun clear(): List<Entity> {
+        val clearedEntityList = coll.find().toList().map {
+            it.toEntity()
+        }
+
         coll.drop()
+        return clearedEntityList
     }
 }

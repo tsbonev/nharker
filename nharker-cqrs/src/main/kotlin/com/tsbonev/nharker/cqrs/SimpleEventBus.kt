@@ -19,6 +19,9 @@ class SimpleEventBus : EventBus {
      */
     private val eventHandlers = mutableMapOf<String, MutableList<EventInvoker>>()
 
+    /**
+     * Registered interceptors.
+     */
     private val interceptors = mutableSetOf<Interceptor>()
 
     override fun registerWorkflow(workflow: Workflow) {

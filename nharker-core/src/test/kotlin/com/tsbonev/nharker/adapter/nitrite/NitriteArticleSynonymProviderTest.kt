@@ -9,14 +9,15 @@ import org.dizitart.no2.Document
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticleSynonymProviderTest {
-
     private val db = nitrite { }
 
     private val globalMapId = "Test_synonym_map_id"
@@ -28,20 +29,22 @@ class NitriteArticleSynonymProviderTest {
             globalMapId
     )
 
+    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+
     private val article = Article(
             "::article-id::",
             "article-title",
             "Article title",
-            LocalDateTime.now()
+            date
     )
-
-    private val synonymMap = mapOf("::presaved-synonym::" to "article-title")
 
     @Suppress("UNCHECKED_CAST")
     private val presavedMap: Map<String, String>
         get() = db.getCollection(mapCollectionName)
                 .find("globalId" eq globalMapId)
                 .first()["synonymMap"] as Map<String, String>
+
+    private val synonymMap = mapOf("::presaved-synonym::" to "::article-id::")
 
     @Before
     fun setUp() {
@@ -51,7 +54,14 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test
-    fun `Getting synonym map creates it`() {
+    fun `Retrieves synonym map`() {
+        val synonymMap = synonymMapProvider.getSynonymMap()
+
+        assertThat(synonymMap, Is(synonymMap))
+    }
+
+    @Test
+    fun `Retrieving synonym map for the first time creates it`() {
         db.getCollection(mapCollectionName).remove("globalId" eq globalMapId)
 
         val synonymMap = synonymMapProvider.getSynonymMap()
@@ -60,14 +70,7 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test
-    fun `Get synonym map`() {
-        val synonymMap = synonymMapProvider.getSynonymMap()
-
-        assertThat(synonymMap, Is(synonymMap))
-    }
-
-    @Test
-    fun `Add synonym to map`() {
+    fun `Adds synonym to map`() {
         val synonym = synonymMapProvider.addSynonym("::synonym::", article)
 
         assertThat(presavedMap, Is(synonymMap.plus(
@@ -81,15 +84,14 @@ class NitriteArticleSynonymProviderTest {
     }
 
     @Test
-    fun `Remove synonym from map`() {
+    fun `Removes synonym from map`() {
         synonymMapProvider.removeSynonym("::presaved-synonym::")
-
 
         assertThat(presavedMap, Is(emptyMap()))
     }
 
     @Test(expected = SynonymNotFoundException::class)
-    fun `Removing non-existent synonym throws exception`() {
-        synonymMapProvider.removeSynonym("::non-existent-synonym::")
+    fun `Removing non-existing synonym throws exception`() {
+        synonymMapProvider.removeSynonym("::non-existing-synonym::")
     }
 }

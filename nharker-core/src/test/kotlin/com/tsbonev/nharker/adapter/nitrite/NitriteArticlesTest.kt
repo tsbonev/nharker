@@ -36,7 +36,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticlesTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
@@ -45,7 +44,7 @@ class NitriteArticlesTest {
 
     private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
     private val stubClock = StubClock()
-    private val collectionName = "TestArticles"
+    private val collectionName = "Test_articles"
 
     private val entry = Entry(
             "::entry-id::",
@@ -81,7 +80,7 @@ class NitriteArticlesTest {
 
     private val articleRequest = ArticleRequest(
             "Article title",
-            listOf("::catalogue-id::")
+            setOf("::catalogue-id::")
     )
 
     private val article = Article(
@@ -92,24 +91,28 @@ class NitriteArticlesTest {
             properties = ArticleProperties(mutableMapOf("::property-name::" to articleProperty.id)),
             entries = OrderedReferenceMap(linkedMapOf(firstPresavedEntry.id to 0,
                     secondPresavedEntry.id to 1)),
-            links = ArticleLinks(mutableMapOf("article-title-1" to 2,
-                    "article-title-2" to 1)),
+            links = ArticleLinks(mutableMapOf("::article-id-1::" to 2,
+                    "::article-id-2::" to 1)),
             catalogues = setOf("::catalogue-id::")
     )
 
     private val catalogue = Catalogue(
             "::catalogue-id::",
-            "::title::",
+            "::catalogue-title::",
             date
     )
+
+    private val entryLinker = context.mock(EntryLinker::class.java)
 
     private val presavedArticle: Article
         get() = db.getRepository(collectionName, Article::class.java)
                 .find(Article::id eq article.id).first()
 
-    private val entryLinker = context.mock(EntryLinker::class.java)
-
-    private val articles = NitriteArticles(db, collectionName, entryLinker, clock = stubClock)
+    private val articles = NitriteArticles(
+            nitriteDb = db,
+            collectionName = collectionName,
+            entryLinker = entryLinker,
+            clock = stubClock)
 
     @Before
     fun setUp() {
@@ -117,9 +120,8 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Create and return article`() {
-        db.getRepository(collectionName, Article::class.java)
-                .remove(Article::linkTitle eq article.linkTitle)
+    fun `Creating article returns it`() {
+        removePresavedArticle()
 
         val createdArticle = articles.create(articleRequest)
 
@@ -131,10 +133,12 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Save and return article`() {
-        db.getRepository(collectionName, Article::class.java)
-                .remove(Article::linkTitle eq article.linkTitle)
-        assertThat(articles.save(article), Is(article))
+    fun `Saving article returns it`() {
+        removePresavedArticle()
+
+        val savedArticle = articles.save(article)
+
+        assertThat(savedArticle, Is(presavedArticle))
     }
 
     @Test(expected = ArticleTitleTakenException::class)
@@ -143,40 +147,40 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Retrieve article by id`() {
+    fun `Retrieves article by id`() {
         assertThat(articles.getById(article.id).isPresent, Is(true))
         assertThat(articles.getById(article.id).get(), Is(article))
     }
 
     @Test
-    fun `Return empty when article isn't found by id`() {
+    fun `Returns empty when article isn't found by id`() {
         assertThat(articles.getById("::fake-article-id::").isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve article by link title`() {
+    fun `Retrieves article by link title`() {
         assertThat(articles.getByLinkTitle(article.linkTitle).isPresent, Is(true))
         assertThat(articles.getByLinkTitle(article.linkTitle).get(), Is(article))
     }
 
     @Test
-    fun `Return empty when article isn't found by link title`() {
+    fun `Returns empty when article is not found by link title`() {
         assertThat(articles.getByLinkTitle("::non-existing-link-title::").isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve all articles`() {
+    fun `Retrieves all articles`() {
         assertThat(articles.getAll(SortBy.ASCENDING), Is(listOf(presavedArticle)))
     }
 
     @Test
-    fun `Retrieve all articles, paginated`() {
-        assertThat(articles.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedArticle)))
-        assertThat(articles.getAll(SortBy.ASCENDING, 2, 3), Is(emptyList()))
+    fun `Retrieves all articles, paginated`() {
+        assertThat(articles.getPaginated(SortBy.ASCENDING, 1, 1), Is(listOf(presavedArticle)))
+        assertThat(articles.getPaginated(SortBy.ASCENDING, 2, 3), Is(emptyList()))
     }
 
     @Test
-    fun `Change article title`() {
+    fun `Changes article title`() {
         val newFullTitle = "New title"
         val newLinkTitle = newFullTitle.toLinkTitle()
 
@@ -189,7 +193,7 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Changing title of non-existing article throws exception`() {
-        articles.changeTitle("::non-existent-article::", "New title")
+        articles.changeTitle("::non-existing-article::", "New title")
     }
 
     @Test(expected = ArticleTitleTakenException::class)
@@ -198,8 +202,8 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Delete and return article`() {
-        val deletedArticle = articles.delete(article.id)
+    fun `Deleting an article returns it`() {
+        val deletedArticle = articles.deleteById(article.id)
 
         assertThat(deletedArticle, Is(article))
         assertThat(db.getRepository(collectionName, Article::class.java)
@@ -208,49 +212,49 @@ class NitriteArticlesTest {
 
     @Test(expected = ArticleNotFoundException::class)
     fun `Deleting non-existing article throws exception`() {
-        articles.delete("::fake-article-id::")
+        articles.deleteById("::fake-article-id::")
     }
 
     @Test
-    fun `Retrieve article by catalogue`() {
+    fun `Retrieves article by catalogue`() {
         val articleList = articles.getByCatalogue(catalogue)
 
         assertThat(articleList, Is(listOf(presavedArticle)))
     }
 
     @Test
-    fun `Return empty when no articles match the catalogue`() {
+    fun `Returns empty when no articles match the catalogue`() {
         val articleList = articles.getByCatalogue(catalogue.copy(id = "::non-referenced-id::"))
 
         assertThat(articleList, Is(emptyList()))
     }
 
     @Test
-    fun `Add catalogue to article`() {
+    fun `Adds catalogue to article`() {
         val updatedArticle = articles.addCatalogue(article.id, catalogue)
 
         assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Adding catalogue to non-existent article throws exception`() {
-        articles.addCatalogue("::non-existent-article-id::", catalogue)
+    fun `Adding catalogue to non-existing article throws exception`() {
+        articles.addCatalogue("::non-existing-article-id::", catalogue)
     }
 
     @Test
-    fun `Remove catalogue from article`() {
+    fun `Removes catalogue from article`() {
         val updatedArticle = articles.removeCatalogue(article.id, catalogue)
 
         assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Removing catalogue to non-existent article throws exception`() {
-        articles.removeCatalogue("::non-existent-article-id::", catalogue)
+    fun `Removing catalogue to non-existing article throws exception`() {
+        articles.removeCatalogue("::non-existing-article-id::", catalogue)
     }
 
     @Test
-    fun `Append entry to article`() {
+    fun `Appends entry to article`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
@@ -262,31 +266,31 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Automatically link to articles when appending`() {
+    fun `Automatically links to articles when appending`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
-            will(returnValue(setOf("new-article-title")))
+            will(returnValue(setOf("::new-article-id::")))
         }
 
         articles.appendEntry(article.id, entry)
-        article.links.addLink("new-article-title")
+        article.links.addLink("::new-article-id::")
 
-        assertThat(presavedArticle.links.contains("new-article-title"), Is(true))
-        assertThat(presavedArticle.links.get("new-article-title"), Is(1))
+        assertThat(presavedArticle.links.contains("::new-article-id::"), Is(true))
+        assertThat(presavedArticle.links.get("::new-article-id::"), Is(1))
     }
 
     @Test
     fun `Linking increases count when already linked`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
-            will(returnValue(setOf("article-title-2")))
+            will(returnValue(setOf("::article-id-2::")))
         }
 
         articles.appendEntry(article.id, entry)
-        article.links.addLink("article-title-2")
+        article.links.addLink("::article-id-2::")
 
-        assertThat(presavedArticle.links.contains("article-title-2"), Is(true))
-        assertThat(presavedArticle.links.get("article-title-2"), Is(2))
+        assertThat(presavedArticle.links.contains("::article-id-2::"), Is(true))
+        assertThat(presavedArticle.links.get("::article-id-2::"), Is(2))
     }
 
     @Test(expected = EntryAlreadyInArticleException::class)
@@ -295,7 +299,7 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Remove and return entry from article`() {
+    fun `Removing entry from article return it`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(secondPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
@@ -307,32 +311,32 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `De-link when deleting entry`() {
+    fun `Removing entry removes implicit links`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
-            will(returnValue(setOf("article-title-2")))
+            will(returnValue(setOf("::article-id-2::")))
         }
 
         articles.removeEntry(article.id, firstPresavedEntry)
 
-        assertThat(presavedArticle.links.contains("article-title-2"), Is(false))
+        assertThat(presavedArticle.links.contains("::article-id-2::"), Is(false))
     }
 
     @Test
-    fun `Decrease number of links when more than one is present`() {
+    fun `Removing entry decreases number of links when more than one is present`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
-            will(returnValue(setOf("article-title-1")))
+            will(returnValue(setOf("::article-id-1::")))
         }
 
         articles.removeEntry(article.id, firstPresavedEntry)
 
-        assertThat(presavedArticle.links.contains("article-title-1"), Is(true))
-        assertThat(presavedArticle.links.get("article-title-1"), Is(1))
+        assertThat(presavedArticle.links.contains("::article-id-1::"), Is(true))
+        assertThat(presavedArticle.links.get("::article-id-1::"), Is(1))
     }
 
     @Test
-    fun `Reorder entries after deletion`() {
+    fun `Removing entry reorders entries after deletion`() {
         context.expecting {
             oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
@@ -345,31 +349,31 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Retrieve list of articles by querying full titles`() {
+    fun `Retrieves list of articles by querying full titles`() {
         val articleList = articles.searchByFullTitle(article.fullTitle)
 
         assertThat(articleList, Is(listOf(article)))
     }
 
     @Test
-    fun `Return empty list when no articles match full title search`() {
-        val articleList = articles.searchByFullTitle("Non existent")
+    fun `Returns empty list when no articles match full title search`() {
+        val articleList = articles.searchByFullTitle("Non existing")
 
         assertThat(articleList, Is(emptyList()))
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Deleting from a non-existent article throws exception`() {
+    fun `Deleting from a non-existing article throws exception`() {
         articles.removeEntry("::fake-article-id::", firstPresavedEntry)
     }
 
     @Test(expected = EntryNotInArticleException::class)
-    fun `Deleting an entry that isn't in an article throws exception`() {
+    fun `Deleting an entry that is not in the article throws exception`() {
         articles.removeEntry(article.id, entry)
     }
 
     @Test
-    fun `Switch entries in an article`() {
+    fun `Switches entries' order in an article`() {
         val updatedArticle = articles.switchEntries(article.id, firstPresavedEntry, secondPresavedEntry)
 
         assertThat(updatedArticle.entries.raw(), Is(mapOf(secondPresavedEntry.id to 0,
@@ -388,7 +392,7 @@ class NitriteArticlesTest {
     }
 
     @Test
-    fun `Attach property to article`() {
+    fun `Attaches property to article`() {
         val updatedArticle = articles.attachProperty(article.id, "::propertyName::", entry)
 
         assertThat(presavedArticle,
@@ -396,51 +400,36 @@ class NitriteArticlesTest {
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Attaching property to non-existent article throws exception`() {
+    fun `Attaching property to non-existing article throws exception`() {
         articles.attachProperty("::non-existing-article::", "::propertyName::", entry)
     }
 
     @Test
-    fun `Detach property from article`() {
+    fun `Detaches property from article`() {
         val updatedArticle = articles.detachProperty(article.id, "::property-name::")
 
         assertThat(presavedArticle, Is(updatedArticle))
     }
 
     @Test(expected = PropertyNotFoundException::class)
-    fun `Detaching non-existent property throws exception`() {
-        articles.detachProperty(article.id, "::non-existent-property-name::")
+    fun `Detaching non-existing property throws exception`() {
+        articles.detachProperty(article.id, "::non-existing-property-name::")
     }
 
     @Test(expected = ArticleNotFoundException::class)
-    fun `Detaching property from non-existent article throws exception`() {
+    fun `Detaching property from non-existing article throws exception`() {
         articles.detachProperty("::non-existing-article::", "::property-name::")
-    }
-
-    @Test
-    fun `Get article titles by links`() {
-        val articleTitles = articles.getArticleTitles(setOf("article-title"))
-
-        assertThat(articleTitles, Is(listOf("Article title")))
-    }
-
-    @Test
-    fun `Skip non-existing links when gathering full titles`() {
-        val articleTitles = articles.getArticleTitles(setOf(
-                "not-found-link-1", "article-title", "not-found-link-2"))
-
-        assertThat(articleTitles, Is(listOf("Article title")))
-    }
-
-    @Test
-    fun `Return empty list when link titles don't point to existing articles`() {
-        val articleTitles = articles.getArticleTitles(setOf("non-existent-link-1",
-                "non-existent-link-2"))
-
-        assertThat(articleTitles, Is(emptyList()))
     }
 
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
+    }
+
+    /**
+     * Removes the presaved article from the collection.
+     */
+    private fun removePresavedArticle() {
+        db.getRepository(collectionName, Article::class.java)
+                .remove(Article::linkTitle eq article.linkTitle)
     }
 }

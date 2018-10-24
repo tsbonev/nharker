@@ -1,6 +1,10 @@
 package com.tsbonev.nharker.core
 
 /**
+ * An implementation of EntryLinker that contains a list
+ * of English stop words to remove from an Entry's content and
+ * the private methods to clean up the content further.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvider)
@@ -41,8 +45,8 @@ class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvid
     private fun String.mapLinks(linkSet: MutableSet<String>, linkMap: Map<String, String>): String {
         var contentHolder = this
         linkMap.forEach {
-            if (contentHolder.contains("-${it.key}-")) {
-                contentHolder = contentHolder.replace("-${it.key}-", "-#-")
+            if (this.contains("-${it.key}-")) {
+                contentHolder = this.replace("-${it.key}-", "-#-")
                 linkSet.add(it.value)
             }
         }
@@ -91,9 +95,13 @@ class SimpleEntryLinker(private val articleSynonymProvider: ArticleSynonymProvid
 
     /**
      * Removes stop words from a string.
+     *
+     * @param delimiter The delimiter to split by, whitespace by default.
      */
     private fun String.removeStopWords(delimiter: String = " "): String {
-        val contentHolder = this.toLowerCase().split(delimiter).toMutableList()
+        val contentHolder = this.toLowerCase()
+                .split(delimiter)
+                .toMutableList()
 
         val stringBuilder = StringBuilder()
 

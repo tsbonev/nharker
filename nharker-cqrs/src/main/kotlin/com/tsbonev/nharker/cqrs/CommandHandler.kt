@@ -3,6 +3,11 @@ package com.tsbonev.nharker.cqrs
 /**
  * An annotation marking a method as a command handler.
  *
+ * CommandHandlers:
+ * Must return CommandResponse,
+ * Must have one and only one parameter of type Command.
+ * Myst be annotated with @CommandHandler.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Target(AnnotationTarget.FUNCTION)

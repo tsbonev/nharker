@@ -2,12 +2,12 @@ package com.tsbonev.nharker.core
 
 /**
  * A wrapper of a linked hash map that provides the functionality
- * to switch the order of elements.
+ * to switch the order of elements and enforce their general order
+ * based on their values rather than keys.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 data class OrderedReferenceMap(private val map: LinkedHashMap<String, Int> = linkedMapOf()) {
-
     /**
      * Switches the order of two elements in the ordered map.
      *

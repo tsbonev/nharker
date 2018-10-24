@@ -40,14 +40,14 @@ class ExceptionLogger {
     fun logException(e: Throwable): CommandResponse {
         return when (e) {
             //region Article Exceptions
-            is ArticleTitleTakenException -> {
-                logger.error("There is already an article with the title ${e.articleTitle}!")
-                CommandResponse(StatusCode.BadRequest)
-            }
-
             is ArticleNotFoundException -> {
                 logger.error("There is no article with id ${e.articleId}!")
                 CommandResponse(StatusCode.NotFound)
+            }
+
+            is ArticleTitleTakenException -> {
+                logger.error("There is already an article with the title ${e.articleTitle}!")
+                CommandResponse(StatusCode.BadRequest)
             }
 
             is EntryAlreadyInArticleException -> {
@@ -72,18 +72,13 @@ class ExceptionLogger {
                 CommandResponse(StatusCode.NotFound)
             }
 
+            is CatalogueTitleTakenException -> {
+                logger.error("There is already a catalogue with the title ${e.catalogueTitle}!")
+                CommandResponse(StatusCode.BadRequest)
+            }
+
             is CatalogueNotAChildException -> {
                 logger.error("The catalogue with id ${e.childCatalogueId} is not a child of the catalogue with id ${e.parentCatalogueId}!")
-                CommandResponse(StatusCode.BadRequest)
-            }
-
-            is SelfContainedCatalogueException -> {
-                logger.error("Catalogue with id ${e.catalogueId} cannot contain itself!")
-                CommandResponse(StatusCode.BadRequest)
-            }
-
-            is CatalogueCircularInheritanceException -> {
-                logger.error("Circular inheritance not allowed! Catalogue with id ${e.parentCatalogueId} is a child of catalogue with id ${e.childCatalogueId}!")
                 CommandResponse(StatusCode.BadRequest)
             }
 
@@ -92,9 +87,13 @@ class ExceptionLogger {
                 CommandResponse(StatusCode.BadRequest)
             }
 
+            is CatalogueCircularInheritanceException -> {
+                logger.error("Circular inheritance not allowed! Catalogue with id ${e.parentCatalogueId} is a child of catalogue with id ${e.childCatalogueId}!")
+                CommandResponse(StatusCode.BadRequest)
+            }
 
-            is CatalogueTitleTakenException -> {
-                logger.error("There is already a catalogue with the title ${e.catalogueTitle}!")
+            is SelfContainedCatalogueException -> {
+                logger.error("Catalogue with id ${e.catalogueId} cannot contain itself!")
                 CommandResponse(StatusCode.BadRequest)
             }
             //endregion
@@ -144,7 +143,9 @@ class ExceptionLogger {
 
             else -> {
                 logger.error("There is no case for an exception of type ${e::class.java.name}")
-                throw e
+                logger.error(e.stackTrace.toString())
+                e.printStackTrace()
+                CommandResponse(StatusCode.InternalServerError)
             }
         }
     }

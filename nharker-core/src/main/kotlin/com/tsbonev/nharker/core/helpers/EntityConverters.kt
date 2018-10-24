@@ -30,7 +30,7 @@ fun Entity.toDocument(): Document {
  *
  * @return The converted entity.
  */
-fun Document.toEntity(): Any {
+fun Document.toEntity(): Entity {
     return Gson().fromJson(this["json"].toString(),
-            Class.forName(this["class"].toString()))
+            Class.forName(this["class"].toString())) as Entity
 }

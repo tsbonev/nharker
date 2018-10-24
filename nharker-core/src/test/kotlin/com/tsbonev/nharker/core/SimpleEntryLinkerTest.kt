@@ -15,12 +15,11 @@ import org.hamcrest.CoreMatchers.`is` as Is
  */
 @Suppress("SpellCheckingInspection")
 class SimpleEntryLinkerTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val articleLinkTitles = mapOf(
+    private val articleLinkTitlesToIds = mapOf(
             "novem-harker" to "::nh-article-id::",
             "key-of-strength" to "::kos-article-id::",
             "norcit" to "::nor-article-id::",
@@ -39,7 +38,7 @@ class SimpleEntryLinkerTest {
     )
 
     private val explicitEntryLinks = mapOf(
-            "The White Stag" to "novem-harker"
+            "The White Stag" to "::nh-article-id::"
     )
 
     private val content = "Novem Harker, The White Stag, Conciliator, Tiebreaker of the College of Conciliators, " +
@@ -78,19 +77,19 @@ class SimpleEntryLinkerTest {
     private val entryLinker = SimpleEntryLinker(synonymProvider)
 
     @Test
-    fun `Link entry content to articles`() {
+    fun `Links entry content to articles`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
         }
 
-        val foundArticleLinks = entryLinker.findArticleLinks(entry, articleLinkTitles)
+        val foundArticleLinks = entryLinker.findArticleLinks(entry, articleLinkTitlesToIds)
 
         assertThat(foundArticleLinks.sorted(), Is(mentionedArticles.values.sorted()))
     }
 
     @Test
-    fun `Find no implicit links`() {
+    fun `Finds no implicit links`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(emptyMap<String, String>()))
@@ -103,7 +102,7 @@ class SimpleEntryLinkerTest {
                 "There are no articles that have any of these words as a link title."
         )
 
-        val articleLinks = entryLinker.findArticleLinks(entry, articleLinkTitles)
+        val articleLinks = entryLinker.findArticleLinks(entry, articleLinkTitlesToIds)
 
         assertThat(articleLinks, Is(emptySet()))
     }

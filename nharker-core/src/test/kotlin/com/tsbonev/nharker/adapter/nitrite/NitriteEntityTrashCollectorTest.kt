@@ -24,7 +24,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntityTrashCollectorTest {
-
     private val db = nitrite { }
 
     private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
@@ -54,9 +53,9 @@ class NitriteEntityTrashCollectorTest {
 
     private val entryTrashCollectionName = "Test_entries_trash"
 
-    private val trashCollector = NitriteEntityTrashCollector(db, entryTrashCollectionName)
-
     private val coll = db.getCollection(entryTrashCollectionName)
+
+    private val trashCollector = NitriteEntityTrashCollector(db, entryTrashCollectionName)
 
     @Before
     fun setUp() {
@@ -65,14 +64,14 @@ class NitriteEntityTrashCollectorTest {
     }
 
     @Test
-    fun `Trash entity`() {
+    fun `Trashing entity returns its id`() {
         val trashedID = trashCollector.trash(entry)
 
         assertThat(findEntity(trashedID) as Entry, Is(entry))
     }
 
     @Test
-    fun `Trash entities of differing types`() {
+    fun `Trashes entities of differing types`() {
         val entryTrashedId = trashCollector.trash(entry)
         val articleTrashedId = trashCollector.trash(article)
 
@@ -81,7 +80,7 @@ class NitriteEntityTrashCollectorTest {
     }
 
     @Test
-    fun `Restore entity from trash`() {
+    fun `Restores entity from trash`() {
         val restoredEntry = trashCollector.restore(trashedEntry.id, Entry::class.java)
 
         assertThat(restoredEntry, Is(trashedEntry))
@@ -105,16 +104,21 @@ class NitriteEntityTrashCollectorTest {
     }
 
     @Test
-    fun `View trashed entities`() {
+    fun `Retrieves a list of trashed entities`() {
         val trashed = trashCollector.view()
 
         assertThat(trashed, Is(listOf<Any>(trashedEntry)))
     }
 
     @Test
-    fun `Clear trashed`() {
-        trashCollector.clear()
+    fun `Clears trashed entities`() {
+        val entityList = coll.find().toList().map {
+            it.toEntity()
+        }
 
+        val clearedEntities = trashCollector.clear()
+
+        assertThat(clearedEntities, Is(entityList))
         assertThat(coll.find().toList(), Is(emptyList()))
     }
 

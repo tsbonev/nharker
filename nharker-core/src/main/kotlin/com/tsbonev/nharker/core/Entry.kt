@@ -7,13 +7,13 @@ import org.dizitart.no2.objects.Indices
 import java.time.LocalDateTime
 
 typealias Phrase = String
-typealias LinkId = String
+typealias ArticleId = String
 
 /**
  * Entries are the main wrapper of information,
  * they may contain links that are explicit which
- * will be used by their parent article alongside their
- * content for linking purposes.
+ * will be used by their parent article alongside with
+ * their content for article interlinking.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -23,6 +23,6 @@ data class Entry(@Id override val id: String,
                  override val creationDate: LocalDateTime,
                  val articleId: String,
                  val content: String,
-                 val links: Map<Phrase, LinkId> = emptyMap()) : Entity
+                 val links: Map<Phrase, ArticleId> = emptyMap()) : Entity
 
 class EntryNotFoundException(val entryId: String) : Throwable()

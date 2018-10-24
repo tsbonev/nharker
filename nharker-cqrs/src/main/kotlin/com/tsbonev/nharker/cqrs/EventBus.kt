@@ -9,12 +9,18 @@ import java.lang.reflect.Method
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface EventBus {
-
     /**
      * Registers a workflow object to the event bus by
      * looking up its annotated methods.
      *
      * @param workflow The workflow to register.
+     *
+     * @exception IllegalHandlerInWorkflowException thrown when a handler in the workflow
+     * does not meet the requirements for a handler.
+     * @exception NoHandlersInWorkflowException thrown when a workflow contains
+     * no handler annotations.
+     * @exception CommandAlreadyHandledException thrown when a command handler
+     * attempts handling a command that is already handled.
      */
     @Throws(IllegalHandlerInWorkflowException::class,
             NoHandlersInWorkflowException::class,
@@ -49,6 +55,9 @@ interface EventBus {
 
 /**
  * Invokers to store along with the workflow instance
+ *
+ * @param method The method to invoke.
+ * @param instance The instance to invoke it with.
  */
 internal class EventInvoker(private val method: Method, private val instance: Workflow) {
     fun invoke(event: Event) {
@@ -64,6 +73,9 @@ internal class CommandInvoker(private val method: Method, private val instance: 
 
 /**
  * Exceptions meant to fail in runtime if a workflow is incorrectly defined.
+ *
+ * @see EventHandler for requirements.
+ * @see CommandHandler for requirements.
  */
 class IllegalHandlerInWorkflowException(message: String) : Throwable(message)
 
