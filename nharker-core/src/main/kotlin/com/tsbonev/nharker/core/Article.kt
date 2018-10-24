@@ -41,12 +41,12 @@ fun String.toLinkTitle(): String {
 /**
  * Projection used for faster automatic linking.
  */
-data class ArticleLinkTitle(val linkTitle: String)
+data class ArticleLinkTitle(val id: String, val linkTitle: String)
 
 /**
  * Projection used for retrieving full titles.
  */
-data class ArticleFullTitle(val fullTitle: String)
+data class ArticleFullTitle(val id: String, val fullTitle: String)
 
 class ArticleNotFoundException(val articleId: String) : Throwable()
 class ArticleTitleTakenException(val articleTitle: String) : Throwable()

@@ -58,10 +58,10 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      */
     fun removeSynonym(command: RemoveSynonymCommand): CommandResponse {
         return try {
-            val removedSynonym = synonyms.removeSynonym(command.synonym)
-            eventBus.publish(SynonymRemovedEvent(removedSynonym))
+            val removedSynonymIdPair = synonyms.removeSynonym(command.synonym)
+            eventBus.publish(SynonymRemovedEvent(removedSynonymIdPair.first, removedSynonymIdPair.second))
 
-            return CommandResponse(StatusCode.OK, removedSynonym)
+            return CommandResponse(StatusCode.OK, removedSynonymIdPair)
         } catch (e: SynonymNotFoundException) {
             exceptionLogger.logException(e)
         }
@@ -122,10 +122,10 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
     @EventHandler
     fun onArticleDeletedRemoveSynonyms(event: ArticleDeletedEvent) {
         synonyms.getSynonymMap()
-                .filter { it.value == event.article.linkTitle }
-                .forEach { key, _ ->
+                .filter { it.value == event.article.id }
+                .forEach { key, id ->
                     synonyms.removeSynonym(key)
-                    eventBus.publish(SynonymRemovedEvent(key))
+                    eventBus.publish(SynonymRemovedEvent(key, id))
                 }
     }
     //endregion
@@ -145,6 +145,6 @@ data class AddSynonymCommand(val synonym: String, val article: Article) : Comman
 data class SynonymAddedEvent(val synonym: String, val article: Article) : Event
 
 data class RemoveSynonymCommand(val synonym: String) : Command
-data class SynonymRemovedEvent(val synonym: String) : Event
+data class SynonymRemovedEvent(val synonym: String, val articleId: String) : Event
 
 //endregion

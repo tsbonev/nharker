@@ -17,7 +17,8 @@ interface ArticleSynonymProvider {
      * Adds a synonym to the global map.
      *
      * @param articleSynonym The synonym to add.
-     * @param article The article that the synonym points to.
+     * @param article The article that the synonym points to
+     * the article's id will be saved against the synonym.
      * @return The added synonym.
      */
     @Throws(SynonymAlreadyTakenException::class)
@@ -27,10 +28,10 @@ interface ArticleSynonymProvider {
      * Removes a synonym from the global map.
      *
      * @param articleSynonym The synonym to remove.
-     * @return The removed synonym.
+     * @return The removed synonym to id pair.
      */
     @Throws(SynonymNotFoundException::class)
-    fun removeSynonym(articleSynonym: String): String
+    fun removeSynonym(articleSynonym: String): Pair<String, String>
 }
 
 class SynonymNotFoundException(val synonym: String) : Throwable()

@@ -11,8 +11,8 @@ interface EntryLinker {
      * Searches for links in an entry's content.
      *
      * @param entry The entry to link from.
-     * @param articleLinkTitles The titles of the articles to match for links.
-     * @return The set of article titles that are linked.
+     * @param articleLinkTitlesToIds The link titles of the articles to match for links.
+     * @return The set of article ids that are linked.
      */
-    fun findArticleLinks(entry: Entry, articleLinkTitles: List<String>): Set<String>
+    fun findArticleLinks(entry: Entry, articleLinkTitlesToIds: Map<String, String>): Set<String>
 }

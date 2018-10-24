@@ -147,12 +147,13 @@ class ArticleSynonymWorkflowTest {
     @Test
     fun `Removing synonym returns it`() {
         val synonym = "::synonym::"
+        val articleId = "::article-id::"
 
         context.expecting {
             oneOf(synonymProvider).removeSynonym(synonym)
-            will(returnValue(synonym))
+            will(returnValue(synonym to articleId))
 
-            oneOf(eventBus).publish(SynonymRemovedEvent(synonym))
+            oneOf(eventBus).publish(SynonymRemovedEvent(synonym, articleId))
         }
 
         val response = synonymWorkflow.removeSynonym(
@@ -160,7 +161,7 @@ class ArticleSynonymWorkflowTest {
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as String, Is(synonym))
+        assertThat(response.payload.get() as Pair<String, String>, Is(synonym to articleId))
     }
 
     @Test
@@ -184,18 +185,22 @@ class ArticleSynonymWorkflowTest {
         val firstSynonym = "::first-synonym::"
         val secondSynonym = "::second-synonym::"
 
-        val synonymMap = mapOf(firstSynonym to article.linkTitle,
-                secondSynonym to article.linkTitle)
+        val synonymMap = mapOf(firstSynonym to article.id,
+                secondSynonym to article.id)
 
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
 
             oneOf(synonymProvider).removeSynonym(firstSynonym)
-            oneOf(eventBus).publish(SynonymRemovedEvent(firstSynonym))
+            will(returnValue(firstSynonym to article.id))
+
+            oneOf(eventBus).publish(SynonymRemovedEvent(firstSynonym, article.id))
 
             oneOf(synonymProvider).removeSynonym(secondSynonym)
-            oneOf(eventBus).publish(SynonymRemovedEvent(secondSynonym))
+            with(returnValue(secondSynonym to article.id))
+
+            oneOf(eventBus).publish(SynonymRemovedEvent(secondSynonym, article.id))
         }
 
         synonymWorkflow.onArticleDeletedRemoveSynonyms(ArticleDeletedEvent(article))

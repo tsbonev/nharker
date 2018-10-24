@@ -4,7 +4,7 @@ package com.tsbonev.nharker.core
  * A wrapper of a linked hash map that provides the functionality
  * to switch the order of elements.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 data class OrderedReferenceMap(private val map: LinkedHashMap<String, Int> = linkedMapOf()) {
 
