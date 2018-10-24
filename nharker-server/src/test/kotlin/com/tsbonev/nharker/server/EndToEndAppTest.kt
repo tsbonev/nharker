@@ -17,7 +17,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EndToEndAppTest : AutoCloseKoinTest() {
-
     @Before
     fun setUp() {
         startKoin(listOf(fakeNitrite))

@@ -7,10 +7,9 @@ import org.dizitart.no2.objects.Indices
 import java.time.LocalDateTime
 
 /**
- * Catalogues are the entity that groups together
- * articles into coherent categories, as such
- * Catalogues are only concerned with the underlying
- * inheritance tree that they make up.
+ * Catalogues are objects that together build an
+ * inheritance tree. Catalogues are not concerned
+ * with the state of articles.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -19,7 +18,7 @@ import java.time.LocalDateTime
 data class Catalogue(@Id override val id: String,
                      val title: String,
                      override val creationDate: LocalDateTime,
-                     val childrenIds: OrderedReferenceMap = OrderedReferenceMap(),
+                     val children: OrderedReferenceMap = OrderedReferenceMap(),
                      val parentId: String? = null) : Entity
 
 class CatalogueNotFoundException(val catalogueId: String) : Throwable()

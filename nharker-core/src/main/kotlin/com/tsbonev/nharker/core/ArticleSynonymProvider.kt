@@ -7,7 +7,7 @@ package com.tsbonev.nharker.core
  */
 interface ArticleSynonymProvider {
     /**
-     * Returns a map of article link synonyms.
+     * Returns a map of article synonyms mapped to article ids.
      *
      * @return A map of synonym links to real links.
      */
@@ -16,22 +16,26 @@ interface ArticleSynonymProvider {
     /**
      * Adds a synonym to the global map.
      *
-     * @param articleSynonym The synonym to add.
+     * @param synonym The synonym to add.
      * @param article The article that the synonym points to
      * the article's id will be saved against the synonym.
      * @return The added synonym.
+     *
+     * @exception SynonymNotFoundException thrown when the synonym already exists.
      */
     @Throws(SynonymAlreadyTakenException::class)
-    fun addSynonym(articleSynonym: String, article: Article): String
+    fun addSynonym(synonym: String, article: Article): String
 
     /**
      * Removes a synonym from the global map.
      *
-     * @param articleSynonym The synonym to remove.
+     * @param synonym The synonym to remove.
      * @return The removed synonym to id pair.
+     *
+     * @exception SynonymNotFoundException thrown when the synonym does not exist.
      */
     @Throws(SynonymNotFoundException::class)
-    fun removeSynonym(articleSynonym: String): Pair<String, String>
+    fun removeSynonym(synonym: String): Pair<String, String>
 }
 
 class SynonymNotFoundException(val synonym: String) : Throwable()

@@ -19,6 +19,9 @@ interface Entries {
     /**
      * Saves an entry into persistence, overwriting the previous one
      * if it exists.
+     *
+     * @param entry The entry to save.
+     * @return The saved entry.
      */
     fun save(entry: Entry): Entry
 
@@ -27,6 +30,8 @@ interface Entries {
      *
      * @param entryId The Id of the entry targeted.
      * @return The deleted entry.
+     *
+     * @exception EntryNotFoundException thrown when the entry is not found.
      */
     @Throws(EntryNotFoundException::class)
     fun delete(entryId: String): Entry
@@ -37,6 +42,8 @@ interface Entries {
      * @param entryId The id of the entry targeted.
      * @param content The new content of the entry.
      * @return The updated entry.
+     *
+     * @exception EntryNotFoundException thrown when the entry is not found.
      */
     @Throws(EntryNotFoundException::class)
     fun updateContent(entryId: String, content: String): Entry
@@ -47,6 +54,8 @@ interface Entries {
      * @param entryId The id of the entry targeted.
      * @param links The new links of the entry.
      * @return The updated entry.
+     *
+     * @exception EntryNotFoundException thrown when the entry is not found.
      */
     @Throws(EntryNotFoundException::class)
     fun updateLinks(entryId: String, links: Map<String, String>): Entry
@@ -58,12 +67,14 @@ interface Entries {
      * @param article The new article that holds the entry.
      *
      * @return The updated entry.
+     *
+     * @exception EntryNotFoundException thrown when the entry is not found.
      */
     @Throws(EntryNotFoundException::class)
     fun changeArticle(entryId: String, article: Article): Entry
 
     /**
-     * Retrieves an optional entry by id.
+     * Retrieves an entry by id.
      *
      * @param entryId The id of the entry sought.
      * @return An optional entry.

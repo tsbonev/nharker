@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.server.workflow
 
-import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
 import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
@@ -22,6 +21,7 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 import org.hamcrest.CoreMatchers.`is` as Is
 
@@ -29,7 +29,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class CatalogueWorkflowTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
@@ -38,26 +37,20 @@ class CatalogueWorkflowTest {
     private val catalogues = context.mock(Catalogues::class.java)
 
     private val exceptionLogger = ExceptionLogger()
-
-    private val catalogueWorkflow = CatalogueWorkflow(eventBus, catalogues, exceptionLogger)
-
     private val catalogueRequest = CatalogueRequest(
             "::catalogue-title::",
             parentId = "::parent-id::"
     )
 
+    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
+
     private val catalogue = Catalogue(
             "::id::",
             "::catalogue-title::",
-            LocalDateTime.now()
+            date
     )
 
-    private val article = Article(
-            "::article-id::",
-            "full-title",
-            "Full title",
-            LocalDateTime.now()
-    )
+    private val catalogueWorkflow = CatalogueWorkflow(eventBus, catalogues, exceptionLogger)
 
     @Test
     fun `Creating a catalogue returns it`() {
@@ -102,13 +95,13 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Retrieve catalogue by id`() {
+    fun `Retrieves catalogue by id`() {
         context.expecting {
             oneOf(catalogues).getById(catalogue.id)
             will(returnValue(Optional.of(catalogue)))
         }
 
-        val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdCommand(catalogue.id))
+        val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdQuery(catalogue.id))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -122,7 +115,7 @@ class CatalogueWorkflowTest {
             will(returnValue(Optional.empty<Catalogue>()))
         }
 
-        val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdCommand(catalogue.id))
+        val response = catalogueWorkflow.getCatalogueById(GetCatalogueByIdQuery(catalogue.id))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
@@ -159,7 +152,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Change catalogue title`() {
+    fun `Changes catalogue title`() {
         context.expecting {
             oneOf(catalogues).changeTitle(catalogue.id, "::new-title::")
             will(returnValue(catalogue))
@@ -208,7 +201,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Change catalogue parent`() {
+    fun `Changes catalogue parent`() {
         context.expecting {
             oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
             will(returnValue(catalogue))
@@ -229,6 +222,20 @@ class CatalogueWorkflowTest {
         context.expecting {
             oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueAlreadyAChildException(catalogue.id, catalogue.id)))
+        }
+
+        val response = catalogueWorkflow.changeCatalogueParent(
+                ChangeCatalogueParentCommand(catalogue.id, catalogue))
+
+        assertThat(response.statusCode, Is(StatusCode.BadRequest))
+        assertThat(response.payload.isPresent, Is(false))
+    }
+
+    @Test
+    fun `Changing catalogue parent to itself returns bad request`() {
+        context.expecting {
+            oneOf(catalogues).changeParentCatalogue(catalogue.id, catalogue)
+            will(throwException(SelfContainedCatalogueException(catalogue.id)))
         }
 
         val response = catalogueWorkflow.changeCatalogueParent(
@@ -267,7 +274,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Append child catalogue to catalogue`() {
+    fun `Appends child catalogue to catalogue`() {
         context.expecting {
             oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
             will(returnValue(catalogue))
@@ -326,7 +333,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Appending child catalogue to a non-existent catalogue returns not found`() {
+    fun `Appending child catalogue to a non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueNotFoundException(catalogue.id)))
@@ -340,7 +347,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Switch child catalogue order in catalogue`() {
+    fun `Switches child catalogue order in catalogue`() {
         context.expecting {
             oneOf(catalogues).switchChildCatalogues(catalogue.id, catalogue, catalogue)
             will(returnValue(catalogue))
@@ -385,7 +392,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Remove child catalogue from catalogue`() {
+    fun `Removes child catalogue from catalogue`() {
         context.expecting {
             oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
             will(returnValue(catalogue))
@@ -416,7 +423,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Removing child catalogue from a non-existent catalogue returns not found`() {
+    fun `Removing child catalogue from a non-existing catalogue returns not found`() {
         context.expecting {
             oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
             will(throwException(CatalogueNotFoundException(catalogue.id)))
@@ -430,7 +437,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Save catalogue when restored`() {
+    fun `Saves catalogue when restored`() {
         context.expecting {
             oneOf(catalogues).save(catalogue)
         }
@@ -439,7 +446,7 @@ class CatalogueWorkflowTest {
     }
 
     @Test
-    fun `Ignore foreign restored entities`() {
+    fun `Ignores foreign restored entities`() {
         context.expecting {
             never(catalogues).save(catalogue)
         }

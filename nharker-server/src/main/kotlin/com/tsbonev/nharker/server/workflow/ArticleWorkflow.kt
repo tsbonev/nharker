@@ -17,6 +17,8 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
+import com.tsbonev.nharker.cqrs.Query
+import com.tsbonev.nharker.cqrs.QueryResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.cqrs.isSuccess
@@ -43,6 +45,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If the article title is taken, logs the title.
      * @code 400
+     * @exception ArticleTitleTakenException
      */
     @CommandHandler
     fun createArticle(command: CreateArticleCommand): CommandResponse {
@@ -65,11 +68,12 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If the article is not found, logs the id.
      * @code 404
+     * @exception ArticleNotFoundException
      */
     @CommandHandler
     fun deleteArticle(command: DeleteArticleCommand): CommandResponse {
         return try {
-            val deletedArticle = articles.delete(command.articleId)
+            val deletedArticle = articles.deleteById(command.articleId)
 
             deletedArticle.properties
                     .raw()
@@ -92,25 +96,6 @@ class ArticleWorkflow(private val eventBus: EventBus,
         }
     }
 
-
-    /**
-     * Retrieves an article by id.
-     * @code 200
-     * @payload The retrieve article.
-     *
-     * If an article is not found, logs the id.
-     * @code 404
-     */
-    @CommandHandler
-    fun getArticleById(command: GetArticleByIdCommand): CommandResponse {
-        val possibleArticle = articles.getById(command.articleId)
-
-        return if (possibleArticle.isPresent) CommandResponse(StatusCode.OK, possibleArticle.get())
-        else {
-            exceptionLogger.logException(ArticleNotFoundException(command.articleId))
-        }
-    }
-
     /**
      * Appends an entry to an article.
      * @code 200
@@ -119,9 +104,11 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If an article is not found by id, logs id.
      * @code 404
+     * @exception ArticleNotFoundException
      *
      * If the entry is already in the article, logs entry id.
      * @code 400
+     * @exception EntryAlreadyInArticleException
      */
     @CommandHandler
     fun appendEntryToArticle(command: AppendEntryToArticleCommand): CommandResponse {
@@ -145,9 +132,11 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If an article is not found by id, logs id.
      * @code 404
+     * @exception ArticleNotFoundException
      *
      * If the entry is not in the article, logs entry id.
      * @code 400
+     * @exception EntryNotInArticleException
      */
     @CommandHandler
     fun removeEntryFromArticle(command: RemoveEntryFromArticleCommand): CommandResponse {
@@ -173,6 +162,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If the article is not found by id, logs id.
      * @code 404
+     * @exception ArticleNotFoundException
      */
     @CommandHandler
     fun attachPropertyToArticle(command: AttachPropertyToArticleCommand): CommandResponse {
@@ -198,9 +188,11 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If the article is not found by id, logs id.
      * @code 404
+     * @exception ArticleNotFoundException
      *
      * If the article does not contain the property, logs property name and article id.
      * @code 400
+     * @exception PropertyNotFoundException
      */
     @CommandHandler
     fun detachPropertyFromArticle(command: DetachPropertyFromArticleCommand): CommandResponse {
@@ -227,9 +219,11 @@ class ArticleWorkflow(private val eventBus: EventBus,
      *
      * If the article is not found by id, logs id.
      * @code 404
+     * @exception ArticleNotFoundException
      *
      * If the entries are not both in the article, logs the entries' ids and the article's id.
      * @code 400
+     * @exception EntryNotInArticleException
      */
     @CommandHandler
     fun switchEntriesInArticle(command: SwitchEntriesInArticleCommand): CommandResponse {
@@ -246,21 +240,37 @@ class ArticleWorkflow(private val eventBus: EventBus,
     }
 
     /**
+     * Retrieves an article by id.
+     * @code 200
+     * @payload The retrieve article.
+     *
+     * If an article is not found, logs the id.
+     * @code 404
+     * @exception ArticleNotFoundException
+     */
+    @CommandHandler
+    fun getArticleById(command: GetArticleByIdQuery): QueryResponse {
+        val possibleArticle = articles.getById(command.articleId)
+
+        return if (possibleArticle.isPresent) QueryResponse(StatusCode.OK, possibleArticle.get())
+        else exceptionLogger.logException(ArticleNotFoundException(command.articleId))
+    }
+
+    /**
      * Retrieves an article by link title.
      * @code 200
      * @payload The retrieve article.
      *
      * If an article is not found, logs the link title.
      * @code 404
+     * @exception ArticleNotFoundException
      */
     @CommandHandler
-    fun getArticleByLinkTitle(command: GetArticleByLinkTitleCommand): CommandResponse {
-        val possibleArticle = articles.getByLinkTitle(command.linkTitle)
+    fun getArticleByLinkTitle(query: GetArticleByLinkTitleQuery): QueryResponse {
+        val possibleArticle = articles.getByLinkTitle(query.linkTitle)
 
-        return if (possibleArticle.isPresent) CommandResponse(StatusCode.OK, possibleArticle.get())
-        else {
-            exceptionLogger.logException(ArticleNotFoundException(command.linkTitle))
-        }
+        return if (possibleArticle.isPresent) QueryResponse(StatusCode.OK, possibleArticle.get())
+        else exceptionLogger.logException(ArticleNotFoundException(query.linkTitle))
     }
 
     /**
@@ -269,26 +279,15 @@ class ArticleWorkflow(private val eventBus: EventBus,
      * @payload A list of matched articles.
      */
     @CommandHandler
-    fun searchArticlesByTitle(command: SearchArticleByTitleCommand): CommandResponse {
-        return CommandResponse(StatusCode.OK, articles.searchByFullTitle(command.searchString))
+    fun searchArticlesByTitle(query: SearchArticleByTitleQuery): QueryResponse {
+        return QueryResponse(StatusCode.OK, articles.searchByFullTitle(query.searchString))
     }
-
-    /**
-     * Returns a list of full titles retrieved by link titles.
-     * @code 200
-     * @payload A list of article full titles.
-     */
-    @CommandHandler
-    fun retrieveFullTitles(command: RetrieveFullTitlesCommand): CommandResponse {
-        return CommandResponse(StatusCode.OK, articles.getArticleTitles(command.linkTitles))
-    }
-
     //endregion
 
     //region Event Handlers
     /**
      * Saves a restored article and restores its linked entries.
-     * @spawns EntryRestoredEvent
+     * @publishes EntryRestoredEvent
      */
     @EventHandler
     fun onArticleRestored(event: EntityRestoredEvent) {
@@ -383,7 +382,7 @@ class ArticleWorkflow(private val eventBus: EventBus,
         val entryList = mutableListOf<Entry>()
 
         refList.forEach {
-            val getResponse = eventBus.send(GetEntryByIdCommand(it))
+            val getResponse = eventBus.send(GetEntryByIdQuery(it))
             if (getResponse.statusCode.isSuccess()) {
                 val fetchedEntry = getResponse.payload.get() as Entry
                 entryList.add(fetchedEntry)
@@ -427,17 +426,15 @@ class ArticleWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
+data class GetArticleByIdQuery(val articleId: String) : Query
 
-data class GetArticleByIdCommand(val articleId: String) : Command
-data class GetArticleByLinkTitleCommand(val linkTitle: String) : Command
-data class SearchArticleByTitleCommand(val searchString: String) : Command
-data class RetrieveFullTitlesCommand(val linkTitles: Set<String>) : Command
-
+data class GetArticleByLinkTitleQuery(val linkTitle: String) : Query
+data class SearchArticleByTitleQuery(val searchString: String) : Query
 //endregion
 
 //region Commands
-
 data class CreateArticleCommand(val articleRequest: ArticleRequest) : Command
+
 data class ArticleCreatedEvent(val article: Article) : Event
 
 data class DeleteArticleCommand(val articleId: String) : Command
@@ -449,5 +446,4 @@ data class AttachPropertyToArticleCommand(val propertyName: String, val property
 data class DetachPropertyFromArticleCommand(val propertyName: String, val articleId: String) : Command
 data class SwitchEntriesInArticleCommand(val articleId: String, val first: Entry, val second: Entry) : Command
 data class ArticleUpdatedEvent(val article: Article) : Event
-
 //endregion

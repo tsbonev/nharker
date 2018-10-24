@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
@@ -20,8 +22,8 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
-
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -31,16 +33,13 @@ class TrashingWorkflowTest {
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val eventBus = context.mock(EventBus::class.java)
-    private val trashCollector = context.mock(TrashCollector::class.java)
-
     private val exceptionLogger = ExceptionLogger()
 
-    private val trashingWorkflow = TrashingWorkflow(eventBus, trashCollector, exceptionLogger)
+    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
 
     private val entry = Entry(
             "::entry-id::",
-            LocalDateTime.now(),
+            date,
             "::article-id::",
             "::content::"
     )
@@ -49,21 +48,26 @@ class TrashingWorkflowTest {
             "::article-id::",
             "link-title",
             "Full title",
-            LocalDateTime.now()
+            date
     )
 
     private val catalogue = Catalogue(
             "::catalogue-id::",
             "::catalogue-title::",
-            LocalDateTime.now()
+            date
     )
 
+    private val eventBus = context.mock(EventBus::class.java)
+
+    private val trashCollector = context.mock(TrashCollector::class.java)
+
+    private val trashingWorkflow = TrashingWorkflow(eventBus, trashCollector, exceptionLogger)
+
     @Test
-    fun `Trash entities`() {
+    fun `Trashes entities`() {
         val trashedEntityId = "::trashed-entity-id::"
         val trashedArticleId = "::trashed-article-id::"
         val trashedCatalogueId = "::trashed-catalogue-id::"
-
 
         context.expecting {
             oneOf(trashCollector).trash(entry)
@@ -82,7 +86,7 @@ class TrashingWorkflowTest {
     }
 
     @Test
-    fun `Restore trashed entity`() {
+    fun `Restores trashed entity`() {
         context.expecting {
             oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
             will(returnValue(entry))
@@ -126,7 +130,6 @@ class TrashingWorkflowTest {
         assertThat(response.payload.isPresent, Is(false))
     }
 
-    @Suppress("UNCHECKED_CAST")
     @Test
     fun `Clearing trash store returns cleared entities`() {
         val entityList = listOf(entry, article, catalogue)
@@ -147,9 +150,8 @@ class TrashingWorkflowTest {
         assertThat(response.payload.get() as List<Entity>, Is(entityList))
     }
 
-    @Suppress("UNCHECKED_CAST")
     @Test
-    fun `View trashed entities`() {
+    fun `Retrieves trashed entities`() {
         val entryList = listOf(entry)
 
         context.expecting {
@@ -158,7 +160,7 @@ class TrashingWorkflowTest {
         }
 
         val response = trashingWorkflow.viewTrashedEntities(
-                ViewTrashedEntitiesCommand(Entry::class.java))
+                ViewTrashedEntitiesQuery(Entry::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))

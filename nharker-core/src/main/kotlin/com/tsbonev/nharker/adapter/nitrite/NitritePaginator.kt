@@ -10,15 +10,15 @@ import org.dizitart.no2.objects.ObjectRepository
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class NitritePaginator<T>(private val coll: ObjectRepository<T>) : Paginator<T> {
+class NitritePaginator<T>(private val repo: ObjectRepository<T>) : Paginator<T> {
     override fun getAll(order: SortBy): List<T> {
         val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
         else SortOrder.Descending
 
-        return coll.find(FindOptions.sort("creationDate", sortOrder)).toList()
+        return repo.find(FindOptions.sort("creationDate", sortOrder)).toList()
     }
 
-    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<T> {
+    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<T> {
         val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
         else SortOrder.Descending
 
@@ -26,9 +26,9 @@ class NitritePaginator<T>(private val coll: ObjectRepository<T>) : Paginator<T> 
 
         val pageOffset = (page - 1) * pageSize
 
-        if (coll.find().count() < pageOffset) return emptyList()
+        if (repo.find().count() < pageOffset) return emptyList()
 
-        return coll.find(FindOptions.sort("creationDate", sortOrder)
+        return repo.find(FindOptions.sort("creationDate", sortOrder)
                 .thenLimit(pageOffset, pageSize)).toList()
     }
 }

@@ -28,19 +28,19 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                         private val clock: Clock = Clock.systemUTC())
     : Catalogues, Paginator<Catalogue> {
 
-    private val coll: ObjectRepository<Catalogue>
+    private val repo: ObjectRepository<Catalogue>
         get() = nitriteDb.getRepository(collectionName, Catalogue::class.java)
 
     private val paginator: Paginator<Catalogue> by lazy {
-        NitritePaginator(coll)
+        NitritePaginator(repo)
     }
 
     override fun create(catalogueRequest: CatalogueRequest): Catalogue {
-        if (coll.find(Catalogue::title eq catalogueRequest.title).firstOrNull() != null)
+        if (repo.find(Catalogue::title eq catalogueRequest.title).any())
             throw CatalogueTitleTakenException(catalogueRequest.title)
 
         if (catalogueRequest.parentId != null
-                && coll.find(Catalogue::title eq catalogueRequest.parentId).firstOrNull() == null)
+                && repo.find(Catalogue::title eq catalogueRequest.parentId).none())
             throw CatalogueNotFoundException(catalogueRequest.parentId)
 
         val catalogue = Catalogue(
@@ -50,17 +50,17 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
                 parentId = catalogueRequest.parentId
         )
 
-        coll.insert(catalogue)
+        repo.insert(catalogue)
         return catalogue
     }
 
     override fun save(catalogue: Catalogue): Catalogue {
-        coll.update(catalogue, true)
+        repo.update(catalogue, true)
         return catalogue
     }
 
     override fun getById(catalogueId: String): Optional<Catalogue> {
-        val catalogue = coll.find(Catalogue::id eq catalogueId).firstOrNull()
+        val catalogue = repo.find(Catalogue::id eq catalogueId).firstOrNull()
                 ?: return Optional.empty()
 
         return Optional.of(catalogue)
@@ -70,19 +70,19 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         return paginator.getAll(order)
     }
 
-    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<Catalogue> {
-        return paginator.getAll(order, page, pageSize)
+    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Catalogue> {
+        return paginator.getPaginated(order, page, pageSize)
     }
 
     override fun changeTitle(catalogueId: String, newTitle: String): Catalogue {
         val catalogue = findOrThrow(catalogueId)
 
-        if (coll.find(Catalogue::title eq newTitle).firstOrNull() != null)
+        if (repo.find(Catalogue::title eq newTitle).any())
             throw CatalogueTitleTakenException(newTitle)
 
         val updatedCatalogue = catalogue.copy(title = newTitle)
 
-        coll.update(updatedCatalogue)
+        repo.update(updatedCatalogue)
         return updatedCatalogue
     }
 
@@ -101,25 +101,26 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val updatedChild = childCatalogue
                 .copy(parentId = parentCatalogue.id)
 
-        parentCatalogue.childrenIds.append(childCatalogueId)
+        parentCatalogue.children.append(childCatalogueId)
 
-        coll.update(updatedChild)
-        coll.update(parentCatalogue)
+        repo.update(updatedChild)
+        repo.update(parentCatalogue)
         return updatedChild
     }
 
     override fun delete(catalogueId: String): Catalogue {
         val catalogue = findOrThrow(catalogueId)
 
-        catalogue.childrenIds
+        catalogue.children
                 .raw()
                 .keys
                 .forEach {
-                    val childCatalogue = coll.find(Catalogue::id eq it).first()
-                    coll.update(Catalogue::id eq it, childCatalogue.copy(parentId = catalogue.parentId))
+                    repo.find(Catalogue::id eq it).firstOrNull()?.let { child ->
+                        repo.update(Catalogue::id eq it, child.copy(parentId = catalogue.parentId))
+                    }
                 }
 
-        coll.remove(Catalogue::id eq catalogueId)
+        repo.remove(Catalogue::id eq catalogueId)
         return catalogue
     }
 
@@ -138,10 +139,10 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val updatedChild = childCatalogue
                 .copy(parentId = parentCatalogueId)
 
-        parentCatalogue.childrenIds.append(childCatalogue.id)
+        parentCatalogue.children.append(childCatalogue.id)
 
-        coll.update(updatedChild)
-        coll.update(parentCatalogue)
+        repo.update(updatedChild)
+        repo.update(parentCatalogue)
         return updatedChild
     }
 
@@ -154,10 +155,10 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val updatedChild = childCatalogue
                 .copy(parentId = null)
 
-        parentCatalogue.childrenIds.subtract(childCatalogue.id)
+        parentCatalogue.children.subtract(childCatalogue.id)
 
-        coll.update(updatedChild)
-        coll.update(parentCatalogue)
+        repo.update(updatedChild)
+        repo.update(parentCatalogue)
         return updatedChild
     }
 
@@ -167,9 +168,9 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
         val catalogue = findOrThrow(parentCatalogueId)
 
         return try {
-            catalogue.childrenIds.switch(firstChild.id, secondChild.id)
+            catalogue.children.switch(firstChild.id, secondChild.id)
 
-            coll.update(catalogue)
+            repo.update(catalogue)
             catalogue
         } catch (ex: ElementNotInMapException) {
             throw CatalogueNotAChildException(parentCatalogueId, ex.reference)
@@ -178,9 +179,14 @@ class NitriteCatalogues(private val nitriteDb: Nitrite,
 
     /**
      * Finds a catalogue by id or throws an exception.
+     *
+     * @param catalogueId The id to find.
+     * @return The found Catalogue.
+     *
+     * @exception CatalogueNotAChildException thrown when the catalogue is not found.
      */
     private fun findOrThrow(catalogueId: String): Catalogue {
-        return coll.find(Catalogue::id eq catalogueId).firstOrNull()
+        return repo.find(Catalogue::id eq catalogueId).firstOrNull()
                 ?: throw CatalogueNotFoundException(catalogueId)
     }
 }

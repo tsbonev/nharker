@@ -1,7 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleFullTitle
 import com.tsbonev.nharker.core.ArticleLinkTitle
 import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleRequest
@@ -35,11 +34,11 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                       private val clock: Clock = Clock.systemUTC())
     : Articles, Paginator<Article> {
 
-    private val coll: ObjectRepository<Article>
+    private val repo: ObjectRepository<Article>
         get() = nitriteDb.getRepository(collectionName, Article::class.java)
 
     private val paginator: Paginator<Article> by lazy {
-        NitritePaginator(coll)
+        NitritePaginator(repo)
     }
 
     override fun create(articleRequest: ArticleRequest): Article {
@@ -50,29 +49,28 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                 LocalDateTime.now(clock)
         )
 
-        if (coll.find(Article::linkTitle eq article.linkTitle).any())
+        if (repo.find(Article::linkTitle eq article.linkTitle).any())
             throw ArticleTitleTakenException(articleRequest.fullTitle)
 
-        coll.insert(article)
+        repo.insert(article)
         return article
     }
 
     override fun save(article: Article): Article {
-        coll.update(article, true)
+        repo.update(article, true)
         return article
     }
 
     override fun changeTitle(articleId: String, newTitle: String): Article {
         val article = findByIdOrThrow(articleId)
 
-        if (coll.find(Article::fullTitle text newTitle).toList()
+        if (repo.find(Article::fullTitle text newTitle).toList()
                         .filter { it.fullTitle == newTitle }
                         .any()) throw ArticleTitleTakenException(newTitle)
 
         val updatedArticle = article.copy(fullTitle = newTitle, linkTitle = newTitle.toLinkTitle())
 
-        coll.update(updatedArticle)
-
+        repo.update(updatedArticle)
         return updatedArticle
     }
 
@@ -80,32 +78,32 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return paginator.getAll(order)
     }
 
-    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<Article> {
-        return paginator.getAll(order, page, pageSize)
+    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Article> {
+        return paginator.getPaginated(order, page, pageSize)
     }
 
     override fun getById(articleId: String): Optional<Article> {
-        val article = coll.find(Article::id eq articleId).firstOrNull()
+        val article = repo.find(Article::id eq articleId).firstOrNull()
                 ?: return Optional.empty()
 
         return Optional.of(article)
     }
 
     override fun getByCatalogue(catalogue: Catalogue): List<Article> {
-        return coll.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
+        return repo.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
     }
 
     override fun getByLinkTitle(linkTitle: String): Optional<Article> {
-        val article = coll.find(Article::linkTitle eq linkTitle).firstOrNull()
+        val article = repo.find(Article::linkTitle eq linkTitle).firstOrNull()
                 ?: return Optional.empty()
 
         return Optional.of(article)
     }
 
-    override fun delete(articleId: String): Article {
+    override fun deleteById(articleId: String): Article {
         val article = findByIdOrThrow(articleId)
 
-        coll.remove(article)
+        repo.remove(article)
         return article
     }
 
@@ -114,8 +112,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         val updatedArticle = article.copy(catalogues = article.catalogues.plus(catalogue.id))
 
-        coll.update(updatedArticle)
-
+        repo.update(updatedArticle)
         return updatedArticle
     }
 
@@ -124,8 +121,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         val updatedArticle = article.copy(catalogues = article.catalogues.minus(catalogue.id))
 
-        coll.update(updatedArticle)
-
+        repo.update(updatedArticle)
         return updatedArticle
     }
 
@@ -139,7 +135,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         article.entries.append(entry.id)
 
-        coll.update(article)
+        repo.update(article)
         return article
     }
 
@@ -153,7 +149,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         article.entries.subtract(entry.id)
 
-        coll.update(article)
+        repo.update(article)
         return article
     }
 
@@ -163,19 +159,19 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return try {
             article.entries.switch(first.id, second.id)
 
-            coll.update(article)
+            repo.update(article)
             article
         } catch (ex: ElementNotInMapException) {
             throw EntryNotInArticleException(ex.reference, articleId)
         }
     }
 
-    override fun attachProperty(articleId: String, propertyName: String, property: Entry): Article {
+    override fun attachProperty(articleId: String, propertyName: String, propertyEntry: Entry): Article {
         val article = findByIdOrThrow(articleId)
 
-        article.properties.attachProperty(propertyName, property.id)
+        article.properties.attachProperty(propertyName, propertyEntry.id)
 
-        coll.update(article)
+        repo.update(article)
         return article
     }
 
@@ -184,31 +180,25 @@ class NitriteArticles(private val nitriteDb: Nitrite,
 
         article.properties.detachProperty(propertyName)
 
-        coll.update(article)
+        repo.update(article)
         return article
     }
 
     override fun searchByFullTitle(searchString: String): List<Article> {
-        return coll.find(Article::fullTitle text searchString).toList()
+        return repo.find(Article::fullTitle text searchString).toList()
     }
 
-    override fun getArticleTitles(linkTitleList: Set<String>): List<String> {
-        val fullTitleList = mutableListOf<String>()
-
-        linkTitleList.forEach {
-            val article = coll.find(Article::linkTitle eq it)
-                    .project(ArticleFullTitle::class.java).firstOrNull() ?: return@forEach
-            fullTitleList.add(article.fullTitle)
-        }
-
-        return fullTitleList
-    }
 
     /**
      * Finds an article by id or throws an exception.
+     *
+     * @param articleId The id to find.
+     * @return The found Article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
      */
     private fun findByIdOrThrow(articleId: String): Article {
-        return coll.find(Article::id eq articleId).firstOrNull()
+        return repo.find(Article::id eq articleId).firstOrNull()
                 ?: throw ArticleNotFoundException(articleId)
     }
 
@@ -223,7 +213,7 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean) {
         val entryLinks = entryLinker.findArticleLinks(
                 entry,
-                getArticleLinkTitles()
+                getLinkTitlesToIds()
         )
 
         if (adding) {
@@ -242,8 +232,8 @@ class NitriteArticles(private val nitriteDb: Nitrite,
      *
      * @return Map of article link titles mapped to their ids.
      */
-    private fun getArticleLinkTitles(): Map<String, String> {
-        val projectedArticleTitles = coll
+    private fun getLinkTitlesToIds(): Map<String, String> {
+        val projectedArticleTitles = repo
                 .find()
                 .project(ArticleLinkTitle::class.java)
                 .toList()

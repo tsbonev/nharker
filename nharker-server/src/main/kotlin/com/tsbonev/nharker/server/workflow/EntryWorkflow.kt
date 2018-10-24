@@ -10,6 +10,8 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
+import com.tsbonev.nharker.cqrs.Query
+import com.tsbonev.nharker.cqrs.QueryResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.cqrs.isSuccess
@@ -49,12 +51,14 @@ class EntryWorkflow(private val eventBus: EventBus,
      * @publishes EntryDeletedEvent
      *
      * If entry is not found, logs the id.
-     * @code 400
+     * @code 404
+     * @exception EntryNotFoundException
      */
     @CommandHandler
     fun deleteEntry(command: DeleteEntryCommand): CommandResponse {
         return try {
             val deletedEntry = entries.delete(command.entryId)
+
             eventBus.publish(EntryDeletedEvent(deletedEntry))
             CommandResponse(StatusCode.OK, deletedEntry)
         } catch (e: EntryNotFoundException) {
@@ -69,12 +73,14 @@ class EntryWorkflow(private val eventBus: EventBus,
      * @publishes EntryUpdatedEvent
      *
      * If the entry is not, logs the id.
-     * @code 400
+     * @code 404
+     * @exception EntryNotFoundException
      */
     @CommandHandler
     fun updateEntryContent(command: UpdateEntryContentCommand): CommandResponse {
         return try {
             val updatedEntry = entries.updateContent(command.entryId, command.content)
+
             eventBus.publish(EntryUpdatedEvent(updatedEntry))
             CommandResponse(StatusCode.OK, updatedEntry)
         } catch (e: EntryNotFoundException) {
@@ -89,12 +95,14 @@ class EntryWorkflow(private val eventBus: EventBus,
      * @publishes EntryUpdatedEvent
      *
      * If the entry is not, logs the id.
-     * @code 400
+     * @code 404
+     * @exception EntryNotFoundException
      */
     @CommandHandler
     fun updateEntryLinks(command: UpdateEntryLinksCommand): CommandResponse {
         return try {
             val updatedEntry = entries.updateLinks(command.entryId, command.entryLinks)
+
             eventBus.publish(EntryUpdatedEvent(updatedEntry))
             CommandResponse(StatusCode.OK, updatedEntry)
         } catch (e: EntryNotFoundException) {
@@ -109,15 +117,14 @@ class EntryWorkflow(private val eventBus: EventBus,
      *
      * If the entry is not, logs the id.
      * @code 404
+     * @exception EntryNotFoundException
      */
     @CommandHandler
-    fun getEntryById(command: GetEntryByIdCommand): CommandResponse {
-        val entry = entries.getById(command.entryId)
+    fun getEntryById(query: GetEntryByIdQuery): QueryResponse {
+        val entry = entries.getById(query.entryId)
 
         return if (entry.isPresent) CommandResponse(StatusCode.OK, entry.get())
-        else {
-            exceptionLogger.logException(EntryNotFoundException(command.entryId))
-        }
+        else exceptionLogger.logException(EntryNotFoundException(query.entryId))
     }
 
 
@@ -127,8 +134,8 @@ class EntryWorkflow(private val eventBus: EventBus,
      * @payload A list of entries whose contents match the request's search text.
      */
     @CommandHandler
-    fun searchEntryContent(command: SearchEntriesByContentCommand): CommandResponse {
-        val entryList = entries.getByContent(command.searchText)
+    fun searchEntryContentQuery(query: SearchEntriesByContentQuery): QueryResponse {
+        val entryList = entries.getByContent(query.searchText)
 
         return CommandResponse(StatusCode.OK, entryList)
     }
@@ -160,7 +167,7 @@ class EntryWorkflow(private val eventBus: EventBus,
         val rebuiltEntryLinks = mutableMapOf<String, String>()
 
         this.links.forEach { phrase, link ->
-            val response = eventBus.send(GetArticleByLinkTitleCommand(link))
+            val response = eventBus.send(GetArticleByLinkTitleQuery(link))
             if (response.statusCode.isSuccess()) {
                 rebuiltEntryLinks[phrase] = link
             }
@@ -175,15 +182,12 @@ class EntryWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
+data class GetEntryByIdQuery(val entryId: String) : Query
 
-data class GetEntryByIdCommand(val entryId: String) : Command
-
-data class SearchEntriesByContentCommand(val searchText: String) : Command
-
+data class SearchEntriesByContentQuery(val searchText: String) : Query
 //endregion
 
 //region Commands
-
 data class CreateEntryCommand(val entryRequest: EntryRequest) : Command
 
 data class EntryCreatedEvent(val entry: Entry) : Event
@@ -194,5 +198,4 @@ data class EntryDeletedEvent(val entry: Entry) : Event
 data class UpdateEntryContentCommand(val entryId: String, val content: String) : Command
 data class UpdateEntryLinksCommand(val entryId: String, val entryLinks: Map<String, String>) : Command
 data class EntryUpdatedEvent(val entry: Entry) : Event
-
 //endregion

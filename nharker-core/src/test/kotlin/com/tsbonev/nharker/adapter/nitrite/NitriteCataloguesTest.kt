@@ -26,14 +26,13 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteCataloguesTest {
-
     private val db = nitrite { }
 
     private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
     private val stubClock = StubClock()
     private val collectionName = "TestCatalogues"
 
-    private val firstPresavedChildcatalogue = Catalogue(
+    private val firstPresavedChildCatalogue = Catalogue(
             "::catalogue-id-1::",
             "::catalogue-title-1::",
             date,
@@ -62,7 +61,7 @@ class NitriteCataloguesTest {
             "::catalogue-title::",
             date,
             OrderedReferenceMap(
-                    linkedMapOf(firstPresavedChildcatalogue.id to 0,
+                    linkedMapOf(firstPresavedChildCatalogue.id to 0,
                             secondPresavedChildcatalogue.id to 1))
     )
 
@@ -80,16 +79,16 @@ class NitriteCataloguesTest {
     fun setUp() {
         db.getRepository(collectionName, Catalogue::class.java).insert(catalogue)
         db.getRepository(collectionName, Catalogue::class.java).insert(childCatalogue)
-        db.getRepository(collectionName, Catalogue::class.java).insert(firstPresavedChildcatalogue)
+        db.getRepository(collectionName, Catalogue::class.java).insert(firstPresavedChildCatalogue)
         db.getRepository(collectionName, Catalogue::class.java).insert(secondPresavedChildcatalogue)
     }
 
     @Test
-    fun `Create and return catalogue`() {
+    fun `Creating catalogue returns it`() {
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
 
         assertThat(catalogues.create(catalogueRequest).copy(id = catalogue.id),
-                Is(catalogue.copy(childrenIds = OrderedReferenceMap())))
+                Is(catalogue.copy(children = OrderedReferenceMap())))
     }
 
     @Test(expected = CatalogueTitleTakenException::class)
@@ -98,46 +97,50 @@ class NitriteCataloguesTest {
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Creating a catalogue with a non-existent parent throws exception`() {
-        catalogues.create(CatalogueRequest("::new-catalogue::", "::non-existent-parent-id::"))
+    fun `Creating a catalogue with a non-existing parent throws exception`() {
+        catalogues.create(CatalogueRequest("::new-catalogue::", "::non-existing-parent-id::"))
     }
 
     @Test
-    fun `Save and return catalogue`() {
+    fun `Saving catalogue returns it`() {
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
 
-        assertThat(catalogues.save(catalogue), Is(catalogue))
+        val savedCatalogue = catalogues.save(catalogue)
+
+        assertThat(savedCatalogue, Is(presavedCatalogue))
     }
 
     @Test
-    fun `Retrieve catalogue by id`() {
+    fun `Retrieves catalogue by id`() {
         assertThat(catalogues.getById(catalogue.id).isPresent, Is(true))
         assertThat(catalogues.getById(catalogue.id).get(), Is(catalogue))
     }
 
     @Test
-    fun `Retrieving non-existent catalogue returns empty`() {
+    fun `Retrieving non-existing catalogue returns empty`() {
         assertThat(catalogues.getById("::fake-catalogue-id::").isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve all articles`() {
-        assertThat(catalogues.getAll(SortBy.DESCENDING),
-                Is(listOf(presavedCatalogue,
-                        childCatalogue,
-                        firstPresavedChildcatalogue,
-                        secondPresavedChildcatalogue
-                ).sortedBy { it.creationDate }))
+    fun `Retrieves all catalogues`() {
+        val cataloguesList = catalogues.getAll(SortBy.DESCENDING)
+        val expectedList = listOf(presavedCatalogue,
+                childCatalogue,
+                firstPresavedChildCatalogue,
+                secondPresavedChildcatalogue
+        ).sortedBy { it.creationDate }
+
+        assertThat(cataloguesList, Is(expectedList))
     }
 
     @Test
-    fun `Retrieve all articles, paginated`() {
-        assertThat(catalogues.getAll(SortBy.ASCENDING, 1, 1), Is(listOf(presavedCatalogue)))
-        assertThat(catalogues.getAll(SortBy.ASCENDING, 3, 4), Is(emptyList()))
+    fun `Retrieves all articles, paginated`() {
+        assertThat(catalogues.getPaginated(SortBy.ASCENDING, 1, 1), Is(listOf(presavedCatalogue)))
+        assertThat(catalogues.getPaginated(SortBy.ASCENDING, 3, 4), Is(emptyList()))
     }
 
     @Test
-    fun `Change catalogue title`() {
+    fun `Changes catalogue title`() {
         val updatedCatalogue = catalogues.changeTitle(catalogue.id, "::new-title::")
 
         assertThat(updatedCatalogue, Is(catalogue.copy(title = updatedCatalogue.title)))
@@ -150,31 +153,31 @@ class NitriteCataloguesTest {
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Changing title of non-existent catalogue throws exception`() {
+    fun `Changing title of non-existing catalogue throws exception`() {
         catalogues.changeTitle("::fake-id::", catalogue.title)
     }
 
     @Test
-    fun `Change parent of catalogue`() {
+    fun `Changes parent of catalogue`() {
         val updatedChild = catalogues.changeParentCatalogue(childCatalogue.id, catalogue)
 
         assertThat(updatedChild, Is(childCatalogue.copy(
                 parentId = catalogue.id)))
-        assertThat(presavedCatalogue.childrenIds.contains(childCatalogue.id), Is(true))
+        assertThat(presavedCatalogue.children.contains(childCatalogue.id), Is(true))
     }
 
     @Test(expected = CatalogueAlreadyAChildException::class)
     fun `Changing parent of a child to the same parent throws exception`() {
-        catalogues.changeParentCatalogue(firstPresavedChildcatalogue.id, catalogue)
+        catalogues.changeParentCatalogue(firstPresavedChildCatalogue.id, catalogue)
     }
 
     @Test(expected = CatalogueCircularInheritanceException::class)
     fun `Changing parent of a parent to its child throws exception`() {
-        catalogues.changeParentCatalogue(catalogue.id, firstPresavedChildcatalogue)
+        catalogues.changeParentCatalogue(catalogue.id, firstPresavedChildCatalogue)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Changing parent of non-existent catalogue throws exception`() {
+    fun `Changing parent of non-existing catalogue throws exception`() {
         catalogues.changeParentCatalogue("::fake-parent-id::", childCatalogue)
     }
 
@@ -184,23 +187,23 @@ class NitriteCataloguesTest {
     }
 
     @Test
-    fun `Append catalogue to parent catalogue's children`() {
+    fun `Appends catalogue to parent catalogue's children`() {
         val appendedChild = catalogues.appendChildCatalogue(catalogue.id, childCatalogue)
 
         assertThat(appendedChild, Is(childCatalogue.copy(parentId = catalogue.id)))
-        assertThat(presavedCatalogue.childrenIds.raw(), Is(catalogue.childrenIds.raw().plus(
-                childCatalogue.id to catalogue.childrenIds.raw().count()
+        assertThat(presavedCatalogue.children.raw(), Is(catalogue.children.raw().plus(
+                childCatalogue.id to catalogue.children.raw().count()
         )))
     }
 
     @Test(expected = CatalogueCircularInheritanceException::class)
     fun `Appending parent to its own child throws exception`() {
-        catalogues.appendChildCatalogue(firstPresavedChildcatalogue.id, catalogue)
+        catalogues.appendChildCatalogue(firstPresavedChildCatalogue.id, catalogue)
     }
 
     @Test(expected = CatalogueAlreadyAChildException::class)
     fun `Appending catalogue that is already a child catalogue throws exception`() {
-        catalogues.appendChildCatalogue(catalogue.id, firstPresavedChildcatalogue)
+        catalogues.appendChildCatalogue(catalogue.id, firstPresavedChildCatalogue)
     }
 
     @Test(expected = SelfContainedCatalogueException::class)
@@ -209,44 +212,44 @@ class NitriteCataloguesTest {
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Appending child catalogue to non-existent catalogue throws exception`() {
+    fun `Appending child catalogue to non-existing catalogue throws exception`() {
         catalogues.appendChildCatalogue("::fake-catalogue-id::", catalogue)
     }
 
     @Test
-    fun `Remove child catalogue from catalogue`() {
+    fun `Removes child catalogue from catalogue`() {
         val removedCatalogue = catalogues.removeChildCatalogue(catalogue.id, secondPresavedChildcatalogue)
 
         assertThat(removedCatalogue, Is(secondPresavedChildcatalogue.copy(parentId = null)))
-        assertThat(presavedCatalogue.childrenIds.raw(), Is(mapOf(firstPresavedChildcatalogue.id to 0)))
+        assertThat(presavedCatalogue.children.raw(), Is(mapOf(firstPresavedChildCatalogue.id to 0)))
     }
 
     @Test
-    fun `Reorder child catalogues after deletion`() {
-        catalogues.removeChildCatalogue(catalogue.id, firstPresavedChildcatalogue)
+    fun `Removing a child reorders child catalogues after deletion`() {
+        catalogues.removeChildCatalogue(catalogue.id, firstPresavedChildCatalogue)
 
-        assertThat(presavedCatalogue.childrenIds.raw(), Is(mapOf(secondPresavedChildcatalogue.id to 0)))
+        assertThat(presavedCatalogue.children.raw(), Is(mapOf(secondPresavedChildcatalogue.id to 0)))
     }
 
     @Test(expected = CatalogueNotAChildException::class)
-    fun `Removing child catalogue from non-parent throws exception`() {
+    fun `Removing child from non-parent throws exception`() {
         catalogues.removeChildCatalogue("::fake-parent-catalogue-id::", catalogue)
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Removing child catalogue from non-existent parent throws exception`() {
+    fun `Removing child from non-existing parent throws exception`() {
         db.getRepository(collectionName, Catalogue::class.java).remove(Catalogue::id eq catalogue.id)
-        catalogues.removeChildCatalogue(catalogue.id, firstPresavedChildcatalogue)
+        catalogues.removeChildCatalogue(catalogue.id, firstPresavedChildCatalogue)
     }
 
     @Test
-    fun `Switch child catalogues in catalogue`() {
+    fun `Switches child catalogues' order in catalogue`() {
         val updatedCatalogue = catalogues.switchChildCatalogues(catalogue.id,
-                firstPresavedChildcatalogue, secondPresavedChildcatalogue)
+                firstPresavedChildCatalogue, secondPresavedChildcatalogue)
 
-        assertThat(updatedCatalogue.childrenIds.raw(), Is(mapOf(
+        assertThat(updatedCatalogue.children.raw(), Is(mapOf(
                 secondPresavedChildcatalogue.id to 0,
-                firstPresavedChildcatalogue.id to 1
+                firstPresavedChildCatalogue.id to 1
         )))
     }
 
@@ -258,11 +261,11 @@ class NitriteCataloguesTest {
     @Test(expected = CatalogueNotFoundException::class)
     fun `Switching child catalogues in non-existing catalogue throws exception`() {
         catalogues.switchChildCatalogues("::fake-catalogue-id::",
-                firstPresavedChildcatalogue, secondPresavedChildcatalogue)
+                firstPresavedChildCatalogue, secondPresavedChildcatalogue)
     }
 
     @Test
-    fun `Delete and return catalogue`() {
+    fun `Deleting catalogue returns it`() {
         val savedCatalogue = presavedCatalogue
 
         val deletedCatalogue = catalogues.delete(savedCatalogue.id)
@@ -275,17 +278,17 @@ class NitriteCataloguesTest {
     }
 
     @Test
-    fun `Deleting catalogue with child catalogues folds their hierarchy ot its parent`() {
+    fun `Deleting catalogue with children folds their hierarchy to its parent`() {
         val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
 
         val childCatalogue = db.getRepository(collectionName, Catalogue::class.java)
-                .find(Catalogue::id eq deletedCatalogue.childrenIds.raw().keys.first()).first()
+                .find(Catalogue::id eq deletedCatalogue.children.raw().keys.first()).first()
 
         assertThat(childCatalogue.parentId, Is(deletedCatalogue.parentId))
     }
 
     @Test(expected = CatalogueNotFoundException::class)
-    fun `Deleting non-existent catalogue throws exception`() {
+    fun `Deleting non-existing catalogue throws exception`() {
         catalogues.delete("::fake-catalogue-id::")
     }
 }

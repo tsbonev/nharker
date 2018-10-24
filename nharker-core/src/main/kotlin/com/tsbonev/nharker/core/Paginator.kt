@@ -22,9 +22,12 @@ interface Paginator<T> {
      * @param page The index of the page.
      * @param pageSize The size of the page.
      * @return A list of domain objects, paginated.
+     *
+     * @exception PaginationException thrown when the pageSize
+     * and page count are 0 or less than 1 respectively.
      */
     @Throws(PaginationException::class)
-    fun getAll(order: SortBy, page: Int, pageSize: Int): List<T>
+    fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<T>
 }
 
 enum class SortBy {

@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
@@ -16,23 +18,24 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
 
-@Suppress("UNCHECKED_CAST")
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleSynonymWorkflowTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
+    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
+
     private val article = Article(
-            "::id::",
-            "link-title",
-            "full-title",
-            LocalDateTime.now()
+            "::article-id::",
+            "article-title",
+            "Article title",
+            date
     )
 
     private val eventBus = context.mock(EventBus::class.java)
@@ -40,18 +43,19 @@ class ArticleSynonymWorkflowTest {
 
     private val exceptionLogger = ExceptionLogger()
 
+    private val synonym = "::synonym::"
+    private val synonymMap = mapOf(synonym to article.id)
+
     private val synonymWorkflow = ArticleSynonymWorkflow(eventBus, synonymProvider, exceptionLogger)
 
     @Test
-    fun `Retrieve full global map`() {
-        val synonymMap = mapOf("::synonym::" to "::link-title::")
-
+    fun `Retrieves full global map`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
         }
 
-        val response = synonymWorkflow.getSynonymMap(GetSynonymMapCommand())
+        val response = synonymWorkflow.getSynonymMap(GetSynonymMapQuery())
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -59,50 +63,43 @@ class ArticleSynonymWorkflowTest {
     }
 
     @Test
-    fun `Search synonym map`() {
-        val synonymMap = mapOf("::synonym::" to "::link-title::")
-
+    fun `Searches synonym map`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
         }
 
         val response = synonymWorkflow.searchSynonymMap(
-                SearchSynonymMapCommand("::synonym::"))
+                SearchSynonymMapQuery(synonym))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as String, Is("::link-title::"))
+        assertThat(response.payload.get() as String, Is(article.id))
     }
 
     @Test
-    fun `Searching synonym map for non-existent synonym returns not found`() {
-        val synonymMap = mapOf("::synonym::" to "::link-title::")
-
+    fun `Searching synonym map for non-existing synonym returns not found`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
         }
 
         val response = synonymWorkflow.searchSynonymMap(
-                SearchSynonymMapCommand("::non-existing-synonym::"))
+                SearchSynonymMapQuery("::non-existing-synonym::"))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
     @Test
-    fun `Get article synonyms`() {
-        val synonym = "::synonym::"
-        val synonymMap = mapOf(synonym to article.linkTitle)
-
+    fun `Retrieves article synonyms`() {
         context.expecting {
             oneOf(synonymProvider).getSynonymMap()
             will(returnValue(synonymMap))
         }
 
         val response = synonymWorkflow.getSynonymsForArticle(
-                GetSynonymsForArticleCommand(article))
+                GetSynonymsForArticleQuery(article))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -111,8 +108,6 @@ class ArticleSynonymWorkflowTest {
 
     @Test
     fun `Adding synonym returns pair of synonym and article`() {
-        val synonym = "::synonym::"
-
         context.expecting {
             oneOf(synonymProvider).addSynonym(synonym, article)
             will(returnValue(synonym))
@@ -130,8 +125,6 @@ class ArticleSynonymWorkflowTest {
 
     @Test
     fun `Adding synonym that already exists returns bad request`() {
-        val synonym = "::synonym::"
-
         context.expecting {
             oneOf(synonymProvider).addSynonym(synonym, article)
             will(throwException(SynonymAlreadyTakenException(synonym)))
@@ -146,14 +139,11 @@ class ArticleSynonymWorkflowTest {
 
     @Test
     fun `Removing synonym returns it`() {
-        val synonym = "::synonym::"
-        val articleId = "::article-id::"
-
         context.expecting {
             oneOf(synonymProvider).removeSynonym(synonym)
-            will(returnValue(synonym to articleId))
+            will(returnValue(synonym to article.id))
 
-            oneOf(eventBus).publish(SynonymRemovedEvent(synonym, articleId))
+            oneOf(eventBus).publish(SynonymRemovedEvent(synonym, article.id))
         }
 
         val response = synonymWorkflow.removeSynonym(
@@ -161,13 +151,11 @@ class ArticleSynonymWorkflowTest {
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as Pair<String, String>, Is(synonym to articleId))
+        assertThat(response.payload.get() as Pair<String, String>, Is(synonym to article.id))
     }
 
     @Test
-    fun `Removing non-existent synonym returns not found`() {
-        val synonym = "::synonym::"
-
+    fun `Removing non-existing synonym returns not found`() {
         context.expecting {
             oneOf(synonymProvider).removeSynonym(synonym)
             will(throwException(SynonymNotFoundException(synonym)))
@@ -181,7 +169,7 @@ class ArticleSynonymWorkflowTest {
     }
 
     @Test
-    fun `Deleted articles get synonyms removed`() {
+    fun `Deleting articles removes synonyms`() {
         val firstSynonym = "::first-synonym::"
         val secondSynonym = "::second-synonym::"
 

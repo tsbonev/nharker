@@ -10,6 +10,8 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
+import com.tsbonev.nharker.cqrs.Query
+import com.tsbonev.nharker.cqrs.QueryResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -35,13 +37,14 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      *
      * If the synonym is already taken, logs the name of the synonym.
      * @code 400
+     * @exception SynonymAlreadyTakenException
      */
     fun addSynonym(command: AddSynonymCommand): CommandResponse {
         return try {
             val addedSynonym = synonyms.addSynonym(command.synonym, command.article)
             eventBus.publish(SynonymAddedEvent(addedSynonym, command.article))
 
-            return CommandResponse(StatusCode.Created, Pair(addedSynonym, command.article))
+            CommandResponse(StatusCode.Created, Pair(addedSynonym, command.article))
         } catch (e: SynonymAlreadyTakenException) {
             exceptionLogger.logException(e)
         }
@@ -51,17 +54,18 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      * Removes a synonym from the global synonym map.
      * @code 200
      * @payload The removed synonym.
-     * @publishes SynonymRemovedEvent
+     * @publishes
      *
      * If the synonym is not found, logs the synonym name.
      * @code 404
+     * @exception SynonymNotFoundException
      */
     fun removeSynonym(command: RemoveSynonymCommand): CommandResponse {
         return try {
             val removedSynonymIdPair = synonyms.removeSynonym(command.synonym)
             eventBus.publish(SynonymRemovedEvent(removedSynonymIdPair.first, removedSynonymIdPair.second))
 
-            return CommandResponse(StatusCode.OK, removedSynonymIdPair)
+            CommandResponse(StatusCode.OK, removedSynonymIdPair)
         } catch (e: SynonymNotFoundException) {
             exceptionLogger.logException(e)
         }
@@ -74,8 +78,8 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      */
     @Suppress("UNUSED_PARAMETER")
     @CommandHandler
-    fun getSynonymMap(command: GetSynonymMapCommand): CommandResponse {
-        return CommandResponse(StatusCode.OK, synonyms.getSynonymMap())
+    fun getSynonymMap(query: GetSynonymMapQuery): QueryResponse {
+        return QueryResponse(StatusCode.OK, synonyms.getSynonymMap())
     }
 
     /**
@@ -84,14 +88,14 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      * @payload A list of synonyms.
      */
     @CommandHandler
-    fun getSynonymsForArticle(command: GetSynonymsForArticleCommand): CommandResponse {
+    fun getSynonymsForArticle(query: GetSynonymsForArticleQuery): QueryResponse {
         val synonymList = mutableListOf<String>()
 
         synonyms.getSynonymMap()
-                .filter { it.value == command.article.linkTitle }
+                .filter { it.value == query.article.id }
                 .mapTo(synonymList) { it.key }
 
-        return CommandResponse(StatusCode.OK, synonymList)
+        return QueryResponse(StatusCode.OK, synonymList)
     }
 
     /**
@@ -103,13 +107,13 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
      * @code 404
      */
     @CommandHandler
-    fun searchSynonymMap(command: SearchSynonymMapCommand): CommandResponse {
-        val foundLink = synonyms.getSynonymMap()[command.searchString]
+    fun searchSynonymMap(query: SearchSynonymMapQuery): QueryResponse {
+        val foundLink = synonyms.getSynonymMap()[query.searchString]
 
         return if (foundLink != null) {
-            CommandResponse(StatusCode.OK, foundLink)
+            QueryResponse(StatusCode.OK, foundLink)
         } else {
-            CommandResponse(StatusCode.NotFound)
+            QueryResponse(StatusCode.NotFound)
         }
     }
     //endregion
@@ -132,19 +136,17 @@ class ArticleSynonymWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
+class GetSynonymMapQuery : Query
 
-class GetSynonymMapCommand : Command
-data class GetSynonymsForArticleCommand(val article: Article) : Command
-data class SearchSynonymMapCommand(val searchString: String) : Command
-
+data class GetSynonymsForArticleQuery(val article: Article) : Query
+data class SearchSynonymMapQuery(val searchString: String) : Query
 //endregion
 
 //region Commands
-
 data class AddSynonymCommand(val synonym: String, val article: Article) : Command
+
 data class SynonymAddedEvent(val synonym: String, val article: Article) : Event
 
 data class RemoveSynonymCommand(val synonym: String) : Command
 data class SynonymRemovedEvent(val synonym: String, val articleId: String) : Event
-
 //endregion

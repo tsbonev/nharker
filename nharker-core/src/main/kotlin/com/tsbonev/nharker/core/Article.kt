@@ -9,9 +9,10 @@ import java.time.LocalDateTime
 /**
  * Articles are the main building block of
  * NHarker's organization scheme, they keep track
- * of entries and handle automatically linking
- * to each other based on each entry's content, as
- * well as keeping track of the catalogues they are a part of.
+ * of entries and handle the implicit links that
+ * an entry's content might create with other articles.
+ *
+ * Articles also keep track of the catalogues they are a part of.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
@@ -42,11 +43,6 @@ fun String.toLinkTitle(): String {
  * Projection used for faster automatic linking.
  */
 data class ArticleLinkTitle(val id: String, val linkTitle: String)
-
-/**
- * Projection used for retrieving full titles.
- */
-data class ArticleFullTitle(val id: String, val fullTitle: String)
 
 class ArticleNotFoundException(val articleId: String) : Throwable()
 class ArticleTitleTakenException(val articleTitle: String) : Throwable()

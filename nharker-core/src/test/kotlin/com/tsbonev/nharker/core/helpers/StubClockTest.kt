@@ -12,7 +12,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class StubClockTest {
-
     private val instant = Instant.ofEpochSecond(15)
     private val stubClock = StubClock(instant)
 

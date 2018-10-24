@@ -6,6 +6,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 /**
+ * A stub clock that always returns the first epoch second LocalDateTime.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class StubClock(val instant: Instant = Instant.ofEpochSecond(1))

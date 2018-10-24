@@ -9,6 +9,8 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
+import com.tsbonev.nharker.cqrs.Query
+import com.tsbonev.nharker.cqrs.QueryResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -19,7 +21,6 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
 class TrashingWorkflow(private val eventBus: EventBus,
                        private val trashCollector: TrashCollector,
                        private val exceptionLogger: ExceptionLogger) : Workflow {
-
     //region Command Handlers
     /**
      * Restores an entity from the trash.
@@ -27,11 +28,13 @@ class TrashingWorkflow(private val eventBus: EventBus,
      * @payload The restored entity.
      * @publishes EntityRestoredEvent.
      *
-     * If the entity cannot be cast to the specified class, logs the id and class.
-     * @code 400
-     *
      * If the entity is not found in the class, logs the id and class.
      * @code 404
+     * @exception EntityNotInTrashException
+     *
+     * If the entity cannot be cast to the specified class, logs the id and class.
+     * @code 400
+     * @exception EntityCannotBeCastException
      */
     @CommandHandler
     fun restoreEntity(command: RestoreTrashedEntityCommand): CommandResponse {
@@ -41,9 +44,9 @@ class TrashingWorkflow(private val eventBus: EventBus,
             eventBus.publish(EntityRestoredEvent(trashedEntity, command.entityClass))
 
             CommandResponse(StatusCode.OK, command.entityClass.cast(trashedEntity))
-        } catch (e: EntityCannotBeCastException) {
-            exceptionLogger.logException(e)
         } catch (e: EntityNotInTrashException) {
+            exceptionLogger.logException(e)
+        } catch (e: EntityCannotBeCastException) {
             exceptionLogger.logException(e)
         }
     }
@@ -54,6 +57,7 @@ class TrashingWorkflow(private val eventBus: EventBus,
      * @payload The cleared trashed entities.
      * @publishes TrashStoreClearedEvent
      */
+    @Suppress("UNUSED_PARAMETER")
     @CommandHandler
     fun clearTrashStore(command: ClearTrashStoreCommand): CommandResponse {
         val trashedEntities = trashCollector.view()
@@ -70,17 +74,17 @@ class TrashingWorkflow(private val eventBus: EventBus,
      * @payload A list of entities of the specified class.
      */
     @CommandHandler
-    fun viewTrashedEntities(command: ViewTrashedEntitiesCommand): CommandResponse {
+    fun viewTrashedEntities(query: ViewTrashedEntitiesQuery): QueryResponse {
         val entityList = mutableListOf<Any>()
 
         trashCollector
                 .view()
                 .asSequence()
                 .filter {
-                    command.entityClass.isInstance(it)
+                    query.entityClass.isInstance(it)
                 }
                 .mapTo(entityList) {
-                    command.entityClass.cast(it)
+                    query.entityClass.cast(it)
                 }
 
         return CommandResponse(StatusCode.OK, entityList)
@@ -115,18 +119,14 @@ class TrashingWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
-
-data class ViewTrashedEntitiesCommand(val entityClass: Class<*>) : Command
-
+data class ViewTrashedEntitiesQuery(val entityClass: Class<*>) : Query
 //endregion
 
 //region Commands
-
 data class RestoreTrashedEntityCommand(val entityId: String, val entityClass: Class<*>) : Command
 
 data class EntityRestoredEvent(val entity: Any, val entityClass: Class<*>) : Event
 
 class ClearTrashStoreCommand : Command
 data class TrashStoreClearedEvent(val deletedEntities: List<Any>) : Event
-
 //endregion

@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
@@ -19,7 +21,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-@Suppress("UNCHECKED_CAST")
 class PaginationWorkflowTest {
     @Rule
     @JvmField
@@ -34,14 +35,14 @@ class PaginationWorkflowTest {
             exceptionLogger)
 
     @Test
-    fun `Get all articles and all entries`() {
+    fun `Retrieves all articles and all entries`() {
         context.expecting {
             oneOf(paginatorMock).getAll(SortBy.DESCENDING)
             will(returnValue(emptyList<String>()))
         }
 
         val response = paginationWorkflow.getAllDomainObjects(
-                GetAllDomainObjectsCommand(SortBy.DESCENDING, String::class.java))
+                GetAllDomainObjectsQuery(SortBy.DESCENDING, String::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -49,14 +50,14 @@ class PaginationWorkflowTest {
     }
 
     @Test
-    fun `Get paginated articles`() {
+    fun `Retrieves paginated articles`() {
         context.expecting {
-            oneOf(paginatorMock).getAll(SortBy.DESCENDING, 1, 1)
+            oneOf(paginatorMock).getPaginated(SortBy.DESCENDING, 1, 1)
             will(returnValue(emptyList<Article>()))
         }
 
         val response = paginationWorkflow.getAllDomainObjectsPaginated(
-                GetPaginatedDomainObjectsCommand(SortBy.DESCENDING, 1, 1, String::class.java))
+                GetPaginatedDomainObjectsQuery(SortBy.DESCENDING, 1, 1, String::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -64,14 +65,14 @@ class PaginationWorkflowTest {
     }
 
     @Test
-    fun `Illegal page sizes and page indexes return bad request`() {
+    fun `Retrieving illegal page sizes and page indexes return bad request`() {
         context.expecting {
-            allowing(paginatorMock).getAll(SortBy.DESCENDING, 1, 1)
+            allowing(paginatorMock).getPaginated(SortBy.DESCENDING, 1, 1)
             will(throwException(PaginationException(1, 1)))
         }
 
         val response = paginationWorkflow.getAllDomainObjectsPaginated(
-                GetPaginatedDomainObjectsCommand(SortBy.DESCENDING, 1, 1, String::class.java))
+                GetPaginatedDomainObjectsQuery(SortBy.DESCENDING, 1, 1, String::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
@@ -80,7 +81,7 @@ class PaginationWorkflowTest {
     @Test
     fun `Running get all for an unregistered paginator returns bad request`() {
         val response = paginationWorkflow.getAllDomainObjects(
-                GetAllDomainObjectsCommand(SortBy.DESCENDING, Int::class.java))
+                GetAllDomainObjectsQuery(SortBy.DESCENDING, Int::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))
@@ -89,7 +90,7 @@ class PaginationWorkflowTest {
     @Test
     fun `Running paginate for an unregistered paginator returns bad request`() {
         val response = paginationWorkflow.getAllDomainObjectsPaginated(
-                GetPaginatedDomainObjectsCommand(SortBy.DESCENDING, 1, 1, Int::class.java))
+                GetPaginatedDomainObjectsQuery(SortBy.DESCENDING, 1, 1, Int::class.java))
 
         assertThat(response.statusCode, Is(StatusCode.BadRequest))
         assertThat(response.payload.isPresent, Is(false))

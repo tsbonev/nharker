@@ -15,6 +15,8 @@ import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.EventHandler
+import com.tsbonev.nharker.cqrs.Query
+import com.tsbonev.nharker.cqrs.QueryResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
@@ -38,11 +40,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The created catalogue.
      * @publishes CatalogueCreatedEvent
      *
+     * If the catalogue requests a non-existing parent, logs the parent's id.
+     * @code 404
+     * @exception CatalogueNotFoundException
+     *
      * If the catalogue title is taken, logs the title.
      * @code 400
-     *
-     * If the catalogue requests a non-existing parent, logs the parent's id.
-     * @code 400
+     * @exception CatalogueTitleTakenException
      */
     @CommandHandler
     fun createCatalogue(command: CreateCatalogueCommand): CommandResponse {
@@ -51,9 +55,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueCreatedEvent(createdCatalogue))
             CommandResponse(StatusCode.Created, createdCatalogue)
-        } catch (e: CatalogueTitleTakenException) {
-            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueTitleTakenException) {
             exceptionLogger.logException(e)
         }
     }
@@ -66,6 +70,7 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      *
      * If catalogue is not found by id, logs id.
      * @code 404
+     * @exception CatalogueNotFoundException
      */
     @CommandHandler
     fun deleteCatalogue(command: DeleteCatalogueCommand): CommandResponse {
@@ -85,11 +90,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the catalogue title is taken, logs title.
-     * @code 400
-     *
      * If the catalogue is not found by id, logs id.
      * @code 404
+     * @exception CatalogueNotFoundException
+     *
+     * If the catalogue title is taken, logs title.
+     * @code 400
+     * @exception CatalogueTitleTakenException
      */
     @CommandHandler
     fun changeCatalogueTitle(command: ChangeCatalogueTitleCommand): CommandResponse {
@@ -98,9 +105,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueTitleTakenException) {
-            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueTitleTakenException) {
             exceptionLogger.logException(e)
         }
     }
@@ -111,14 +118,21 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
+     * If the catalogue is not found by id, logs the id.
+     * @code 404
+     * @exception CatalogueNotFoundException
+     *
      * If the catalogue is already a child, logs the catalogue id and the parent id.
      * @code 400
+     * @exception CatalogueAlreadyAChildException
      *
      * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
      * @code 400
+     * @exception CatalogueCircularInheritanceException
      *
-     * If the catalogue is not found by id, logs the id.
-     * @code 404
+     * If the catalogue is requested to become its own child, logs the catalogue's id.
+     * @code 400
+     * @exception SelfContainedCatalogueException
      */
     @CommandHandler
     fun changeCatalogueParent(command: ChangeCatalogueParentCommand): CommandResponse {
@@ -127,11 +141,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
+        } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
         } catch (e: CatalogueAlreadyAChildException) {
             exceptionLogger.logException(e)
         } catch (e: CatalogueCircularInheritanceException) {
             exceptionLogger.logException(e)
-        } catch (e: CatalogueNotFoundException) {
+        } catch (e: SelfContainedCatalogueException) {
             exceptionLogger.logException(e)
         }
     }
@@ -142,17 +158,21 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
+     * If the parent catalogue is not found by id, logs the id.
+     * @code 404
+     * @exception CatalogueNotFoundException
+     *
      * If the parent catalogue is also the child catalogue, logs the catalogue id.
      * @code 400
+     * @exception CatalogueAlreadyAChildException
      *
      * If the child catalogue is already a child, logs the parent's and the child's ids.
      * @code 400
+     * @exception SelfContainedCatalogueException
      *
      * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
      * @code 400
-     *
-     * If the parent catalogue is not found by id, logs the id.
-     * @code 404
+     * @exception CatalogueCircularInheritanceException
      */
     @CommandHandler
     fun appendChildCatalogue(command: AppendChildCatalogueCommand): CommandResponse {
@@ -161,13 +181,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
+        } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
         } catch (e: CatalogueAlreadyAChildException) {
             exceptionLogger.logException(e)
         } catch (e: SelfContainedCatalogueException) {
             exceptionLogger.logException(e)
         } catch (e: CatalogueCircularInheritanceException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotFoundException) {
             exceptionLogger.logException(e)
         }
     }
@@ -178,11 +198,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
-     * @code 400
-     *
      * If the catalogue is not found by id, logs the id
      * @code 404
+     * @exception CatalogueNotFoundException
+     *
+     * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
+     * @code 400
+     * @exception CatalogueNotAChildException
      */
     @CommandHandler
     fun switchChildCatalogues(command: SwitchChildCataloguesCommand): CommandResponse {
@@ -192,9 +214,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotAChildException) {
-            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueNotAChildException) {
             exceptionLogger.logException(e)
         }
     }
@@ -205,11 +227,13 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      * @payload The updated catalogue.
      * @publishes CatalogueUpdatedEvent
      *
-     * If the child catalogue is not a child, logs the parent's and the child's ids.
-     * @code 400
-     *
      * If the parent catalogue is not found by id, logs the id.
      * @code 404
+     * @exception CatalogueNotFoundException
+     *
+     * If the child catalogue is not a child, logs the parent's and the child's ids.
+     * @code 400
+     * @exception CatalogueNotAChildException
      */
     @CommandHandler
     fun removeChildCatalogue(command: RemoveChildCatalogueCommand): CommandResponse {
@@ -218,9 +242,9 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 
             eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
             CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotAChildException) {
-            exceptionLogger.logException(e)
         } catch (e: CatalogueNotFoundException) {
+            exceptionLogger.logException(e)
+        } catch (e: CatalogueNotAChildException) {
             exceptionLogger.logException(e)
         }
     }
@@ -232,15 +256,15 @@ class CatalogueWorkflow(private val eventBus: EventBus,
      *
      * If no catalogue is found, logs id.
      * @code 404
+     * @exception CatalogueNotFoundException
      */
     @CommandHandler
-    fun getCatalogueById(command: GetCatalogueByIdCommand): CommandResponse {
-        val possibleCatalogue = catalogues.getById(command.catalogueId)
+    fun getCatalogueById(query: GetCatalogueByIdQuery): QueryResponse {
+        val possibleCatalogue = catalogues.getById(query.catalogueId)
 
         return if (possibleCatalogue.isPresent) CommandResponse(StatusCode.OK, possibleCatalogue.get())
-        else exceptionLogger.logException(CatalogueNotFoundException(command.catalogueId))
+        else exceptionLogger.logException(CatalogueNotFoundException(query.catalogueId))
     }
-
     //endregion
 
     //region Event Handlers
@@ -257,14 +281,12 @@ class CatalogueWorkflow(private val eventBus: EventBus,
 }
 
 //region Queries
-
-data class GetCatalogueByIdCommand(val catalogueId: String) : Command
-
+data class GetCatalogueByIdQuery(val catalogueId: String) : Query
 //endregion
 
 //region Commands
-
 data class CreateCatalogueCommand(val catalogueRequest: CatalogueRequest) : Command
+
 data class CatalogueCreatedEvent(val catalogue: Catalogue) : Event
 
 data class DeleteCatalogueCommand(val catalogueId: String) : Command
@@ -276,5 +298,4 @@ data class AppendChildCatalogueCommand(val parentCatalogueId: String, val childC
 data class RemoveChildCatalogueCommand(val parentCatalogueId: String, val childCatalogue: Catalogue) : Command
 data class SwitchChildCataloguesCommand(val catalogueId: String, val first: Catalogue, val second: Catalogue) : Command
 data class CatalogueUpdatedEvent(val catalogue: Catalogue) : Event
-
 //endregion

@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
@@ -25,41 +27,36 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 import org.hamcrest.CoreMatchers.`is` as Is
 
-@Suppress("UNCHECKED_CAST")
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleWorkflowTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val eventBus = context.mock(EventBus::class.java)
-    private val articles = context.mock(Articles::class.java)
-
-    private val exceptionLogger = ExceptionLogger()
-
-    private val articleWorkflow = ArticleWorkflow(eventBus, articles, exceptionLogger)
+    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
 
     private val articleRequest = ArticleRequest(
             "Full title",
-            listOf("::catalogue-id::")
+            setOf("::catalogue-id::")
     )
 
     private val entry = Entry(
             "::entry-id::",
-            LocalDateTime.now(),
+            date,
             "::id::",
             "::content::"
     )
 
+    private val propertyName = "::property-name::"
     private val propertyEntry = Entry(
             "::property-id::",
-            LocalDateTime.now(),
+            date,
             "::article-id::",
             "::content::"
     )
@@ -67,11 +64,18 @@ class ArticleWorkflowTest {
             "::article-id::",
             "article-title",
             "Article title",
-            LocalDateTime.now(),
+            date,
             catalogues = setOf("::catalogue-id::"),
             entries = OrderedReferenceMap(linkedMapOf("::entry-id::" to 0)),
-            properties = ArticleProperties(mutableMapOf("::property::" to propertyEntry.id))
+            properties = ArticleProperties(mutableMapOf(propertyName to propertyEntry.id))
     )
+
+    private val eventBus = context.mock(EventBus::class.java)
+    private val articles = context.mock(Articles::class.java)
+
+    private val exceptionLogger = ExceptionLogger()
+
+    private val articleWorkflow = ArticleWorkflow(eventBus, articles, exceptionLogger)
 
     @Test
     fun `Creating article returns it`() {
@@ -105,11 +109,11 @@ class ArticleWorkflowTest {
     @Test
     fun `Deleting an article returns it and deletes entries`() {
         context.expecting {
-            oneOf(articles).delete(article.id)
+            oneOf(articles).deleteById(article.id)
             will(returnValue(article))
 
-            oneOf(eventBus).send(DeleteEntryCommand("::property-id::"))
-            oneOf(eventBus).send(DeleteEntryCommand("::entry-id::"))
+            oneOf(eventBus).send(DeleteEntryCommand(propertyEntry.id))
+            oneOf(eventBus).send(DeleteEntryCommand(entry.id))
 
             oneOf(eventBus).publish(ArticleDeletedEvent(article))
         }
@@ -122,9 +126,9 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Deleting a non-existent article returns not found`() {
+    fun `Deleting a non-existing article returns not found`() {
         context.expecting {
-            oneOf(articles).delete(article.id)
+            oneOf(articles).deleteById(article.id)
             will(throwException(ArticleNotFoundException(article.id)))
         }
 
@@ -135,13 +139,13 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Retrieve article by id`() {
+    fun `Retrieves article by id`() {
         context.expecting {
             oneOf(articles).getById(article.id)
             will(returnValue(Optional.of(article)))
         }
 
-        val response = articleWorkflow.getArticleById(GetArticleByIdCommand(article.id))
+        val response = articleWorkflow.getArticleById(GetArticleByIdQuery(article.id))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -149,27 +153,27 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Retrieving non-existent article returns not found`() {
+    fun `Retrieving non-existing article returns not found`() {
         context.expecting {
             oneOf(articles).getById(article.id)
             will(returnValue(Optional.empty<Article>()))
         }
 
-        val response = articleWorkflow.getArticleById(GetArticleByIdCommand(article.id))
+        val response = articleWorkflow.getArticleById(GetArticleByIdQuery(article.id))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
     @Test
-    fun `Retrieve article by link title`() {
+    fun `Retrieves article by link title`() {
         context.expecting {
             oneOf(articles).getByLinkTitle(article.linkTitle)
             will(returnValue(Optional.of(article)))
         }
 
         val response = articleWorkflow
-                .getArticleByLinkTitle(GetArticleByLinkTitleCommand(article.linkTitle))
+                .getArticleByLinkTitle(GetArticleByLinkTitleQuery(article.linkTitle))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -184,21 +188,21 @@ class ArticleWorkflowTest {
         }
 
         val response = articleWorkflow
-                .getArticleByLinkTitle(GetArticleByLinkTitleCommand(article.linkTitle))
+                .getArticleByLinkTitle(GetArticleByLinkTitleQuery(article.linkTitle))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
         assertThat(response.payload.isPresent, Is(false))
     }
 
     @Test
-    fun `Search for articles by title`() {
+    fun `Retrieves articles searching by title`() {
         context.expecting {
             oneOf(articles).searchByFullTitle(article.fullTitle)
             will(returnValue(listOf(article)))
         }
 
         val response = articleWorkflow
-                .searchArticlesByTitle(SearchArticleByTitleCommand(article.fullTitle))
+                .searchArticlesByTitle(SearchArticleByTitleQuery(article.fullTitle))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
         assertThat(response.payload.isPresent, Is(true))
@@ -206,7 +210,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Append entry to article`() {
+    fun `Appends entry to article`() {
         context.expecting {
             oneOf(articles).appendEntry(article.id, propertyEntry)
             will(returnValue(article))
@@ -251,7 +255,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Remove entry from article`() {
+    fun `Removes entry from article`() {
         context.expecting {
             oneOf(articles).removeEntry(article.id, propertyEntry)
             will(returnValue(article))
@@ -298,16 +302,16 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Attach property to article`() {
+    fun `Attaches property to article`() {
         context.expecting {
-            oneOf(articles).attachProperty(article.id, "::property-name::", propertyEntry)
+            oneOf(articles).attachProperty(article.id, propertyName, propertyEntry)
             will(returnValue(article))
 
             oneOf(eventBus).publish(ArticleUpdatedEvent(article))
         }
 
         val response = articleWorkflow.attachPropertyToArticle(
-                AttachPropertyToArticleCommand("::property-name::",
+                AttachPropertyToArticleCommand(propertyName,
                         propertyEntry,
                         article.id))
 
@@ -319,12 +323,12 @@ class ArticleWorkflowTest {
     @Test
     fun `Attaching property to non-existing article returns not found`() {
         context.expecting {
-            oneOf(articles).attachProperty(article.id, "::property-name::", propertyEntry)
+            oneOf(articles).attachProperty(article.id, propertyName, propertyEntry)
             will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.attachPropertyToArticle(
-                AttachPropertyToArticleCommand("::property-name::",
+                AttachPropertyToArticleCommand(propertyName,
                         propertyEntry,
                         article.id))
 
@@ -333,16 +337,16 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Detach property from article`() {
+    fun `Detaches property from article`() {
         context.expecting {
-            oneOf(articles).detachProperty(article.id, "::property-name::")
+            oneOf(articles).detachProperty(article.id, propertyName)
             will(returnValue(article))
 
             oneOf(eventBus).publish(ArticleUpdatedEvent(article))
         }
 
         val response = articleWorkflow.detachPropertyFromArticle(
-                DetachPropertyFromArticleCommand("::property-name::",
+                DetachPropertyFromArticleCommand(propertyName,
                         article.id))
 
         assertThat(response.statusCode, Is(StatusCode.OK))
@@ -353,12 +357,12 @@ class ArticleWorkflowTest {
     @Test
     fun `Detaching property from non-existing article returns not found`() {
         context.expecting {
-            oneOf(articles).detachProperty(article.id, "::property-name::")
+            oneOf(articles).detachProperty(article.id, propertyName)
             will(throwException(ArticleNotFoundException(article.id)))
         }
 
         val response = articleWorkflow.detachPropertyFromArticle(
-                DetachPropertyFromArticleCommand("::property-name::",
+                DetachPropertyFromArticleCommand(propertyName,
                         article.id))
 
         assertThat(response.statusCode, Is(StatusCode.NotFound))
@@ -367,8 +371,6 @@ class ArticleWorkflowTest {
 
     @Test
     fun `Detaching non-existing property from article returns bad request`() {
-        val propertyName = "::property-name::"
-
         context.expecting {
             oneOf(articles).detachProperty(article.id, propertyName)
             will(throwException(PropertyNotFoundException(propertyName)))
@@ -383,22 +385,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Retrieve article full titles by link titles`() {
-        context.expecting {
-            oneOf(articles).getArticleTitles(setOf(article.linkTitle))
-            will(returnValue(listOf(article.fullTitle)))
-        }
-
-        val response = articleWorkflow.retrieveFullTitles(
-                RetrieveFullTitlesCommand(setOf(article.linkTitle)))
-
-        assertThat(response.statusCode, Is(StatusCode.OK))
-        assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as List<String>, Is(listOf(article.fullTitle)))
-    }
-
-    @Test
-    fun `Switch entries' order in article`() {
+    fun `Switches entries' order in article`() {
         context.expecting {
             oneOf(articles).switchEntries(article.id, propertyEntry, propertyEntry)
             will(returnValue(article))
@@ -431,7 +418,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Switching entries' order in article that doesn't contain both returns bad request`() {
+    fun `Switching entries' order in article that does not contain both returns bad request`() {
         context.expecting {
             oneOf(articles).switchEntries(article.id, propertyEntry, propertyEntry)
             will(throwException(EntryNotInArticleException(propertyEntry.id, article.id)))
@@ -446,14 +433,14 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Save article when completely restored`() {
+    fun `Saves article when completely restored`() {
         context.expecting {
             //Restoring the entries
-            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(entry.id))
             will(returnValue(CommandResponse(StatusCode.OK, entry)))
 
             //Restoring the properties
-            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(propertyEntry.id))
             will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
 
             oneOf(articles).save(article)
@@ -464,32 +451,35 @@ class ArticleWorkflowTest {
 
     @Test
     fun `Restoring article restores its deleted references and relinks itself`() {
+        val phrase = "::phrase::"
+        val link = "::link-id::"
+
         val entryWithLinks = entry.copy(
-                links = mapOf("::phrase::" to "::link::")
+                links = mapOf(phrase to link)
         )
 
         val propertyWithLinks = propertyEntry.copy(
-                links = mapOf("::phrase::" to "::link::")
+                links = mapOf(phrase to link)
         )
 
         context.expecting {
             //Restoring the entries
-            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(entry.id))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(eventBus).send(RestoreTrashedEntityCommand(entry.id, Entry::class.java))
             will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
 
             //Restoring the properties
-            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(propertyEntry.id))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
             will(returnValue(CommandResponse(StatusCode.OK, propertyWithLinks)))
 
             oneOf(articles).save(article.copy(
-                    properties = ArticleProperties(mutableMapOf("::property::" to propertyWithLinks.id)),
-                    links = ArticleLinks(mutableMapOf("::link::" to 2))
+                    properties = ArticleProperties(mutableMapOf(propertyName to propertyWithLinks.id)),
+                    links = ArticleLinks(mutableMapOf(link to 2))
             ))
         }
 
@@ -500,14 +490,14 @@ class ArticleWorkflowTest {
     fun `Restoring article ignores missing references`() {
         context.expecting {
             //Restoring the entries
-            oneOf(eventBus).send(GetEntryByIdCommand(entry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(entry.id))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(eventBus).send(RestoreTrashedEntityCommand(entry.id, Entry::class.java))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             //Restoring the properties
-            oneOf(eventBus).send(GetEntryByIdCommand(propertyEntry.id))
+            oneOf(eventBus).send(GetEntryByIdQuery(propertyEntry.id))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
@@ -524,7 +514,7 @@ class ArticleWorkflowTest {
     }
 
     @Test
-    fun `Ignore foreign restored entities`() {
+    fun `Ignores foreign restored entities`() {
         context.expecting {
             never(articles).save(article)
         }

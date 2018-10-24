@@ -13,37 +13,46 @@ interface Articles {
      *
      * @param articleRequest The article to be created.
      * @return The created article.
+     *
+     * @exception ArticleTitleTakenException thrown when the article title is taken.
      */
     @Throws(ArticleTitleTakenException::class)
     fun create(articleRequest: ArticleRequest): Article
 
     /**
      * Saves an article, overwriting the previous one if it exists.
+     *
+     * @param article The article to save.
      */
     fun save(article: Article): Article
 
     /**
-     * Deletes an article.
+     * Deletes an article by id.
      *
      * @param articleId The id of the article to delete.
      * @return The deleted article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
      */
     @Throws(ArticleNotFoundException::class)
-    fun delete(articleId: String): Article
+    fun deleteById(articleId: String): Article
 
     /**
-     * Changes the title of an article.
+     * Changes the full title of an article, along with its link title.
      *
      * @param articleId The id of the article to rename.
-     * @param newTitle The new title.
+     * @param newTitle The new full title.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
+     * @exception ArticleTitleTakenException thrown when the article title is taken.
      */
     @Throws(ArticleNotFoundException::class,
             ArticleTitleTakenException::class)
     fun changeTitle(articleId: String, newTitle: String): Article
 
     /**
-     * Retrieves an optional article by id.
+     * Retrieves an article by id.
      *
      * @param articleId The id of the article sought.
      * @return An optional article.
@@ -51,7 +60,7 @@ interface Articles {
     fun getById(articleId: String): Optional<Article>
 
     /**
-     * Retrieves a list of articles who have a given catalogue id
+     * Retrieves a list of articles that have a given catalogue's id
      * in their catalogues list.
      *
      * @param catalogue The catalogue sought.
@@ -60,12 +69,14 @@ interface Articles {
     fun getByCatalogue(catalogue: Catalogue): List<Article>
 
     /**
-     * Adds a catalogue id to an article's catalogues list.
+     * Adds a catalogue's id to an article's catalogues list.
      *
      * @param articleId The id of the article.
      * @param catalogue The catalogue to add.
      *
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
      */
     @Throws(ArticleNotFoundException::class)
     fun addCatalogue(articleId: String, catalogue: Catalogue): Article
@@ -77,6 +88,8 @@ interface Articles {
      * @param catalogue The catalogue to remove.
      *
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
      */
     @Throws(ArticleNotFoundException::class)
     fun removeCatalogue(articleId: String, catalogue: Catalogue): Article
@@ -87,6 +100,9 @@ interface Articles {
      * @param articleId The id of the article targeted.
      * @param entry The entry to append.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
+     * @exception EntryAlreadyInArticleException thrown when the entry is already in the article.
      */
     @Throws(ArticleNotFoundException::class,
             EntryAlreadyInArticleException::class)
@@ -98,6 +114,9 @@ interface Articles {
      * @param articleId The id of the article targeted.
      * @param entry The entry to remove.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
+     * @exception EntryNotInArticleException thrown when the entry is not in the article.
      */
     @Throws(ArticleNotFoundException::class,
             EntryNotInArticleException::class)
@@ -110,6 +129,10 @@ interface Articles {
      * @param first The first entry.
      * @param second The second entry.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
+     * @exception EntryNotInArticleException thrown when one or both of the
+     * entries are not in the article.
      */
     @Throws(ArticleNotFoundException::class,
             EntryNotInArticleException::class)
@@ -121,11 +144,13 @@ interface Articles {
      *
      * @param articleId: The id of the targeted article.
      * @param propertyName The name of the property.
-     * @param property The entry describing the property.
+     * @param propertyEntry The entry describing the property.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
      */
     @Throws(ArticleNotFoundException::class)
-    fun attachProperty(articleId: String, propertyName: String, property: Entry): Article
+    fun attachProperty(articleId: String, propertyName: String, propertyEntry: Entry): Article
 
     /**
      * Detaches a property from an article.
@@ -133,13 +158,16 @@ interface Articles {
      * @param articleId The id of the targeted article.
      * @param propertyName The name of the property.
      * @return The updated article.
+     *
+     * @exception ArticleNotFoundException thrown when the article is not found.
+     * @exception PropertyNotFoundException thrown when there is no property of the given name.
      */
     @Throws(ArticleNotFoundException::class,
             PropertyNotFoundException::class)
     fun detachProperty(articleId: String, propertyName: String): Article
 
     /**
-     * Retrieves an article with a given link title.
+     * Retrieves an article by a given link title.
      *
      * @param linkTitle The link title to search for.
      * @return An optional article.
@@ -153,13 +181,4 @@ interface Articles {
      * @return A list of articles.
      */
     fun searchByFullTitle(searchString: String): List<Article>
-
-    /**
-     * Retrieves a list of all article titles that match a set of
-     * link titles.
-     *
-     * @param linkTitleList The links to match to.
-     * @return A list of full article titles.
-     */
-    fun getArticleTitles(linkTitleList: Set<String>): List<String>
 }

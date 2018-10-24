@@ -1,15 +1,11 @@
 package com.tsbonev.nharker.core
 
-typealias PropertyName = String
-typealias EntryReference = String
-
 /**
  * Provides the methods to handle a map of properties.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleProperties(private val map: MutableMap<PropertyName, EntryReference> = mutableMapOf()) {
-
+data class ArticleProperties(private val map: MutableMap<String, String> = mutableMapOf()) {
     /**
      * Attaches a property to the map, replacing it if present already.
      *
@@ -23,9 +19,9 @@ data class ArticleProperties(private val map: MutableMap<PropertyName, EntryRefe
     /**
      * Returns the raw map.
      *
-     * @return A map of Property Names and Entry ids.
+     * @return A map of Property Names mapped to Entry ids.
      */
-    fun raw(): Map<PropertyName, EntryReference> {
+    fun raw(): Map<String, String> {
         return this.map
     }
 

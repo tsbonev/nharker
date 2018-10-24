@@ -9,25 +9,26 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import org.hamcrest.CoreMatchers.`is` as Is
 
-@Suppress("unused")
+@Suppress("unused", "UNUSED_PARAMETER")
 class SimpleEventBusTest {
-
     private val logger = LoggerFactory.getLogger("SimpleEventBusTest")
+    private val log = ByteArrayOutputStream()
 
     private data class TestCommand(val data: String) : Command
-    private data class TestEvent(val data: String) : Event
 
+    private data class TestEvent(val data: String) : Event
     private data class TestNoHandlerCommand(val data: String) : Command
+
     private data class TestNoHandlerEvent(val data: String) : Event
 
     private val testCommand = TestCommand("::command-data::")
-    private val testEvent = TestEvent("::event-data::")
 
+    private val testEvent = TestEvent("::event-data::")
     private val testNoHandlerCommand = TestNoHandlerCommand("::command-data::")
+
     private val testNoHandlerEvent = TestNoHandlerEvent("::event-data::")
 
     private val workflow = object : Workflow {
-
         @EventHandler
         fun handle(event: TestEvent) {
             logger.info(event.data)
@@ -51,8 +52,6 @@ class SimpleEventBusTest {
 
     private val eventBus = SimpleEventBus()
 
-    private val log = ByteArrayOutputStream()
-
     @Before
     fun setUp() {
         System.setOut(PrintStream(log))
@@ -65,7 +64,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Send and handle command`() {
+    fun `Handles sent commands`() {
         val commandResponse = eventBus.send(testCommand)
 
         assertThat(commandResponse.statusCode, Is(StatusCode.OK))
@@ -74,7 +73,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Handle event`() {
+    fun `Handles published events`() {
         eventBus.publish(testEvent)
 
         assertThat(log.toString().contains("INFO"), Is(true))
@@ -84,7 +83,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Register interceptor and intercept event and command`() {
+    fun `Registers interceptor and intercepts events and commands`() {
         val interceptor = object : Interceptor {
             override fun intercept(command: Command) {
                 logger.info("Intercepted command $command")
@@ -111,7 +110,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Register multiple workflows`() {
+    fun `Registers multiple workflows`() {
         data class SecondTestCommand(val data: String) : Command
         data class SecondTestEvent(val data: String) : Event
 
@@ -146,7 +145,7 @@ class SimpleEventBusTest {
     }
 
     @Test
-    fun `Handle event multiple times`() {
+    fun `Handles an event with multiple handlers`() {
         eventBus.publish(testEvent)
 
         assertThat(log.toString().contains("INFO"), Is(true))
@@ -175,7 +174,7 @@ class SimpleEventBusTest {
     }
 
     @Test(expected = IllegalHandlerInWorkflowException::class)
-    fun `Registering no-argument handler in workflow throws exception`() {
+    fun `Registering no-argument handler throws exception`() {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(): CommandResponse {
@@ -198,7 +197,7 @@ class SimpleEventBusTest {
     }
 
     @Test(expected = IllegalHandlerInWorkflowException::class)
-    fun `Registering non-event or non-command handler in workflow throws exception`() {
+    fun `Registering non-event or non-command handler throws exception`() {
         val workflow = object : Workflow {
             @CommandHandler
             fun handle(p1: String): CommandResponse {

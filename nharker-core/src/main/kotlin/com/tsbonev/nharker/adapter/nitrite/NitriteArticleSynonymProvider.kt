@@ -20,36 +20,36 @@ class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
     private val coll: NitriteCollection
         get() = nitriteDb.getCollection(collectionName)
 
+    @Suppress("UNCHECKED_CAST")
     override fun getSynonymMap(): Map<String, String> {
         val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
                 ?: updateOrCreateMap(mutableMapOf())
 
-        @Suppress("UNCHECKED_CAST")
         return mapDocument["synonymMap"] as Map<String, String>
     }
 
-    override fun addSynonym(articleSynonym: String, article: Article): String {
+    override fun addSynonym(synonym: String, article: Article): String {
         val map = getSynonymMap().toMutableMap()
 
-        if (map[articleSynonym] != null) throw SynonymAlreadyTakenException(articleSynonym)
+        if (map.containsKey(synonym)) throw SynonymAlreadyTakenException(synonym)
 
-        map[articleSynonym] = article.id
+        map[synonym] = article.id
 
         updateOrCreateMap(map)
-        return articleSynonym
+        return synonym
     }
 
-    override fun removeSynonym(articleSynonym: String): Pair<String, String> {
+    override fun removeSynonym(synonym: String): Pair<String, String> {
         val map = getSynonymMap().toMutableMap()
 
-        if (map[articleSynonym] == null) throw SynonymNotFoundException(articleSynonym)
+        if (!map.containsKey(synonym)) throw SynonymNotFoundException(synonym)
 
-        val articleId = map[articleSynonym]!!
+        val articleId = map[synonym]!!
 
-        map.remove(articleSynonym)
+        map.remove(synonym)
 
         updateOrCreateMap(map)
-        return articleSynonym to articleId
+        return synonym to articleId
     }
 
     /**

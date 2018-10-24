@@ -24,11 +24,11 @@ class NitriteEntries(private val nitriteDb: Nitrite,
                      private val clock: Clock = Clock.systemUTC())
     : Entries, Paginator<Entry> {
 
-    private val coll: ObjectRepository<Entry>
+    private val repo: ObjectRepository<Entry>
         get() = nitriteDb.getRepository(collectionName, Entry::class.java)
 
     private val paginator: Paginator<Entry> by lazy {
-        NitritePaginator(coll)
+        NitritePaginator(repo)
     }
 
     override fun create(entryRequest: EntryRequest): Entry {
@@ -40,17 +40,17 @@ class NitriteEntries(private val nitriteDb: Nitrite,
                 entryRequest.links
         )
 
-        coll.insert(entry)
+        repo.insert(entry)
         return entry
     }
 
     override fun save(entry: Entry): Entry {
-        coll.update(entry, true)
+        repo.update(entry, true)
         return entry
     }
 
     override fun getById(entryId: String): Optional<Entry> {
-        val entry = coll.find(Entry::id eq entryId).firstOrNull()
+        val entry = repo.find(Entry::id eq entryId).firstOrNull()
                 ?: return Optional.empty()
 
         return Optional.of(entry)
@@ -60,19 +60,19 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         return paginator.getAll(order)
     }
 
-    override fun getAll(order: SortBy, page: Int, pageSize: Int): List<Entry> {
-        return paginator.getAll(order, page, pageSize)
+    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Entry> {
+        return paginator.getPaginated(order, page, pageSize)
     }
 
     override fun getByContent(searchText: String): List<Entry> {
-        return coll.find(Entry::content text searchText).toList()
+        return repo.find(Entry::content text searchText).toList()
     }
 
     override fun updateContent(entryId: String, content: String): Entry {
         val entry = findByIdOrThrow(entryId)
         val updatedEntry = entry.copy(content = content)
 
-        coll.update(updatedEntry)
+        repo.update(updatedEntry)
         return updatedEntry
     }
 
@@ -80,7 +80,7 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         val entry = findByIdOrThrow(entryId)
         val updatedEntry = entry.copy(links = links)
 
-        coll.update(updatedEntry)
+        repo.update(updatedEntry)
         return updatedEntry
     }
 
@@ -88,21 +88,25 @@ class NitriteEntries(private val nitriteDb: Nitrite,
         val entry = findByIdOrThrow(entryId)
         val updatedEntry = entry.copy(articleId = article.id)
 
-
-        coll.update(updatedEntry)
+        repo.update(updatedEntry)
         return updatedEntry
     }
 
     override fun delete(entryId: String): Entry {
         val entry = findByIdOrThrow(entryId)
-        coll.remove(Entry::id eq entryId)
+        repo.remove(Entry::id eq entryId)
         return entry
     }
 
     /**
      * Finds an entry by id or throws an exception.
+     *
+     * @param entryId The id to find.
+     * @return The found Entry.
+     *
+     * @exception EntryNotFoundException thrown when the entry is not found.
      */
     private fun findByIdOrThrow(entryId: String): Entry {
-        return coll.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException(entryId)
+        return repo.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException(entryId)
     }
 }

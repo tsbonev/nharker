@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
@@ -18,35 +20,36 @@ import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 import org.hamcrest.CoreMatchers.`is` as Is
 
-@Suppress("UNCHECKED_CAST")
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EntryWorkflowTest {
-
     @Rule
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val eventBus = context.mock(EventBus::class.java)
-    private val entries = context.mock(Entries::class.java)
-
     private val exceptionLogger = ExceptionLogger()
-
-    private val entryWorkflow = EntryWorkflow(eventBus, entries, exceptionLogger)
 
     private val entryRequest = EntryRequest("::content::",
             "::article-id::",
             emptyMap())
 
+    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
+
     private val entry = Entry("::entryId::",
-            LocalDateTime.now(),
+            date,
             "::article-id::",
             "::content::",
             emptyMap())
+
+    private val eventBus = context.mock(EventBus::class.java)
+    private val entries = context.mock(Entries::class.java)
+
+    private val entryWorkflow = EntryWorkflow(eventBus, entries, exceptionLogger)
 
     @Test
     fun `Creating an entry returns it`() {
@@ -128,7 +131,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Updating non-existent entry returns not found`() {
+    fun `Updating non-existing entry returns not found`() {
         val newContent = "::new-content::"
 
         context.expecting {
@@ -188,14 +191,14 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Retrieve entry by id`() {
+    fun `Retrieves entry by id`() {
         context.expecting {
             oneOf(entries).getById(entry.id)
             will(returnValue(Optional.of(entry)))
         }
 
         val response = entryWorkflow.getEntryById(
-                GetEntryByIdCommand(
+                GetEntryByIdQuery(
                         entry.id
                 )
         )
@@ -206,14 +209,14 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Retrieving a non-existent entry returns not found`() {
+    fun `Retrieving a non-existing entry returns not found`() {
         context.expecting {
             oneOf(entries).getById(entry.id)
             will(returnValue(Optional.empty<Entry>()))
         }
 
         val response = entryWorkflow.getEntryById(
-                GetEntryByIdCommand(
+                GetEntryByIdQuery(
                         entry.id
                 )
         )
@@ -223,7 +226,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Search returns entries that match`() {
+    fun `Retrieves entries that match a search string`() {
         val entryList = listOf(entry)
         val searchString = "::search::"
 
@@ -232,8 +235,8 @@ class EntryWorkflowTest {
             will(returnValue(entryList))
         }
 
-        val response = entryWorkflow.searchEntryContent(
-                SearchEntriesByContentCommand(
+        val response = entryWorkflow.searchEntryContentQuery(
+                SearchEntriesByContentQuery(
                         searchString
                 )
         )
@@ -244,7 +247,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Save entry when completely restored`() {
+    fun `Saves entry when completely restored`() {
         context.expecting {
             oneOf(entries).save(entry)
         }
@@ -253,7 +256,7 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Restoring an entry verifies its links`() {
+    fun `Restoring entry verifies its links`() {
         val restoredArticle = Article(
                 "::article-id::",
                 "full-title",
@@ -270,7 +273,7 @@ class EntryWorkflowTest {
         )
 
         context.expecting {
-            oneOf(eventBus).send(GetArticleByLinkTitleCommand("::link::"))
+            oneOf(eventBus).send(GetArticleByLinkTitleQuery("::link::"))
             will(returnValue(CommandResponse(StatusCode.OK, restoredArticle)))
 
             oneOf(entries).save(restoredEntry)
@@ -290,7 +293,7 @@ class EntryWorkflowTest {
         )
 
         context.expecting {
-            oneOf(eventBus).send(GetArticleByLinkTitleCommand("::link::"))
+            oneOf(eventBus).send(GetArticleByLinkTitleQuery("::link::"))
             will(returnValue(CommandResponse(StatusCode.NotFound)))
 
             oneOf(entries).save(entry.copy(
@@ -302,14 +305,13 @@ class EntryWorkflowTest {
     }
 
     @Test
-    fun `Ignore foreign restored entities`() {
+    fun `Ignores foreign restored entities`() {
         context.expecting {
             never(entries).save(entry)
         }
 
         entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, String::class.java))
     }
-
 
     private fun Mockery.expecting(block: Expectations.() -> Unit) {
         checking(Expectations().apply(block))
