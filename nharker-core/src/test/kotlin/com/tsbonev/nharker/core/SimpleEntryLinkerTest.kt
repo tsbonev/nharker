@@ -20,23 +20,22 @@ class SimpleEntryLinkerTest {
     @JvmField
     val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val articleLinkTitles = listOf(
-            "novem-harker",
-            "key-of-strength",
-            "grad-proper",
-            "norcit",
-            "conciliator",
-            "college-of-conciliators",
-            "immortal-souls",
-            "immortal-soul",
-            "vanessa-strongwill",
-            "caspar-mistblooded",
-            "realms",
-            "second-sons",
-            "harker-family",
-            "strongwill-family",
-            "grad-proper",
-            "primus-suprima"
+    private val articleLinkTitles = mapOf(
+            "novem-harker" to "::nh-article-id::",
+            "key-of-strength" to "::kos-article-id::",
+            "norcit" to "::nor-article-id::",
+            "conciliator" to "::con-article-id::",
+            "college-of-conciliators" to "::coc-article-id::",
+            "immortal-souls" to "::imsls-article-id::",
+            "immortal-soul" to "::imsl-article-id::",
+            "vanessa-strongwill" to "::vnstw-article-id::",
+            "caspar-mistblooded" to "::cspmstb-article-id::",
+            "realms" to "::realms-article-id::",
+            "second-sons" to "::secson-article-id::",
+            "harker-family" to "::harfam-article-id::",
+            "strongwill-family" to "::stwfam-article-id::",
+            "grad-proper" to "::grpr-article-id::",
+            "primus-suprima" to "::prsp-article-id::"
     )
 
     private val explicitEntryLinks = mapOf(
@@ -56,21 +55,22 @@ class SimpleEntryLinkerTest {
             explicitEntryLinks
     )
 
-    private val mentionedArticles = setOf("novem-harker",
-            "vanessa-strongwill",
-            "strongwill-family",
-            "college-of-conciliators",
-            "conciliator",
-            "grad-proper",
-            "norcit",
-            "key-of-strength",
-            "primus-suprima").sorted()
+    private val mentionedArticles = mapOf(
+            "novem-harker" to "::nh-article-id::",
+            "key-of-strength" to "::kos-article-id::",
+            "norcit" to "::nor-article-id::",
+            "conciliator" to "::con-article-id::",
+            "college-of-conciliators" to "::coc-article-id::",
+            "vanessa-strongwill" to "::vnstw-article-id::",
+            "strongwill-family" to "::stwfam-article-id::",
+            "grad-proper" to "::grpr-article-id::",
+            "primus-suprima" to "::prsp-article-id::")
 
     private val synonymMap = mapOf(
-            "primus" to "primus-suprima",
-            "college" to "college-of-conciliators",
-            "harker" to "novem-harker",
-            "novem" to "novem-harker"
+            "primus" to "::prsp-article-id::",
+            "college" to "::coc-article-id::",
+            "harker" to "::nh-article-id::",
+            "novem" to "::nh-article-id::"
     )
 
     private val synonymProvider = context.mock(ArticleSynonymProvider::class.java)
@@ -86,7 +86,7 @@ class SimpleEntryLinkerTest {
 
         val foundArticleLinks = entryLinker.findArticleLinks(entry, articleLinkTitles)
 
-        assertThat(foundArticleLinks.sorted(), Is(mentionedArticles))
+        assertThat(foundArticleLinks.sorted(), Is(mentionedArticles.values.sorted()))
     }
 
     @Test

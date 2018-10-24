@@ -15,6 +15,7 @@ import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
+import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
@@ -175,6 +176,28 @@ class NitriteArticlesTest {
     }
 
     @Test
+    fun `Change article title`() {
+        val newFullTitle = "New title"
+        val newLinkTitle = newFullTitle.toLinkTitle()
+
+        val updatedArticle = articles.changeTitle(article.id, newFullTitle)
+
+        assertThat(presavedArticle, Is(updatedArticle))
+        assertThat(presavedArticle.fullTitle, Is(newFullTitle))
+        assertThat(presavedArticle.linkTitle, Is(newLinkTitle))
+    }
+
+    @Test(expected = ArticleNotFoundException::class)
+    fun `Changing title of non-existing article throws exception`() {
+        articles.changeTitle("::non-existent-article::", "New title")
+    }
+
+    @Test(expected = ArticleTitleTakenException::class)
+    fun `Changing title of article to a taken one throws exception`() {
+        articles.changeTitle(article.id, article.fullTitle)
+    }
+
+    @Test
     fun `Delete and return article`() {
         val deletedArticle = articles.delete(article.id)
 
@@ -229,7 +252,7 @@ class NitriteArticlesTest {
     @Test
     fun `Append entry to article`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
         }
 
@@ -241,7 +264,7 @@ class NitriteArticlesTest {
     @Test
     fun `Automatically link to articles when appending`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
             will(returnValue(setOf("new-article-title")))
         }
 
@@ -255,7 +278,7 @@ class NitriteArticlesTest {
     @Test
     fun `Linking increases count when already linked`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(entry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
             will(returnValue(setOf("article-title-2")))
         }
 
@@ -274,7 +297,7 @@ class NitriteArticlesTest {
     @Test
     fun `Remove and return entry from article`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(secondPresavedEntry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(secondPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
         }
 
@@ -286,7 +309,7 @@ class NitriteArticlesTest {
     @Test
     fun `De-link when deleting entry`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(setOf("article-title-2")))
         }
 
@@ -298,7 +321,7 @@ class NitriteArticlesTest {
     @Test
     fun `Decrease number of links when more than one is present`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(setOf("article-title-1")))
         }
 
@@ -311,7 +334,7 @@ class NitriteArticlesTest {
     @Test
     fun `Reorder entries after deletion`() {
         context.expecting {
-            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, listOf("article-title"))
+            oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
             will(returnValue(emptySet<String>()))
         }
 

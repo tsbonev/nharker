@@ -62,6 +62,20 @@ class NitriteArticles(private val nitriteDb: Nitrite,
         return article
     }
 
+    override fun changeTitle(articleId: String, newTitle: String): Article {
+        val article = findByIdOrThrow(articleId)
+
+        if (coll.find(Article::fullTitle text newTitle).toList()
+                        .filter { it.fullTitle == newTitle }
+                        .any()) throw ArticleTitleTakenException(newTitle)
+
+        val updatedArticle = article.copy(fullTitle = newTitle, linkTitle = newTitle.toLinkTitle())
+
+        coll.update(updatedArticle)
+
+        return updatedArticle
+    }
+
     override fun getAll(order: SortBy): List<Article> {
         return paginator.getAll(order)
     }
@@ -199,24 +213,6 @@ class NitriteArticles(private val nitriteDb: Nitrite,
     }
 
     /**
-     * Returns a list of all articles' link titles.
-     *
-     * @return List of article link titles.
-     */
-    private fun getArticleLinkTitles(): List<String> {
-        val projectedArticleTitles = coll
-                .find()
-                .project(ArticleLinkTitle::class.java)
-                .toList()
-
-        val articleTitles = mutableListOf<String>()
-
-        projectedArticleTitles.forEach { articleTitles.add(it.linkTitle) }
-
-        return articleTitles
-    }
-
-    /**
      * Removes or adds a link to the article's links depending on the passed
      * boolean.
      *
@@ -239,5 +235,23 @@ class NitriteArticles(private val nitriteDb: Nitrite,
                 article.links.removeLink(it)
             }
         }
+    }
+
+    /**
+     * Returns a map of all articles' link titles mapped to their ids.
+     *
+     * @return Map of article link titles mapped to their ids.
+     */
+    private fun getArticleLinkTitles(): Map<String, String> {
+        val projectedArticleTitles = coll
+                .find()
+                .project(ArticleLinkTitle::class.java)
+                .toList()
+
+        val articleTitles = mutableMapOf<String, String>()
+
+        projectedArticleTitles.forEach { articleTitles[it.linkTitle] = it.id }
+
+        return articleTitles
     }
 }

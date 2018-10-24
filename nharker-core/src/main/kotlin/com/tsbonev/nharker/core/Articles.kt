@@ -32,6 +32,17 @@ interface Articles {
     fun delete(articleId: String): Article
 
     /**
+     * Changes the title of an article.
+     *
+     * @param articleId The id of the article to rename.
+     * @param newTitle The new title.
+     * @return The updated article.
+     */
+    @Throws(ArticleNotFoundException::class,
+            ArticleTitleTakenException::class)
+    fun changeTitle(articleId: String, newTitle: String): Article
+
+    /**
      * Retrieves an optional article by id.
      *
      * @param articleId The id of the article sought.

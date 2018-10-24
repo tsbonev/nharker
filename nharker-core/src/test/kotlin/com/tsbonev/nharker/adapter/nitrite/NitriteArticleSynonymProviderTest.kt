@@ -71,7 +71,7 @@ class NitriteArticleSynonymProviderTest {
         val synonym = synonymMapProvider.addSynonym("::synonym::", article)
 
         assertThat(presavedMap, Is(synonymMap.plus(
-                synonym to article.linkTitle
+                synonym to article.id
         )))
     }
 
