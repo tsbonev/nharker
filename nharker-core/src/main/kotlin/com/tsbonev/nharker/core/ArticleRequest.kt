@@ -6,5 +6,7 @@ package com.tsbonev.nharker.core
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class ArticleRequest(val fullTitle: String,
-                          val catalogues: Set<String>)
+data class ArticleRequest(
+	val fullTitle: String,
+	val catalogues: Set<String>
+)

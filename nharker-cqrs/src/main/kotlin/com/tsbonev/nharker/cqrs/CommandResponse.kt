@@ -10,9 +10,11 @@ typealias QueryResponse = CommandResponse
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-data class CommandResponse(val statusCode: StatusCode,
-                           val rawPayload: Any? = null) {
-    val payload: Optional<Any> =
-            if (rawPayload == null) Optional.empty()
-            else Optional.of(rawPayload)
+data class CommandResponse(
+	val statusCode: StatusCode,
+	val rawPayload: Any? = null
+) {
+	val payload: Optional<Any> =
+		if (rawPayload == null) Optional.empty()
+		else Optional.of(rawPayload)
 }

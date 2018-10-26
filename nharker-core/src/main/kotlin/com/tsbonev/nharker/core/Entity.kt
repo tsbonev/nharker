@@ -9,6 +9,6 @@ import java.time.LocalDateTime
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface Entity {
-    val id: String
-    val creationDate: LocalDateTime
+	val id: String
+	val creationDate: LocalDateTime
 }

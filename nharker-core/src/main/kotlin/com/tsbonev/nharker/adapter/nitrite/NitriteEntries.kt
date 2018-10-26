@@ -19,94 +19,95 @@ import java.util.Optional
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class NitriteEntries(private val nitriteDb: Nitrite,
-                     private val collectionName: String = "Entries",
-                     private val clock: Clock = Clock.systemUTC())
-    : Entries, Paginator<Entry> {
+class NitriteEntries(
+	private val nitriteDb: Nitrite,
+	private val collectionName: String = "Entries",
+	private val clock: Clock = Clock.systemUTC()
+) : Entries, Paginator<Entry> {
 
-    private val repo: ObjectRepository<Entry>
-        get() = nitriteDb.getRepository(collectionName, Entry::class.java)
+	private val repo: ObjectRepository<Entry>
+		get() = nitriteDb.getRepository(collectionName, Entry::class.java)
 
-    private val paginator: Paginator<Entry> by lazy {
-        NitritePaginator(repo)
-    }
+	private val paginator: Paginator<Entry> by lazy {
+		NitritePaginator(repo)
+	}
 
-    override fun create(entryRequest: EntryRequest): Entry {
-        val entry = Entry(
-                NitriteId.newId().toString(),
-                LocalDateTime.now(clock),
-                entryRequest.articleId,
-                entryRequest.content,
-                entryRequest.links
-        )
+	override fun create(entryRequest: EntryRequest): Entry {
+		val entry = Entry(
+			NitriteId.newId().toString(),
+			LocalDateTime.now(clock),
+			entryRequest.articleId,
+			entryRequest.content,
+			entryRequest.links
+		)
 
-        repo.insert(entry)
-        return entry
-    }
+		repo.insert(entry)
+		return entry
+	}
 
-    override fun save(entry: Entry): Entry {
-        repo.update(entry, true)
-        return entry
-    }
+	override fun save(entry: Entry): Entry {
+		repo.update(entry, true)
+		return entry
+	}
 
-    override fun getById(entryId: String): Optional<Entry> {
-        val entry = repo.find(Entry::id eq entryId).firstOrNull()
-                ?: return Optional.empty()
+	override fun getById(entryId: String): Optional<Entry> {
+		val entry = repo.find(Entry::id eq entryId).firstOrNull()
+			?: return Optional.empty()
 
-        return Optional.of(entry)
-    }
+		return Optional.of(entry)
+	}
 
-    override fun getAll(order: SortBy): List<Entry> {
-        return paginator.getAll(order)
-    }
+	override fun getAll(order: SortBy): List<Entry> {
+		return paginator.getAll(order)
+	}
 
-    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Entry> {
-        return paginator.getPaginated(order, page, pageSize)
-    }
+	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Entry> {
+		return paginator.getPaginated(order, page, pageSize)
+	}
 
-    override fun getByContent(searchText: String): List<Entry> {
-        return repo.find(Entry::content text searchText).toList()
-    }
+	override fun getByContent(searchText: String): List<Entry> {
+		return repo.find(Entry::content text searchText).toList()
+	}
 
-    override fun updateContent(entryId: String, content: String): Entry {
-        val entry = findByIdOrThrow(entryId)
-        val updatedEntry = entry.copy(content = content)
+	override fun updateContent(entryId: String, content: String): Entry {
+		val entry = findByIdOrThrow(entryId)
+		val updatedEntry = entry.copy(content = content)
 
-        repo.update(updatedEntry)
-        return updatedEntry
-    }
+		repo.update(updatedEntry)
+		return updatedEntry
+	}
 
-    override fun updateLinks(entryId: String, links: Map<String, String>): Entry {
-        val entry = findByIdOrThrow(entryId)
-        val updatedEntry = entry.copy(links = links)
+	override fun updateLinks(entryId: String, links: Map<String, String>): Entry {
+		val entry = findByIdOrThrow(entryId)
+		val updatedEntry = entry.copy(links = links)
 
-        repo.update(updatedEntry)
-        return updatedEntry
-    }
+		repo.update(updatedEntry)
+		return updatedEntry
+	}
 
-    override fun changeArticle(entryId: String, article: Article): Entry {
-        val entry = findByIdOrThrow(entryId)
-        val updatedEntry = entry.copy(articleId = article.id)
+	override fun changeArticle(entryId: String, article: Article): Entry {
+		val entry = findByIdOrThrow(entryId)
+		val updatedEntry = entry.copy(articleId = article.id)
 
-        repo.update(updatedEntry)
-        return updatedEntry
-    }
+		repo.update(updatedEntry)
+		return updatedEntry
+	}
 
-    override fun delete(entryId: String): Entry {
-        val entry = findByIdOrThrow(entryId)
-        repo.remove(Entry::id eq entryId)
-        return entry
-    }
+	override fun delete(entryId: String): Entry {
+		val entry = findByIdOrThrow(entryId)
+		repo.remove(Entry::id eq entryId)
+		return entry
+	}
 
-    /**
-     * Finds an entry by id or throws an exception.
-     *
-     * @param entryId The id to find.
-     * @return The found Entry.
-     *
-     * @exception EntryNotFoundException thrown when the entry is not found.
-     */
-    private fun findByIdOrThrow(entryId: String): Entry {
-        return repo.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException(entryId)
-    }
+	/**
+	 * Finds an entry by id or throws an exception.
+	 *
+	 * @param entryId The id to find.
+	 * @return The found Entry.
+	 *
+	 * @exception EntryNotFoundException thrown when the entry is not found.
+	 */
+	private fun findByIdOrThrow(entryId: String): Entry {
+		return repo.find(Entry::id eq entryId).firstOrNull() ?: throw EntryNotFoundException(entryId)
+	}
 }

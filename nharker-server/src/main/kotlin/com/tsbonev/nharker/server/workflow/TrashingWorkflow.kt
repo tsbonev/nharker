@@ -18,104 +18,106 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class TrashingWorkflow(private val eventBus: EventBus,
-                       private val trashCollector: TrashCollector,
-                       private val exceptionLogger: ExceptionLogger) : Workflow {
-    //region Command Handlers
-    /**
-     * Restores an entity from the trash.
-     * @code 200
-     * @payload The restored entity.
-     * @publishes EntityRestoredEvent.
-     *
-     * If the entity is not found in the class, logs the id and class.
-     * @code 404
-     * @exception EntityNotInTrashException
-     *
-     * If the entity cannot be cast to the specified class, logs the id and class.
-     * @code 400
-     * @exception EntityCannotBeCastException
-     */
-    @CommandHandler
-    fun restoreEntity(command: RestoreTrashedEntityCommand): CommandResponse {
-        return try {
-            val trashedEntity = trashCollector.restore(command.entityId, command.entityClass)
+class TrashingWorkflow(
+	private val eventBus: EventBus,
+	private val trashCollector: TrashCollector,
+	private val exceptionLogger: ExceptionLogger
+) : Workflow {
+	//region Command Handlers
+	/**
+	 * Restores an entity from the trash.
+	 * @code 200
+	 * @payload The restored entity.
+	 * @publishes EntityRestoredEvent.
+	 *
+	 * If the entity is not found in the class, logs the id and class.
+	 * @code 404
+	 * @exception EntityNotInTrashException
+	 *
+	 * If the entity cannot be cast to the specified class, logs the id and class.
+	 * @code 400
+	 * @exception EntityCannotBeCastException
+	 */
+	@CommandHandler
+	fun restoreEntity(command: RestoreTrashedEntityCommand): CommandResponse {
+		return try {
+			val trashedEntity = trashCollector.restore(command.entityId, command.entityClass)
 
-            eventBus.publish(EntityRestoredEvent(trashedEntity, command.entityClass))
+			eventBus.publish(EntityRestoredEvent(trashedEntity, command.entityClass))
 
-            CommandResponse(StatusCode.OK, command.entityClass.cast(trashedEntity))
-        } catch (e: EntityNotInTrashException) {
-            exceptionLogger.logException(e)
-        } catch (e: EntityCannotBeCastException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			CommandResponse(StatusCode.OK, command.entityClass.cast(trashedEntity))
+		} catch (e: EntityNotInTrashException) {
+			exceptionLogger.logException(e)
+		} catch (e: EntityCannotBeCastException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Clears the trash store.
-     * @code 200
-     * @payload The cleared trashed entities.
-     * @publishes TrashStoreClearedEvent
-     */
-    @Suppress("UNUSED_PARAMETER")
-    @CommandHandler
-    fun clearTrashStore(command: ClearTrashStoreCommand): CommandResponse {
-        val trashedEntities = trashCollector.view()
-        trashCollector.clear()
+	/**
+	 * Clears the trash store.
+	 * @code 200
+	 * @payload The cleared trashed entities.
+	 * @publishes TrashStoreClearedEvent
+	 */
+	@Suppress("UNUSED_PARAMETER")
+	@CommandHandler
+	fun clearTrashStore(command: ClearTrashStoreCommand): CommandResponse {
+		val trashedEntities = trashCollector.view()
+		trashCollector.clear()
 
-        eventBus.publish(TrashStoreClearedEvent(trashedEntities))
+		eventBus.publish(TrashStoreClearedEvent(trashedEntities))
 
-        return CommandResponse(StatusCode.OK, trashedEntities)
-    }
+		return CommandResponse(StatusCode.OK, trashedEntities)
+	}
 
-    /**
-     * Returns a list of trashed entities from a specified class.
-     * @code 200
-     * @payload A list of entities of the specified class.
-     */
-    @CommandHandler
-    fun viewTrashedEntities(query: ViewTrashedEntitiesQuery): QueryResponse {
-        val entityList = mutableListOf<Any>()
+	/**
+	 * Returns a list of trashed entities from a specified class.
+	 * @code 200
+	 * @payload A list of entities of the specified class.
+	 */
+	@CommandHandler
+	fun viewTrashedEntities(query: ViewTrashedEntitiesQuery): QueryResponse {
+		val entityList = mutableListOf<Any>()
 
-        trashCollector
-                .view()
-                .asSequence()
-                .filter {
-                    query.entityClass.isInstance(it)
-                }
-                .mapTo(entityList) {
-                    query.entityClass.cast(it)
-                }
+		trashCollector
+			.view()
+			.asSequence()
+			.filter {
+				query.entityClass.isInstance(it)
+			}
+			.mapTo(entityList) {
+				query.entityClass.cast(it)
+			}
 
-        return CommandResponse(StatusCode.OK, entityList)
-    }
-    //region
+		return CommandResponse(StatusCode.OK, entityList)
+	}
+	//region
 
-    //region Event Handlers
-    /**
-     * Stores a deleted entry in the trash.
-     */
-    @EventHandler
-    fun onEntryDeleted(event: EntryDeletedEvent) {
-        trashCollector.trash(event.entry)
-    }
+	//region Event Handlers
+	/**
+	 * Stores a deleted entry in the trash.
+	 */
+	@EventHandler
+	fun onEntryDeleted(event: EntryDeletedEvent) {
+		trashCollector.trash(event.entry)
+	}
 
-    /**
-     * Stores a deleted article in the trash.
-     */
-    @EventHandler
-    fun onArticleDeleted(event: ArticleDeletedEvent) {
-        trashCollector.trash(event.article)
-    }
+	/**
+	 * Stores a deleted article in the trash.
+	 */
+	@EventHandler
+	fun onArticleDeleted(event: ArticleDeletedEvent) {
+		trashCollector.trash(event.article)
+	}
 
-    /**
-     * Stores a deleted catalogue in the trash.
-     */
-    @EventHandler
-    fun onCatalogueDeleted(event: CatalogueDeletedEvent) {
-        trashCollector.trash(event.catalogue)
-    }
-    //endregion
+	/**
+	 * Stores a deleted catalogue in the trash.
+	 */
+	@EventHandler
+	fun onCatalogueDeleted(event: CatalogueDeletedEvent) {
+		trashCollector.trash(event.catalogue)
+	}
+	//endregion
 }
 
 //region Queries

@@ -30,254 +30,257 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class CatalogueWorkflow(private val eventBus: EventBus,
-                        private val catalogues: Catalogues,
-                        private val exceptionLogger: ExceptionLogger) : Workflow {
-    //region Command Handlers
-    /**
-     * Creates a catalogue.
-     * @code 201
-     * @payload The created catalogue.
-     * @publishes CatalogueCreatedEvent
-     *
-     * If the catalogue requests a non-existing parent, logs the parent's id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the catalogue title is taken, logs the title.
-     * @code 400
-     * @exception CatalogueTitleTakenException
-     */
-    @CommandHandler
-    fun createCatalogue(command: CreateCatalogueCommand): CommandResponse {
-        return try {
-            val createdCatalogue = catalogues.create(command.catalogueRequest)
+class CatalogueWorkflow(
+	private val eventBus: EventBus,
+	private val catalogues: Catalogues,
+	private val exceptionLogger: ExceptionLogger
+) : Workflow {
+	//region Command Handlers
+	/**
+	 * Creates a catalogue.
+	 * @code 201
+	 * @payload The created catalogue.
+	 * @publishes CatalogueCreatedEvent
+	 *
+	 * If the catalogue requests a non-existing parent, logs the parent's id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the catalogue title is taken, logs the title.
+	 * @code 400
+	 * @exception CatalogueTitleTakenException
+	 */
+	@CommandHandler
+	fun createCatalogue(command: CreateCatalogueCommand): CommandResponse {
+		return try {
+			val createdCatalogue = catalogues.create(command.catalogueRequest)
 
-            eventBus.publish(CatalogueCreatedEvent(createdCatalogue))
-            CommandResponse(StatusCode.Created, createdCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueTitleTakenException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueCreatedEvent(createdCatalogue))
+			CommandResponse(StatusCode.Created, createdCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueTitleTakenException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Deletes a catalogue.
-     * @code 200
-     * @payload The deleted catalogue.
-     * @publishes CatalogueDeletedEvent
-     *
-     * If catalogue is not found by id, logs id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     */
-    @CommandHandler
-    fun deleteCatalogue(command: DeleteCatalogueCommand): CommandResponse {
-        return try {
-            val deletedCatalogue = catalogues.delete(command.catalogueId)
+	/**
+	 * Deletes a catalogue.
+	 * @code 200
+	 * @payload The deleted catalogue.
+	 * @publishes CatalogueDeletedEvent
+	 *
+	 * If catalogue is not found by id, logs id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 */
+	@CommandHandler
+	fun deleteCatalogue(command: DeleteCatalogueCommand): CommandResponse {
+		return try {
+			val deletedCatalogue = catalogues.delete(command.catalogueId)
 
-            eventBus.publish(CatalogueDeletedEvent(deletedCatalogue))
-            CommandResponse(StatusCode.OK, deletedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueDeletedEvent(deletedCatalogue))
+			CommandResponse(StatusCode.OK, deletedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Changes the title of a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the catalogue is not found by id, logs id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the catalogue title is taken, logs title.
-     * @code 400
-     * @exception CatalogueTitleTakenException
-     */
-    @CommandHandler
-    fun changeCatalogueTitle(command: ChangeCatalogueTitleCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.changeTitle(command.catalogueId, command.newTitle)
+	/**
+	 * Changes the title of a catalogue.
+	 * @code 200
+	 * @payload The updated catalogue.
+	 * @publishes CatalogueUpdatedEvent
+	 *
+	 * If the catalogue is not found by id, logs id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the catalogue title is taken, logs title.
+	 * @code 400
+	 * @exception CatalogueTitleTakenException
+	 */
+	@CommandHandler
+	fun changeCatalogueTitle(command: ChangeCatalogueTitleCommand): CommandResponse {
+		return try {
+			val updatedCatalogue = catalogues.changeTitle(command.catalogueId, command.newTitle)
 
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueTitleTakenException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
+			CommandResponse(StatusCode.OK, updatedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueTitleTakenException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Changes the parent of a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the catalogue is not found by id, logs the id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the catalogue is already a child, logs the catalogue id and the parent id.
-     * @code 400
-     * @exception CatalogueAlreadyAChildException
-     *
-     * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
-     * @code 400
-     * @exception CatalogueCircularInheritanceException
-     *
-     * If the catalogue is requested to become its own child, logs the catalogue's id.
-     * @code 400
-     * @exception SelfContainedCatalogueException
-     */
-    @CommandHandler
-    fun changeCatalogueParent(command: ChangeCatalogueParentCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.changeParentCatalogue(command.catalogueId, command.newParent)
+	/**
+	 * Changes the parent of a catalogue.
+	 * @code 200
+	 * @payload The updated catalogue.
+	 * @publishes CatalogueUpdatedEvent
+	 *
+	 * If the catalogue is not found by id, logs the id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the catalogue is already a child, logs the catalogue id and the parent id.
+	 * @code 400
+	 * @exception CatalogueAlreadyAChildException
+	 *
+	 * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
+	 * @code 400
+	 * @exception CatalogueCircularInheritanceException
+	 *
+	 * If the catalogue is requested to become its own child, logs the catalogue's id.
+	 * @code 400
+	 * @exception SelfContainedCatalogueException
+	 */
+	@CommandHandler
+	fun changeCatalogueParent(command: ChangeCatalogueParentCommand): CommandResponse {
+		return try {
+			val updatedCatalogue = catalogues.changeParentCatalogue(command.catalogueId, command.newParent)
 
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueAlreadyAChildException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueCircularInheritanceException) {
-            exceptionLogger.logException(e)
-        } catch (e: SelfContainedCatalogueException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
+			CommandResponse(StatusCode.OK, updatedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueAlreadyAChildException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueCircularInheritanceException) {
+			exceptionLogger.logException(e)
+		} catch (e: SelfContainedCatalogueException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Appends a child catalogue to a catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the parent catalogue is not found by id, logs the id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the parent catalogue is also the child catalogue, logs the catalogue id.
-     * @code 400
-     * @exception CatalogueAlreadyAChildException
-     *
-     * If the child catalogue is already a child, logs the parent's and the child's ids.
-     * @code 400
-     * @exception SelfContainedCatalogueException
-     *
-     * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
-     * @code 400
-     * @exception CatalogueCircularInheritanceException
-     */
-    @CommandHandler
-    fun appendChildCatalogue(command: AppendChildCatalogueCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.appendChildCatalogue(command.parentCatalogueId, command.childCatalogue)
+	/**
+	 * Appends a child catalogue to a catalogue.
+	 * @code 200
+	 * @payload The updated catalogue.
+	 * @publishes CatalogueUpdatedEvent
+	 *
+	 * If the parent catalogue is not found by id, logs the id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the parent catalogue is also the child catalogue, logs the catalogue id.
+	 * @code 400
+	 * @exception CatalogueAlreadyAChildException
+	 *
+	 * If the child catalogue is already a child, logs the parent's and the child's ids.
+	 * @code 400
+	 * @exception SelfContainedCatalogueException
+	 *
+	 * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
+	 * @code 400
+	 * @exception CatalogueCircularInheritanceException
+	 */
+	@CommandHandler
+	fun appendChildCatalogue(command: AppendChildCatalogueCommand): CommandResponse {
+		return try {
+			val updatedCatalogue = catalogues.appendChildCatalogue(command.parentCatalogueId, command.childCatalogue)
 
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueAlreadyAChildException) {
-            exceptionLogger.logException(e)
-        } catch (e: SelfContainedCatalogueException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueCircularInheritanceException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
+			CommandResponse(StatusCode.OK, updatedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueAlreadyAChildException) {
+			exceptionLogger.logException(e)
+		} catch (e: SelfContainedCatalogueException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueCircularInheritanceException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Switches the order of two child catalogues.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the catalogue is not found by id, logs the id
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
-     * @code 400
-     * @exception CatalogueNotAChildException
-     */
-    @CommandHandler
-    fun switchChildCatalogues(command: SwitchChildCataloguesCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.switchChildCatalogues(
-                    command.catalogueId, command.first, command.second)
+	/**
+	 * Switches the order of two child catalogues.
+	 * @code 200
+	 * @payload The updated catalogue.
+	 * @publishes CatalogueUpdatedEvent
+	 *
+	 * If the catalogue is not found by id, logs the id
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
+	 * @code 400
+	 * @exception CatalogueNotAChildException
+	 */
+	@CommandHandler
+	fun switchChildCatalogues(command: SwitchChildCataloguesCommand): CommandResponse {
+		return try {
+			val updatedCatalogue = catalogues.switchChildCatalogues(
+				command.catalogueId, command.first, command.second
+			)
 
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotAChildException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
+			CommandResponse(StatusCode.OK, updatedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueNotAChildException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Removes a child catalogue from a parent catalogue.
-     * @code 200
-     * @payload The updated catalogue.
-     * @publishes CatalogueUpdatedEvent
-     *
-     * If the parent catalogue is not found by id, logs the id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     *
-     * If the child catalogue is not a child, logs the parent's and the child's ids.
-     * @code 400
-     * @exception CatalogueNotAChildException
-     */
-    @CommandHandler
-    fun removeChildCatalogue(command: RemoveChildCatalogueCommand): CommandResponse {
-        return try {
-            val updatedCatalogue = catalogues.removeChildCatalogue(command.parentCatalogueId, command.childCatalogue)
+	/**
+	 * Removes a child catalogue from a parent catalogue.
+	 * @code 200
+	 * @payload The updated catalogue.
+	 * @publishes CatalogueUpdatedEvent
+	 *
+	 * If the parent catalogue is not found by id, logs the id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 *
+	 * If the child catalogue is not a child, logs the parent's and the child's ids.
+	 * @code 400
+	 * @exception CatalogueNotAChildException
+	 */
+	@CommandHandler
+	fun removeChildCatalogue(command: RemoveChildCatalogueCommand): CommandResponse {
+		return try {
+			val updatedCatalogue = catalogues.removeChildCatalogue(command.parentCatalogueId, command.childCatalogue)
 
-            eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
-            CommandResponse(StatusCode.OK, updatedCatalogue)
-        } catch (e: CatalogueNotFoundException) {
-            exceptionLogger.logException(e)
-        } catch (e: CatalogueNotAChildException) {
-            exceptionLogger.logException(e)
-        }
-    }
+			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
+			CommandResponse(StatusCode.OK, updatedCatalogue)
+		} catch (e: CatalogueNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: CatalogueNotAChildException) {
+			exceptionLogger.logException(e)
+		}
+	}
 
-    /**
-     * Retrieves a catalogue by id.
-     * @code 200
-     * @payload The retrieved catalogue.
-     *
-     * If no catalogue is found, logs id.
-     * @code 404
-     * @exception CatalogueNotFoundException
-     */
-    @CommandHandler
-    fun getCatalogueById(query: GetCatalogueByIdQuery): QueryResponse {
-        val possibleCatalogue = catalogues.getById(query.catalogueId)
+	/**
+	 * Retrieves a catalogue by id.
+	 * @code 200
+	 * @payload The retrieved catalogue.
+	 *
+	 * If no catalogue is found, logs id.
+	 * @code 404
+	 * @exception CatalogueNotFoundException
+	 */
+	@CommandHandler
+	fun getCatalogueById(query: GetCatalogueByIdQuery): QueryResponse {
+		val possibleCatalogue = catalogues.getById(query.catalogueId)
 
-        return if (possibleCatalogue.isPresent) CommandResponse(StatusCode.OK, possibleCatalogue.get())
-        else exceptionLogger.logException(CatalogueNotFoundException(query.catalogueId))
-    }
-    //endregion
+		return if (possibleCatalogue.isPresent) CommandResponse(StatusCode.OK, possibleCatalogue.get())
+		else exceptionLogger.logException(CatalogueNotFoundException(query.catalogueId))
+	}
+	//endregion
 
-    //region Event Handlers
-    /**
-     * Saves a restored catalogue.
-     */
-    @EventHandler
-    fun onCatalogueRestored(event: EntityRestoredEvent) {
-        if (event.entityClass == Catalogue::class.java && event.entity is Catalogue) {
-            catalogues.save(event.entity)
-        }
-    }
-    //endregion
+	//region Event Handlers
+	/**
+	 * Saves a restored catalogue.
+	 */
+	@EventHandler
+	fun onCatalogueRestored(event: EntityRestoredEvent) {
+		if (event.entityClass == Catalogue::class.java && event.entity is Catalogue) {
+			catalogues.save(event.entity)
+		}
+	}
+	//endregion
 }
 
 //region Queries

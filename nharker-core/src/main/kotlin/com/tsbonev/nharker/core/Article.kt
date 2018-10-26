@@ -16,27 +16,31 @@ import java.time.LocalDateTime
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-@Indices(Index(value = "linkTitle", type = IndexType.NonUnique),
-        Index(value = "fullTitle", type = IndexType.Fulltext))
-data class Article(@Id override val id: String,
-                   val linkTitle: String,
-                   val fullTitle: String,
-                   override val creationDate: LocalDateTime,
-                   val catalogues: Set<String> = emptySet(),
-                   val properties: ArticleProperties = ArticleProperties(),
-                   val entries: OrderedReferenceMap = OrderedReferenceMap(),
-                   val links: ArticleLinks = ArticleLinks()) : Entity
+@Indices(
+	Index(value = "linkTitle", type = IndexType.NonUnique),
+	Index(value = "fullTitle", type = IndexType.Fulltext)
+)
+data class Article(
+	@Id override val id: String,
+	val linkTitle: String,
+	val fullTitle: String,
+	override val creationDate: LocalDateTime,
+	val catalogues: Set<String> = emptySet(),
+	val properties: ArticleProperties = ArticleProperties(),
+	val entries: OrderedReferenceMap = OrderedReferenceMap(),
+	val links: ArticleLinks = ArticleLinks()
+) : Entity
 
 /**
  * Converts a full text title to a lowercase, dash-concatenated string.
  */
 fun String.toLinkTitle(): String {
-    return this.toLowerCase()
-            .replace("\\s+".toRegex(), "-")
-            .replace("\'", "")
-            .replace(":", "")
-            .replace(",", "")
-            .replace(".", "")
+	return this.toLowerCase()
+		.replace("\\s+".toRegex(), "-")
+		.replace("\'", "")
+		.replace(":", "")
+		.replace(",", "")
+		.replace(".", "")
 }
 
 /**

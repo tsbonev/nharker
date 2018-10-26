@@ -12,60 +12,61 @@ import org.dizitart.no2.NitriteCollection
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class NitriteArticleSynonymProvider(private val nitriteDb: Nitrite,
-                                    private val collectionName: String = "Article_synonyms",
-                                    private val globalMapId: String = "Global_synonym_map")
-    : ArticleSynonymProvider {
+class NitriteArticleSynonymProvider(
+	private val nitriteDb: Nitrite,
+	private val collectionName: String = "Article_synonyms",
+	private val globalMapId: String = "Global_synonym_map"
+) : ArticleSynonymProvider {
 
-    private val coll: NitriteCollection
-        get() = nitriteDb.getCollection(collectionName)
+	private val coll: NitriteCollection
+		get() = nitriteDb.getCollection(collectionName)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getSynonymMap(): Map<String, String> {
-        val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
-                ?: updateOrCreateMap(mutableMapOf())
+	@Suppress("UNCHECKED_CAST")
+	override fun getSynonymMap(): Map<String, String> {
+		val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
+			?: updateOrCreateMap(mutableMapOf())
 
-        return mapDocument["synonymMap"] as Map<String, String>
-    }
+		return mapDocument["synonymMap"] as Map<String, String>
+	}
 
-    override fun addSynonym(synonym: String, article: Article): String {
-        val map = getSynonymMap().toMutableMap()
+	override fun addSynonym(synonym: String, article: Article): String {
+		val map = getSynonymMap().toMutableMap()
 
-        if (map.containsKey(synonym)) throw SynonymAlreadyTakenException(synonym)
+		if (map.containsKey(synonym)) throw SynonymAlreadyTakenException(synonym)
 
-        map[synonym] = article.id
+		map[synonym] = article.id
 
-        updateOrCreateMap(map)
-        return synonym
-    }
+		updateOrCreateMap(map)
+		return synonym
+	}
 
-    override fun removeSynonym(synonym: String): Pair<String, String> {
-        val map = getSynonymMap().toMutableMap()
+	override fun removeSynonym(synonym: String): Pair<String, String> {
+		val map = getSynonymMap().toMutableMap()
 
-        if (!map.containsKey(synonym)) throw SynonymNotFoundException(synonym)
+		if (!map.containsKey(synonym)) throw SynonymNotFoundException(synonym)
 
-        val articleId = map[synonym]!!
+		val articleId = map[synonym]!!
 
-        map.remove(synonym)
+		map.remove(synonym)
 
-        updateOrCreateMap(map)
-        return synonym to articleId
-    }
+		updateOrCreateMap(map)
+		return synonym to articleId
+	}
 
-    /**
-     * Updates or creates a document object with the global map id
-     * and a given map as a value.
-     *
-     * @param synonymMap The map whose ids to save.
-     * @return A Document of the map.
-     */
-    private fun updateOrCreateMap(synonymMap: Map<String, String>): Document {
-        val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
-                ?: Document.createDocument("globalId", globalMapId)
+	/**
+	 * Updates or creates a document object with the global map id
+	 * and a given map as a value.
+	 *
+	 * @param synonymMap The map whose ids to save.
+	 * @return A Document of the map.
+	 */
+	private fun updateOrCreateMap(synonymMap: Map<String, String>): Document {
+		val mapDocument = coll.find("globalId" eq globalMapId).firstOrNull()
+			?: Document.createDocument("globalId", globalMapId)
 
-        mapDocument["synonymMap"] = synonymMap
+		mapDocument["synonymMap"] = synonymMap
 
-        coll.update(mapDocument, true)
-        return mapDocument
-    }
+		coll.update(mapDocument, true)
+		return mapDocument
+	}
 }

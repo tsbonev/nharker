@@ -21,19 +21,19 @@ import org.koin.standalone.StandAloneContext.startKoin
 
 fun Application.main() {
 
-    install(DefaultHeaders)
-    install(CallLogging)
+	install(DefaultHeaders)
+	install(CallLogging)
 
-    routing {
-        get("/hello") {
-            call.respondText("Hello, world!", ContentType.Text.Plain)
-        }
-    }
+	routing {
+		get("/hello") {
+			call.respondText("Hello, world!", ContentType.Text.Plain)
+		}
+	}
 }
 
 fun main(args: Array<String>) {
-    // Start Koin
-    startKoin(listOf(fakeNitrite))
-    // Start Ktor
-    embeddedServer(Netty, commandLineEnvironment(args)).start(true)
+	// Start Koin
+	startKoin(listOf(fakeNitrite))
+	// Start Ktor
+	embeddedServer(Netty, commandLineEnvironment(args)).start(true)
 }

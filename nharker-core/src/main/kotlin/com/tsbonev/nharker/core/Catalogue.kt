@@ -13,13 +13,17 @@ import java.time.LocalDateTime
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-@Indices(Index(value = "parentId", type = IndexType.NonUnique),
-        Index(value = "title", type = IndexType.Unique))
-data class Catalogue(@Id override val id: String,
-                     val title: String,
-                     override val creationDate: LocalDateTime,
-                     val children: OrderedReferenceMap = OrderedReferenceMap(),
-                     val parentId: String? = null) : Entity
+@Indices(
+	Index(value = "parentId", type = IndexType.NonUnique),
+	Index(value = "title", type = IndexType.Unique)
+)
+data class Catalogue(
+	@Id override val id: String,
+	val title: String,
+	override val creationDate: LocalDateTime,
+	val children: OrderedReferenceMap = OrderedReferenceMap(),
+	val parentId: String? = null
+) : Entity
 
 class CatalogueNotFoundException(val catalogueId: String) : Throwable()
 class CatalogueTitleTakenException(val catalogueTitle: String) : Throwable()

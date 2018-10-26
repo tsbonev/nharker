@@ -18,80 +18,84 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticleSynonymProviderTest {
-    private val db = nitrite { }
+	private val db = nitrite { }
 
-    private val globalMapId = "Test_synonym_map_id"
-    private val mapCollectionName = "Test_article_synonyms"
+	private val globalMapId = "Test_synonym_map_id"
+	private val mapCollectionName = "Test_article_synonyms"
 
-    private val synonymMapProvider = NitriteArticleSynonymProvider(
-            db,
-            mapCollectionName,
-            globalMapId
-    )
+	private val synonymMapProvider = NitriteArticleSynonymProvider(
+		db,
+		mapCollectionName,
+		globalMapId
+	)
 
-    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+	private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
 
-    private val article = Article(
-            "::article-id::",
-            "article-title",
-            "Article title",
-            date
-    )
+	private val article = Article(
+		"::article-id::",
+		"article-title",
+		"Article title",
+		date
+	)
 
-    @Suppress("UNCHECKED_CAST")
-    private val presavedMap: Map<String, String>
-        get() = db.getCollection(mapCollectionName)
-                .find("globalId" eq globalMapId)
-                .first()["synonymMap"] as Map<String, String>
+	@Suppress("UNCHECKED_CAST")
+	private val presavedMap: Map<String, String>
+		get() = db.getCollection(mapCollectionName)
+			.find("globalId" eq globalMapId)
+			.first()["synonymMap"] as Map<String, String>
 
-    private val synonymMap = mapOf("::presaved-synonym::" to "::article-id::")
+	private val synonymMap = mapOf("::presaved-synonym::" to "::article-id::")
 
-    @Before
-    fun setUp() {
-        val mapDocument = Document.createDocument("globalId", globalMapId)
-        mapDocument["synonymMap"] = synonymMap
-        db.getCollection(mapCollectionName).insert(mapDocument)
-    }
+	@Before
+	fun setUp() {
+		val mapDocument = Document.createDocument("globalId", globalMapId)
+		mapDocument["synonymMap"] = synonymMap
+		db.getCollection(mapCollectionName).insert(mapDocument)
+	}
 
-    @Test
-    fun `Retrieves synonym map`() {
-        val synonymMap = synonymMapProvider.getSynonymMap()
+	@Test
+	fun `Retrieves synonym map`() {
+		val synonymMap = synonymMapProvider.getSynonymMap()
 
-        assertThat(synonymMap, Is(synonymMap))
-    }
+		assertThat(synonymMap, Is(synonymMap))
+	}
 
-    @Test
-    fun `Retrieving synonym map for the first time creates it`() {
-        db.getCollection(mapCollectionName).remove("globalId" eq globalMapId)
+	@Test
+	fun `Retrieving synonym map for the first time creates it`() {
+		db.getCollection(mapCollectionName).remove("globalId" eq globalMapId)
 
-        val synonymMap = synonymMapProvider.getSynonymMap()
+		val synonymMap = synonymMapProvider.getSynonymMap()
 
-        assertThat(synonymMap, Is(emptyMap()))
-    }
+		assertThat(synonymMap, Is(emptyMap()))
+	}
 
-    @Test
-    fun `Adds synonym to map`() {
-        val synonym = synonymMapProvider.addSynonym("::synonym::", article)
+	@Test
+	fun `Adds synonym to map`() {
+		val synonym = synonymMapProvider.addSynonym("::synonym::", article)
 
-        assertThat(presavedMap, Is(synonymMap.plus(
-                synonym to article.id
-        )))
-    }
+		assertThat(
+			presavedMap, Is(
+				synonymMap.plus(
+					synonym to article.id
+				)
+			)
+		)
+	}
 
-    @Test(expected = SynonymAlreadyTakenException::class)
-    fun `Adding existing synonym throws exception`() {
-        synonymMapProvider.addSynonym("::presaved-synonym::", article)
-    }
+	@Test(expected = SynonymAlreadyTakenException::class)
+	fun `Adding existing synonym throws exception`() {
+		synonymMapProvider.addSynonym("::presaved-synonym::", article)
+	}
 
-    @Test
-    fun `Removes synonym from map`() {
-        synonymMapProvider.removeSynonym("::presaved-synonym::")
+	@Test
+	fun `Removes synonym from map`() {
+		synonymMapProvider.removeSynonym("::presaved-synonym::")
 
-        assertThat(presavedMap, Is(emptyMap()))
-    }
+		assertThat(presavedMap, Is(emptyMap()))
+	}
 
-    @Test(expected = SynonymNotFoundException::class)
-    fun `Removing non-existing synonym throws exception`() {
-        synonymMapProvider.removeSynonym("::non-existing-synonym::")
-    }
+	@Test(expected = SynonymNotFoundException::class)
+	fun `Removing non-existing synonym throws exception`() {
+		synonymMapProvider.removeSynonym("::non-existing-synonym::")
+	}
 }

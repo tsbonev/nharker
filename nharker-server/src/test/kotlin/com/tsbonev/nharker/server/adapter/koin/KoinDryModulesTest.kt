@@ -10,13 +10,13 @@ import org.koin.test.checkModules
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class KoinDryModulesTest : KoinTest {
-    @After
-    fun cleanUp() {
-        stopKoin()
-    }
+	@After
+	fun cleanUp() {
+		stopKoin()
+	}
 
-    @Test
-    fun `Checks Koin modules`() {
-        checkModules(listOf(fakeNitrite))
-    }
+	@Test
+	fun `Checks Koin modules`() {
+		checkModules(listOf(fakeNitrite))
+	}
 }

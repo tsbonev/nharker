@@ -17,23 +17,23 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EndToEndAppTest : AutoCloseKoinTest() {
-    @Before
-    fun setUp() {
-        startKoin(listOf(fakeNitrite))
-    }
+	@Before
+	fun setUp() {
+		startKoin(listOf(fakeNitrite))
+	}
 
-    @Test
-    fun `Hello route returns ktor & koin`() = withTestApplication(Application::main) {
-        with(handleRequest(HttpMethod.Get, "/hello")) {
-            assertThat(response.status(), Is(HttpStatusCode.OK))
-            assertThat(response.content, Is("Hello, world!"))
-        }
-    }
+	@Test
+	fun `Hello route returns ktor & koin`() = withTestApplication(Application::main) {
+		with(handleRequest(HttpMethod.Get, "/hello")) {
+			assertThat(response.status(), Is(HttpStatusCode.OK))
+			assertThat(response.content, Is("Hello, world!"))
+		}
+	}
 
-    @Test
-    fun `Route is not found`() = withTestApplication(Application::main) {
-        with(handleRequest(HttpMethod.Get, "/index.html")) {
-            assertThat(requestHandled, Is(false))
-        }
-    }
+	@Test
+	fun `Route is not found`() = withTestApplication(Application::main) {
+		with(handleRequest(HttpMethod.Get, "/index.html")) {
+			assertThat(requestHandled, Is(false))
+		}
+	}
 }

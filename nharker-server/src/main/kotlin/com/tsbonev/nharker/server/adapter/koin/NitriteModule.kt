@@ -13,5 +13,5 @@ import org.koin.dsl.module.module
  * Fake nitrite db that gets stored in memory.
  */
 val fakeNitrite = module {
-    single { nitrite {} }
+	single { nitrite {} }
 }

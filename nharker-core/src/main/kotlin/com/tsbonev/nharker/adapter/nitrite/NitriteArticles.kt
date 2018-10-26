@@ -28,220 +28,222 @@ import java.util.Optional
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-class NitriteArticles(private val nitriteDb: Nitrite,
-                      private val collectionName: String = "Articles",
-                      private val entryLinker: EntryLinker,
-                      private val clock: Clock = Clock.systemUTC())
-    : Articles, Paginator<Article> {
+class NitriteArticles(
+	private val nitriteDb: Nitrite,
+	private val collectionName: String = "Articles",
+	private val entryLinker: EntryLinker,
+	private val clock: Clock = Clock.systemUTC()
+) : Articles, Paginator<Article> {
 
-    private val repo: ObjectRepository<Article>
-        get() = nitriteDb.getRepository(collectionName, Article::class.java)
+	private val repo: ObjectRepository<Article>
+		get() = nitriteDb.getRepository(collectionName, Article::class.java)
 
-    private val paginator: Paginator<Article> by lazy {
-        NitritePaginator(repo)
-    }
+	private val paginator: Paginator<Article> by lazy {
+		NitritePaginator(repo)
+	}
 
-    override fun create(articleRequest: ArticleRequest): Article {
-        val article = Article(
-                NitriteId.newId().toString(),
-                articleRequest.fullTitle.toLinkTitle(),
-                articleRequest.fullTitle,
-                LocalDateTime.now(clock)
-        )
+	override fun create(articleRequest: ArticleRequest): Article {
+		val article = Article(
+			NitriteId.newId().toString(),
+			articleRequest.fullTitle.toLinkTitle(),
+			articleRequest.fullTitle,
+			LocalDateTime.now(clock)
+		)
 
-        if (repo.find(Article::linkTitle eq article.linkTitle).any())
-            throw ArticleTitleTakenException(articleRequest.fullTitle)
+		if (repo.find(Article::linkTitle eq article.linkTitle).any())
+			throw ArticleTitleTakenException(articleRequest.fullTitle)
 
-        repo.insert(article)
-        return article
-    }
+		repo.insert(article)
+		return article
+	}
 
-    override fun save(article: Article): Article {
-        repo.update(article, true)
-        return article
-    }
+	override fun save(article: Article): Article {
+		repo.update(article, true)
+		return article
+	}
 
-    override fun changeTitle(articleId: String, newTitle: String): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun changeTitle(articleId: String, newTitle: String): Article {
+		val article = findByIdOrThrow(articleId)
 
-        if (repo.find(Article::fullTitle text newTitle).toList()
-                        .filter { it.fullTitle == newTitle }
-                        .any()) throw ArticleTitleTakenException(newTitle)
+		if (repo.find(Article::fullTitle text newTitle).toList()
+				.filter { it.fullTitle == newTitle }
+				.any()
+		) throw ArticleTitleTakenException(newTitle)
 
-        val updatedArticle = article.copy(fullTitle = newTitle, linkTitle = newTitle.toLinkTitle())
+		val updatedArticle = article.copy(fullTitle = newTitle, linkTitle = newTitle.toLinkTitle())
 
-        repo.update(updatedArticle)
-        return updatedArticle
-    }
+		repo.update(updatedArticle)
+		return updatedArticle
+	}
 
-    override fun getAll(order: SortBy): List<Article> {
-        return paginator.getAll(order)
-    }
+	override fun getAll(order: SortBy): List<Article> {
+		return paginator.getAll(order)
+	}
 
-    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Article> {
-        return paginator.getPaginated(order, page, pageSize)
-    }
+	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Article> {
+		return paginator.getPaginated(order, page, pageSize)
+	}
 
-    override fun getById(articleId: String): Optional<Article> {
-        val article = repo.find(Article::id eq articleId).firstOrNull()
-                ?: return Optional.empty()
+	override fun getById(articleId: String): Optional<Article> {
+		val article = repo.find(Article::id eq articleId).firstOrNull()
+			?: return Optional.empty()
 
-        return Optional.of(article)
-    }
+		return Optional.of(article)
+	}
 
-    override fun getByCatalogue(catalogue: Catalogue): List<Article> {
-        return repo.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
-    }
+	override fun getByCatalogue(catalogue: Catalogue): List<Article> {
+		return repo.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
+	}
 
-    override fun getByLinkTitle(linkTitle: String): Optional<Article> {
-        val article = repo.find(Article::linkTitle eq linkTitle).firstOrNull()
-                ?: return Optional.empty()
+	override fun getByLinkTitle(linkTitle: String): Optional<Article> {
+		val article = repo.find(Article::linkTitle eq linkTitle).firstOrNull()
+			?: return Optional.empty()
 
-        return Optional.of(article)
-    }
+		return Optional.of(article)
+	}
 
-    override fun deleteById(articleId: String): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun deleteById(articleId: String): Article {
+		val article = findByIdOrThrow(articleId)
 
-        repo.remove(article)
-        return article
-    }
+		repo.remove(article)
+		return article
+	}
 
-    override fun addCatalogue(articleId: String, catalogue: Catalogue): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun addCatalogue(articleId: String, catalogue: Catalogue): Article {
+		val article = findByIdOrThrow(articleId)
 
-        val updatedArticle = article.copy(catalogues = article.catalogues.plus(catalogue.id))
+		val updatedArticle = article.copy(catalogues = article.catalogues.plus(catalogue.id))
 
-        repo.update(updatedArticle)
-        return updatedArticle
-    }
+		repo.update(updatedArticle)
+		return updatedArticle
+	}
 
-    override fun removeCatalogue(articleId: String, catalogue: Catalogue): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun removeCatalogue(articleId: String, catalogue: Catalogue): Article {
+		val article = findByIdOrThrow(articleId)
 
-        val updatedArticle = article.copy(catalogues = article.catalogues.minus(catalogue.id))
+		val updatedArticle = article.copy(catalogues = article.catalogues.minus(catalogue.id))
 
-        repo.update(updatedArticle)
-        return updatedArticle
-    }
+		repo.update(updatedArticle)
+		return updatedArticle
+	}
 
-    override fun appendEntry(articleId: String, entry: Entry): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun appendEntry(articleId: String, entry: Entry): Article {
+		val article = findByIdOrThrow(articleId)
 
-        if (article.entries.raw().containsKey(entry.id))
-            throw EntryAlreadyInArticleException(entry.id, articleId)
+		if (article.entries.raw().containsKey(entry.id))
+			throw EntryAlreadyInArticleException(entry.id, articleId)
 
-        handleArticleLinks(article, entry, true)
+		handleArticleLinks(article, entry, true)
 
-        article.entries.append(entry.id)
+		article.entries.append(entry.id)
 
-        repo.update(article)
-        return article
-    }
+		repo.update(article)
+		return article
+	}
 
-    override fun removeEntry(articleId: String, entry: Entry): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun removeEntry(articleId: String, entry: Entry): Article {
+		val article = findByIdOrThrow(articleId)
 
-        if (!article.entries.contains(entry.id))
-            throw EntryNotInArticleException(entry.id, articleId)
+		if (!article.entries.contains(entry.id))
+			throw EntryNotInArticleException(entry.id, articleId)
 
-        handleArticleLinks(article, entry, false)
+		handleArticleLinks(article, entry, false)
 
-        article.entries.subtract(entry.id)
+		article.entries.subtract(entry.id)
 
-        repo.update(article)
-        return article
-    }
+		repo.update(article)
+		return article
+	}
 
-    override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun switchEntries(articleId: String, first: Entry, second: Entry): Article {
+		val article = findByIdOrThrow(articleId)
 
-        return try {
-            article.entries.switch(first.id, second.id)
+		return try {
+			article.entries.switch(first.id, second.id)
 
-            repo.update(article)
-            article
-        } catch (ex: ElementNotInMapException) {
-            throw EntryNotInArticleException(ex.reference, articleId)
-        }
-    }
+			repo.update(article)
+			article
+		} catch (ex: ElementNotInMapException) {
+			throw EntryNotInArticleException(ex.reference, articleId)
+		}
+	}
 
-    override fun attachProperty(articleId: String, propertyName: String, propertyEntry: Entry): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun attachProperty(articleId: String, propertyName: String, propertyEntry: Entry): Article {
+		val article = findByIdOrThrow(articleId)
 
-        article.properties.attachProperty(propertyName, propertyEntry.id)
+		article.properties.attachProperty(propertyName, propertyEntry.id)
 
-        repo.update(article)
-        return article
-    }
+		repo.update(article)
+		return article
+	}
 
-    override fun detachProperty(articleId: String, propertyName: String): Article {
-        val article = findByIdOrThrow(articleId)
+	override fun detachProperty(articleId: String, propertyName: String): Article {
+		val article = findByIdOrThrow(articleId)
 
-        article.properties.detachProperty(propertyName)
+		article.properties.detachProperty(propertyName)
 
-        repo.update(article)
-        return article
-    }
+		repo.update(article)
+		return article
+	}
 
-    override fun searchByFullTitle(searchString: String): List<Article> {
-        return repo.find(Article::fullTitle text searchString).toList()
-    }
+	override fun searchByFullTitle(searchString: String): List<Article> {
+		return repo.find(Article::fullTitle text searchString).toList()
+	}
 
 
-    /**
-     * Finds an article by id or throws an exception.
-     *
-     * @param articleId The id to find.
-     * @return The found Article.
-     *
-     * @exception ArticleNotFoundException thrown when the article is not found.
-     */
-    private fun findByIdOrThrow(articleId: String): Article {
-        return repo.find(Article::id eq articleId).firstOrNull()
-                ?: throw ArticleNotFoundException(articleId)
-    }
+	/**
+	 * Finds an article by id or throws an exception.
+	 *
+	 * @param articleId The id to find.
+	 * @return The found Article.
+	 *
+	 * @exception ArticleNotFoundException thrown when the article is not found.
+	 */
+	private fun findByIdOrThrow(articleId: String): Article {
+		return repo.find(Article::id eq articleId).firstOrNull()
+			?: throw ArticleNotFoundException(articleId)
+	}
 
-    /**
-     * Removes or adds a link to the article's links depending on the passed
-     * boolean.
-     *
-     * @param article The article to modify.
-     * @param entry The entry whose links are up for modification.
-     * @param adding Whether or not the links should be added or removed.
-     */
-    private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean) {
-        val entryLinks = entryLinker.findArticleLinks(
-                entry,
-                getLinkTitlesToIds()
-        )
+	/**
+	 * Removes or adds a link to the article's links depending on the passed
+	 * boolean.
+	 *
+	 * @param article The article to modify.
+	 * @param entry The entry whose links are up for modification.
+	 * @param adding Whether or not the links should be added or removed.
+	 */
+	private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean) {
+		val entryLinks = entryLinker.findArticleLinks(
+			entry,
+			getLinkTitlesToIds()
+		)
 
-        if (adding) {
-            entryLinks.forEach {
-                article.links.addLink(it)
-            }
-        } else {
-            entryLinks.forEach {
-                article.links.removeLink(it)
-            }
-        }
-    }
+		if (adding) {
+			entryLinks.forEach {
+				article.links.addLink(it)
+			}
+		} else {
+			entryLinks.forEach {
+				article.links.removeLink(it)
+			}
+		}
+	}
 
-    /**
-     * Returns a map of all articles' link titles mapped to their ids.
-     *
-     * @return Map of article link titles mapped to their ids.
-     */
-    private fun getLinkTitlesToIds(): Map<String, String> {
-        val projectedArticleTitles = repo
-                .find()
-                .project(ArticleLinkTitle::class.java)
-                .toList()
+	/**
+	 * Returns a map of all articles' link titles mapped to their ids.
+	 *
+	 * @return Map of article link titles mapped to their ids.
+	 */
+	private fun getLinkTitlesToIds(): Map<String, String> {
+		val projectedArticleTitles = repo
+			.find()
+			.project(ArticleLinkTitle::class.java)
+			.toList()
 
-        val articleTitles = mutableMapOf<String, String>()
+		val articleTitles = mutableMapOf<String, String>()
 
-        projectedArticleTitles.forEach { articleTitles[it.linkTitle] = it.id }
+		projectedArticleTitles.forEach { articleTitles[it.linkTitle] = it.id }
 
-        return articleTitles
-    }
+		return articleTitles
+	}
 }

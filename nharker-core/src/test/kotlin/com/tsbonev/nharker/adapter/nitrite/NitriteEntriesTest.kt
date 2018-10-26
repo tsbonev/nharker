@@ -20,153 +20,153 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteEntriesTest {
-    private val db = nitrite { }
+	private val db = nitrite { }
 
-    private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
-    private val stubClock = StubClock()
+	private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
+	private val stubClock = StubClock()
 
-    private val collectionName = "Test_entries"
+	private val collectionName = "Test_entries"
 
-    private val entryRequest = EntryRequest(
-            "::content::",
-            "::article-id::",
-            mapOf("::phrase::" to "::article-id::")
-    )
+	private val entryRequest = EntryRequest(
+		"::content::",
+		"::article-id::",
+		mapOf("::phrase::" to "::article-id::")
+	)
 
-    private val entry = Entry(
-            "::entry-id::",
-            date,
-            "::article-id::",
-            "::content::",
-            mapOf("::phrase::" to "::article-id::")
-    )
+	private val entry = Entry(
+		"::entry-id::",
+		date,
+		"::article-id::",
+		"::content::",
+		mapOf("::phrase::" to "::article-id::")
+	)
 
-    private val article = Article(
-            "::article-id::",
-            "article-title",
-            "Article title",
-            date
-    )
+	private val article = Article(
+		"::article-id::",
+		"article-title",
+		"Article title",
+		date
+	)
 
-    private val presavedEntry: Entry
-        get() = db.getRepository(collectionName, Entry::class.java)
-                .find(Entry::id eq entry.id).first()
+	private val presavedEntry: Entry
+		get() = db.getRepository(collectionName, Entry::class.java)
+			.find(Entry::id eq entry.id).first()
 
-    private val entries = NitriteEntries(db, collectionName, stubClock)
+	private val entries = NitriteEntries(db, collectionName, stubClock)
 
-    @Before
-    fun setUp() {
-        db.getRepository(collectionName, Entry::class.java).insert(entry)
-    }
+	@Before
+	fun setUp() {
+		db.getRepository(collectionName, Entry::class.java).insert(entry)
+	}
 
-    @Test
-    fun `Creating entry returns it`() {
-        assertThat(entries.create(entryRequest).copy(id = "::entry-id::"), Is(entry))
-    }
+	@Test
+	fun `Creating entry returns it`() {
+		assertThat(entries.create(entryRequest).copy(id = "::entry-id::"), Is(entry))
+	}
 
-    @Test
-    fun `Saving entry returns it`() {
-        val savedEntry = entries.save(entry)
+	@Test
+	fun `Saving entry returns it`() {
+		val savedEntry = entries.save(entry)
 
-        assertThat(presavedEntry, Is(savedEntry))
-    }
+		assertThat(presavedEntry, Is(savedEntry))
+	}
 
-    @Test
-    fun `Retrieves entry by id`() {
-        val retrievedEntry = entries.getById("::entry-id::")
+	@Test
+	fun `Retrieves entry by id`() {
+		val retrievedEntry = entries.getById("::entry-id::")
 
-        assertThat(retrievedEntry.isPresent, Is(true))
-        assertThat(retrievedEntry.get(), Is(entry))
-    }
+		assertThat(retrievedEntry.isPresent, Is(true))
+		assertThat(retrievedEntry.get(), Is(entry))
+	}
 
-    @Test
-    fun `Returns empty when an entry is not found by id`() {
-        val retrievedEntry = entries.getById("::fake-entry-id::")
+	@Test
+	fun `Returns empty when an entry is not found by id`() {
+		val retrievedEntry = entries.getById("::fake-entry-id::")
 
-        assertThat(retrievedEntry.isPresent, Is(false))
-    }
+		assertThat(retrievedEntry.isPresent, Is(false))
+	}
 
-    @Test
-    fun `Retrieves all entries`() {
-        assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
-    }
+	@Test
+	fun `Retrieves all entries`() {
+		assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
+	}
 
-    @Test
-    fun `Retrieves all entries, paginated`() {
-        assertThat(entries.getPaginated(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
-        assertThat(entries.getPaginated(SortBy.DESCENDING, 2, 2), Is(emptyList()))
-    }
+	@Test
+	fun `Retrieves all entries, paginated`() {
+		assertThat(entries.getPaginated(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
+		assertThat(entries.getPaginated(SortBy.DESCENDING, 2, 2), Is(emptyList()))
+	}
 
-    @Test
-    fun `Updates entry content`() {
-        val content = "::new-content::"
+	@Test
+	fun `Updates entry content`() {
+		val content = "::new-content::"
 
-        entries.updateContent(entry.id, content)
+		entries.updateContent(entry.id, content)
 
-        assertThat(presavedEntry, Is(entry.copy(content = content)))
-    }
+		assertThat(presavedEntry, Is(entry.copy(content = content)))
+	}
 
-    @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existing entry's content throws exception`() {
-        entries.updateContent("::fake-entry-id::", "::content::")
-    }
+	@Test(expected = EntryNotFoundException::class)
+	fun `Updating a non-existing entry's content throws exception`() {
+		entries.updateContent("::fake-entry-id::", "::content::")
+	}
 
-    @Test
-    fun `Updates entry links`() {
-        val links = mapOf("::new-link::" to "::new-article::")
+	@Test
+	fun `Updates entry links`() {
+		val links = mapOf("::new-link::" to "::new-article::")
 
-        entries.updateLinks(entry.id, links)
+		entries.updateLinks(entry.id, links)
 
-        assertThat(presavedEntry, Is(entry.copy(links = links)))
-    }
+		assertThat(presavedEntry, Is(entry.copy(links = links)))
+	}
 
-    @Test(expected = EntryNotFoundException::class)
-    fun `Updating a non-existing entry's links throws exception`() {
-        entries.updateLinks("::fake-entry-id::", mapOf("::new-link::" to "::new-article::"))
-    }
+	@Test(expected = EntryNotFoundException::class)
+	fun `Updating a non-existing entry's links throws exception`() {
+		entries.updateLinks("::fake-entry-id::", mapOf("::new-link::" to "::new-article::"))
+	}
 
-    @Test
-    fun `Changes entry article`() {
-        val updatedEntry = entries.changeArticle(entry.id, article.copy("::new-article-id::"))
+	@Test
+	fun `Changes entry article`() {
+		val updatedEntry = entries.changeArticle(entry.id, article.copy("::new-article-id::"))
 
-        assertThat(presavedEntry, Is(entry.copy(articleId = "::new-article-id::")))
-        assertThat(presavedEntry, Is(updatedEntry))
-    }
+		assertThat(presavedEntry, Is(entry.copy(articleId = "::new-article-id::")))
+		assertThat(presavedEntry, Is(updatedEntry))
+	}
 
-    @Test(expected = EntryNotFoundException::class)
-    fun `Changing the article of a non-existing entry throws exception`() {
-        entries.changeArticle("::non-existing-entry::", article)
-    }
+	@Test(expected = EntryNotFoundException::class)
+	fun `Changing the article of a non-existing entry throws exception`() {
+		entries.changeArticle("::non-existing-entry::", article)
+	}
 
-    @Test
-    fun `Retrieves entries by content`() {
-        val firstEntry = entries.create(entryRequest.copy(content = "apples"))
-        val secondEntry = entries.create(entryRequest.copy(content = "apples and oranges"))
-        val thirdEntry = entries.create(entryRequest.copy(content = "only oranges"))
+	@Test
+	fun `Retrieves entries by content`() {
+		val firstEntry = entries.create(entryRequest.copy(content = "apples"))
+		val secondEntry = entries.create(entryRequest.copy(content = "apples and oranges"))
+		val thirdEntry = entries.create(entryRequest.copy(content = "only oranges"))
 
-        val retrievedByApples = entries.getByContent("apples")
-        val retrievedByOranges = entries.getByContent("oranges")
+		val retrievedByApples = entries.getByContent("apples")
+		val retrievedByOranges = entries.getByContent("oranges")
 
-        val appleList = listOf(firstEntry, secondEntry).sortedBy { it.content }
-        val orangeList = listOf(secondEntry, thirdEntry).sortedBy { it.content }
+		val appleList = listOf(firstEntry, secondEntry).sortedBy { it.content }
+		val orangeList = listOf(secondEntry, thirdEntry).sortedBy { it.content }
 
-        assertThat(retrievedByApples.size, Is(2))
-        assertThat(retrievedByApples.sortedBy { it.content }, Is(appleList))
+		assertThat(retrievedByApples.size, Is(2))
+		assertThat(retrievedByApples.sortedBy { it.content }, Is(appleList))
 
-        assertThat(retrievedByOranges.size, Is(2))
-        assertThat(retrievedByOranges.sortedBy { it.content }, Is(orangeList))
-    }
+		assertThat(retrievedByOranges.size, Is(2))
+		assertThat(retrievedByOranges.sortedBy { it.content }, Is(orangeList))
+	}
 
-    @Test
-    fun `Deleting an entry returns it`() {
-        val deletedEntry = entries.delete(entry.id)
+	@Test
+	fun `Deleting an entry returns it`() {
+		val deletedEntry = entries.delete(entry.id)
 
-        assertThat(entries.getById(entry.id).isPresent, Is(false))
-        assertThat(deletedEntry, Is(entry))
-    }
+		assertThat(entries.getById(entry.id).isPresent, Is(false))
+		assertThat(deletedEntry, Is(entry))
+	}
 
-    @Test(expected = EntryNotFoundException::class)
-    fun `Deleting non-existing entry throws exception`() {
-        entries.delete("::fake-entry-id::")
-    }
+	@Test(expected = EntryNotFoundException::class)
+	fun `Deleting non-existing entry throws exception`() {
+		entries.delete("::fake-entry-id::")
+	}
 }

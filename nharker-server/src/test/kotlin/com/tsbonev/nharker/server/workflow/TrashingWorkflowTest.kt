@@ -29,145 +29,149 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class TrashingWorkflowTest {
-    @Rule
-    @JvmField
-    val context: JUnitRuleMockery = JUnitRuleMockery()
+	@Rule
+	@JvmField
+	val context: JUnitRuleMockery = JUnitRuleMockery()
 
-    private val exceptionLogger = ExceptionLogger()
+	private val exceptionLogger = ExceptionLogger()
 
-    private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
+	private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
 
-    private val entry = Entry(
-            "::entry-id::",
-            date,
-            "::article-id::",
-            "::content::"
-    )
+	private val entry = Entry(
+		"::entry-id::",
+		date,
+		"::article-id::",
+		"::content::"
+	)
 
-    private val article = Article(
-            "::article-id::",
-            "link-title",
-            "Full title",
-            date
-    )
+	private val article = Article(
+		"::article-id::",
+		"link-title",
+		"Full title",
+		date
+	)
 
-    private val catalogue = Catalogue(
-            "::catalogue-id::",
-            "::catalogue-title::",
-            date
-    )
+	private val catalogue = Catalogue(
+		"::catalogue-id::",
+		"::catalogue-title::",
+		date
+	)
 
-    private val eventBus = context.mock(EventBus::class.java)
+	private val eventBus = context.mock(EventBus::class.java)
 
-    private val trashCollector = context.mock(TrashCollector::class.java)
+	private val trashCollector = context.mock(TrashCollector::class.java)
 
-    private val trashingWorkflow = TrashingWorkflow(eventBus, trashCollector, exceptionLogger)
+	private val trashingWorkflow = TrashingWorkflow(eventBus, trashCollector, exceptionLogger)
 
-    @Test
-    fun `Trashes entities`() {
-        val trashedEntityId = "::trashed-entity-id::"
-        val trashedArticleId = "::trashed-article-id::"
-        val trashedCatalogueId = "::trashed-catalogue-id::"
+	@Test
+	fun `Trashes entities`() {
+		val trashedEntityId = "::trashed-entity-id::"
+		val trashedArticleId = "::trashed-article-id::"
+		val trashedCatalogueId = "::trashed-catalogue-id::"
 
-        context.expecting {
-            oneOf(trashCollector).trash(entry)
-            will(AbstractExpectations.returnValue(trashedEntityId))
+		context.expecting {
+			oneOf(trashCollector).trash(entry)
+			will(AbstractExpectations.returnValue(trashedEntityId))
 
-            oneOf(trashCollector).trash(article)
-            will(AbstractExpectations.returnValue(trashedArticleId))
+			oneOf(trashCollector).trash(article)
+			will(AbstractExpectations.returnValue(trashedArticleId))
 
-            oneOf(trashCollector).trash(catalogue)
-            will(AbstractExpectations.returnValue(trashedCatalogueId))
-        }
+			oneOf(trashCollector).trash(catalogue)
+			will(AbstractExpectations.returnValue(trashedCatalogueId))
+		}
 
-        trashingWorkflow.onEntryDeleted(EntryDeletedEvent(entry))
-        trashingWorkflow.onArticleDeleted(ArticleDeletedEvent(article))
-        trashingWorkflow.onCatalogueDeleted(CatalogueDeletedEvent(catalogue))
-    }
+		trashingWorkflow.onEntryDeleted(EntryDeletedEvent(entry))
+		trashingWorkflow.onArticleDeleted(ArticleDeletedEvent(article))
+		trashingWorkflow.onCatalogueDeleted(CatalogueDeletedEvent(catalogue))
+	}
 
-    @Test
-    fun `Restores trashed entity`() {
-        context.expecting {
-            oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
-            will(returnValue(entry))
+	@Test
+	fun `Restores trashed entity`() {
+		context.expecting {
+			oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
+			will(returnValue(entry))
 
-            oneOf(eventBus).publish(EntityRestoredEvent(entry, Entry::class.java))
-        }
+			oneOf(eventBus).publish(EntityRestoredEvent(entry, Entry::class.java))
+		}
 
-        val response = trashingWorkflow.restoreEntity(
-                RestoreTrashedEntityCommand("::entity-id::", Entry::class.java))
+		val response = trashingWorkflow.restoreEntity(
+			RestoreTrashedEntityCommand("::entity-id::", Entry::class.java)
+		)
 
-        assertThat(response.statusCode, Is(StatusCode.OK))
-        assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as Entry, Is(entry))
-    }
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as Entry, Is(entry))
+	}
 
-    @Test
-    fun `Restoring non-existing entity returns not found`() {
-        context.expecting {
-            oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
-            will(throwException(EntityNotInTrashException("::entity-id::", Entry::class.java)))
-        }
+	@Test
+	fun `Restoring non-existing entity returns not found`() {
+		context.expecting {
+			oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
+			will(throwException(EntityNotInTrashException("::entity-id::", Entry::class.java)))
+		}
 
-        val response = trashingWorkflow.restoreEntity(
-                RestoreTrashedEntityCommand("::entity-id::", Entry::class.java))
+		val response = trashingWorkflow.restoreEntity(
+			RestoreTrashedEntityCommand("::entity-id::", Entry::class.java)
+		)
 
-        assertThat(response.statusCode, Is(StatusCode.NotFound))
-        assertThat(response.payload.isPresent, Is(false))
-    }
+		assertThat(response.statusCode, Is(StatusCode.NotFound))
+		assertThat(response.payload.isPresent, Is(false))
+	}
 
-    @Test
-    fun `Restoring entity with wrong class returns bad request`() {
-        context.expecting {
-            oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
-            will(throwException(EntityCannotBeCastException("::entity-id::", Entry::class.java)))
-        }
+	@Test
+	fun `Restoring entity with wrong class returns bad request`() {
+		context.expecting {
+			oneOf(trashCollector).restore("::entity-id::", Entry::class.java)
+			will(throwException(EntityCannotBeCastException("::entity-id::", Entry::class.java)))
+		}
 
-        val response = trashingWorkflow.restoreEntity(
-                RestoreTrashedEntityCommand("::entity-id::", Entry::class.java))
+		val response = trashingWorkflow.restoreEntity(
+			RestoreTrashedEntityCommand("::entity-id::", Entry::class.java)
+		)
 
-        assertThat(response.statusCode, Is(StatusCode.BadRequest))
-        assertThat(response.payload.isPresent, Is(false))
-    }
+		assertThat(response.statusCode, Is(StatusCode.BadRequest))
+		assertThat(response.payload.isPresent, Is(false))
+	}
 
-    @Test
-    fun `Clearing trash store returns cleared entities`() {
-        val entityList = listOf(entry, article, catalogue)
+	@Test
+	fun `Clearing trash store returns cleared entities`() {
+		val entityList = listOf(entry, article, catalogue)
 
-        context.expecting {
-            oneOf(trashCollector).view()
-            will(returnValue(entityList))
+		context.expecting {
+			oneOf(trashCollector).view()
+			will(returnValue(entityList))
 
-            oneOf(trashCollector).clear()
+			oneOf(trashCollector).clear()
 
-            oneOf(eventBus).publish(TrashStoreClearedEvent(entityList))
-        }
+			oneOf(eventBus).publish(TrashStoreClearedEvent(entityList))
+		}
 
-        val response = trashingWorkflow.clearTrashStore(ClearTrashStoreCommand())
+		val response = trashingWorkflow.clearTrashStore(ClearTrashStoreCommand())
 
-        assertThat(response.statusCode, Is(StatusCode.OK))
-        assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as List<Entity>, Is(entityList))
-    }
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as List<Entity>, Is(entityList))
+	}
 
-    @Test
-    fun `Retrieves trashed entities`() {
-        val entryList = listOf(entry)
+	@Test
+	fun `Retrieves trashed entities`() {
+		val entryList = listOf(entry)
 
-        context.expecting {
-            oneOf(trashCollector).view()
-            will(returnValue(entryList))
-        }
+		context.expecting {
+			oneOf(trashCollector).view()
+			will(returnValue(entryList))
+		}
 
-        val response = trashingWorkflow.viewTrashedEntities(
-                ViewTrashedEntitiesQuery(Entry::class.java))
+		val response = trashingWorkflow.viewTrashedEntities(
+			ViewTrashedEntitiesQuery(Entry::class.java)
+		)
 
-        assertThat(response.statusCode, Is(StatusCode.OK))
-        assertThat(response.payload.isPresent, Is(true))
-        assertThat(response.payload.get() as List<Entry>, Is(entryList))
-    }
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as List<Entry>, Is(entryList))
+	}
 
-    private fun Mockery.expecting(block: Expectations.() -> Unit) {
-        checking(Expectations().apply(block))
-    }
+	private fun Mockery.expecting(block: Expectations.() -> Unit) {
+		checking(Expectations().apply(block))
+	}
 }

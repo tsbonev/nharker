@@ -17,11 +17,11 @@ import org.dizitart.no2.Document
  * @return The converted document.
  */
 fun Entity.toDocument(): Document {
-    val document = Document()
-    document["entityId"] = this.id
-    document["json"] = Gson().toJson(this)
-    document["class"] = this::class.java.name
-    return document
+	val document = Document()
+	document["entityId"] = this.id
+	document["json"] = Gson().toJson(this)
+	document["class"] = this::class.java.name
+	return document
 }
 
 /**
@@ -31,6 +31,8 @@ fun Entity.toDocument(): Document {
  * @return The converted entity.
  */
 fun Document.toEntity(): Entity {
-    return Gson().fromJson(this["json"].toString(),
-            Class.forName(this["class"].toString())) as Entity
+	return Gson().fromJson(
+		this["json"].toString(),
+		Class.forName(this["class"].toString())
+	) as Entity
 }

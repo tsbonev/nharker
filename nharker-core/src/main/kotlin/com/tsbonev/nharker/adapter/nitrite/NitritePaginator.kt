@@ -11,24 +11,26 @@ import org.dizitart.no2.objects.ObjectRepository
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitritePaginator<T>(private val repo: ObjectRepository<T>) : Paginator<T> {
-    override fun getAll(order: SortBy): List<T> {
-        val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
-        else SortOrder.Descending
+	override fun getAll(order: SortBy): List<T> {
+		val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
+		else SortOrder.Descending
 
-        return repo.find(FindOptions.sort("creationDate", sortOrder)).toList()
-    }
+		return repo.find(FindOptions.sort("creationDate", sortOrder)).toList()
+	}
 
-    override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<T> {
-        val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
-        else SortOrder.Descending
+	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<T> {
+		val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
+		else SortOrder.Descending
 
-        if (page < 1 || pageSize < 0) throw PaginationException(page, pageSize)
+		if (page < 1 || pageSize < 0) throw PaginationException(page, pageSize)
 
-        val pageOffset = (page - 1) * pageSize
+		val pageOffset = (page - 1) * pageSize
 
-        if (repo.find().count() < pageOffset) return emptyList()
+		if (repo.find().count() < pageOffset) return emptyList()
 
-        return repo.find(FindOptions.sort("creationDate", sortOrder)
-                .thenLimit(pageOffset, pageSize)).toList()
-    }
+		return repo.find(
+			FindOptions.sort("creationDate", sortOrder)
+				.thenLimit(pageOffset, pageSize)
+		).toList()
+	}
 }

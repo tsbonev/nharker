@@ -17,12 +17,16 @@ typealias ArticleId = String
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
-@Indices(Index(value = "content", type = IndexType.Fulltext),
-        Index(value = "articleId", type = IndexType.NonUnique))
-data class Entry(@Id override val id: String,
-                 override val creationDate: LocalDateTime,
-                 val articleId: String,
-                 val content: String,
-                 val links: Map<Phrase, ArticleId> = emptyMap()) : Entity
+@Indices(
+	Index(value = "content", type = IndexType.Fulltext),
+	Index(value = "articleId", type = IndexType.NonUnique)
+)
+data class Entry(
+	@Id override val id: String,
+	override val creationDate: LocalDateTime,
+	val articleId: String,
+	val content: String,
+	val links: Map<Phrase, ArticleId> = emptyMap()
+) : Entity
 
 class EntryNotFoundException(val entryId: String) : Throwable()
