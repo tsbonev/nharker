@@ -79,7 +79,7 @@ class NitriteEntries(
 
 	override fun updateLinks(entryId: String, links: Map<String, String>): Entry {
 		val entry = findByIdOrThrow(entryId)
-		val updatedEntry = entry.copy(links = links)
+		val updatedEntry = entry.copy(explicitLinks = links)
 
 		repo.update(updatedEntry)
 		return updatedEntry

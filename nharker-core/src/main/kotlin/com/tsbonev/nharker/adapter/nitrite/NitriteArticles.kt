@@ -1,7 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleLinkTitle
 import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
@@ -10,7 +9,6 @@ import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
-import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SortBy
@@ -31,7 +29,6 @@ import java.util.Optional
 class NitriteArticles(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Articles",
-	private val entryLinker: EntryLinker,
 	private val clock: Clock = Clock.systemUTC()
 ) : Articles, Paginator<Article> {
 
@@ -133,8 +130,6 @@ class NitriteArticles(
 		if (article.entries.raw().containsKey(entry.id))
 			throw EntryAlreadyInArticleException(entry.id, articleId)
 
-		handleArticleLinks(article, entry, true)
-
 		article.entries.append(entry.id)
 
 		repo.update(article)
@@ -146,8 +141,6 @@ class NitriteArticles(
 
 		if (!article.entries.contains(entry.id))
 			throw EntryNotInArticleException(entry.id, articleId)
-
-		handleArticleLinks(article, entry, false)
 
 		article.entries.subtract(entry.id)
 
@@ -190,7 +183,6 @@ class NitriteArticles(
 		return repo.find(Article::fullTitle text searchString).toList()
 	}
 
-
 	/**
 	 * Finds an article by id or throws an exception.
 	 *
@@ -202,48 +194,5 @@ class NitriteArticles(
 	private fun findByIdOrThrow(articleId: String): Article {
 		return repo.find(Article::id eq articleId).firstOrNull()
 			?: throw ArticleNotFoundException(articleId)
-	}
-
-	/**
-	 * Removes or adds a link to the article's links depending on the passed
-	 * boolean.
-	 *
-	 * @param article The article to modify.
-	 * @param entry The entry whose links are up for modification.
-	 * @param adding Whether or not the links should be added or removed.
-	 */
-	private fun handleArticleLinks(article: Article, entry: Entry, adding: Boolean) {
-		val entryLinks = entryLinker.findArticleLinks(
-			entry,
-			getLinkTitlesToIds()
-		)
-
-		if (adding) {
-			entryLinks.forEach {
-				article.links.addLink(it)
-			}
-		} else {
-			entryLinks.forEach {
-				article.links.removeLink(it)
-			}
-		}
-	}
-
-	/**
-	 * Returns a map of all articles' link titles mapped to their ids.
-	 *
-	 * @return Map of article link titles mapped to their ids.
-	 */
-	private fun getLinkTitlesToIds(): Map<String, String> {
-		val projectedArticleTitles = repo
-			.find()
-			.project(ArticleLinkTitle::class.java)
-			.toList()
-
-		val articleTitles = mutableMapOf<String, String>()
-
-		projectedArticleTitles.forEach { articleTitles[it.linkTitle] = it.id }
-
-		return articleTitles
 	}
 }

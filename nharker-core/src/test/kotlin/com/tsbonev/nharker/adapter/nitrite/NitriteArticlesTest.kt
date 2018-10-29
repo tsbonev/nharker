@@ -1,7 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleLinks
 import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
@@ -9,7 +8,6 @@ import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
-import com.tsbonev.nharker.core.EntryLinker
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
@@ -19,13 +17,8 @@ import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
-import org.jmock.AbstractExpectations.returnValue
-import org.jmock.Expectations
-import org.jmock.Mockery
-import org.jmock.integration.junit4.JUnitRuleMockery
 import org.junit.Assert.assertThat
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDateTime
@@ -36,10 +29,6 @@ import org.hamcrest.CoreMatchers.`is` as Is
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class NitriteArticlesTest {
-	@Rule
-	@JvmField
-	val context: JUnitRuleMockery = JUnitRuleMockery()
-
 	private val db = nitrite { }
 
 	private val date = LocalDateTime.ofInstant(Instant.ofEpochSecond(1), ZoneOffset.UTC)
@@ -95,12 +84,6 @@ class NitriteArticlesTest {
 				secondPresavedEntry.id to 1
 			)
 		),
-		links = ArticleLinks(
-			mutableMapOf(
-				"::article-id-1::" to 2,
-				"::article-id-2::" to 1
-			)
-		),
 		catalogues = setOf("::catalogue-id::")
 	)
 
@@ -110,8 +93,6 @@ class NitriteArticlesTest {
 		date
 	)
 
-	private val entryLinker = context.mock(EntryLinker::class.java)
-
 	private val presavedArticle: Article
 		get() = db.getRepository(collectionName, Article::class.java)
 			.find(Article::id eq article.id).first()
@@ -119,7 +100,6 @@ class NitriteArticlesTest {
 	private val articles = NitriteArticles(
 		nitriteDb = db,
 		collectionName = collectionName,
-		entryLinker = entryLinker,
 		clock = stubClock
 	)
 
@@ -138,7 +118,6 @@ class NitriteArticlesTest {
 			createdArticle.copy(
 				id = "::article-id::",
 				entries = article.entries,
-				links = article.links,
 				catalogues = article.catalogues
 			),
 			Is(article.copy(properties = ArticleProperties(mutableMapOf())))
@@ -270,42 +249,9 @@ class NitriteArticlesTest {
 
 	@Test
 	fun `Appends entry to article`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(emptySet<String>()))
-		}
-
 		val updatedArticle = articles.appendEntry(article.id, entry)
 
 		assertThat(presavedArticle, Is(updatedArticle))
-	}
-
-	@Test
-	fun `Automatically links to articles when appending`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(setOf("::new-article-id::")))
-		}
-
-		articles.appendEntry(article.id, entry)
-		article.links.addLink("::new-article-id::")
-
-		assertThat(presavedArticle.links.contains("::new-article-id::"), Is(true))
-		assertThat(presavedArticle.links.get("::new-article-id::"), Is(1))
-	}
-
-	@Test
-	fun `Linking increases count when already linked`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(entry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(setOf("::article-id-2::")))
-		}
-
-		articles.appendEntry(article.id, entry)
-		article.links.addLink("::article-id-2::")
-
-		assertThat(presavedArticle.links.contains("::article-id-2::"), Is(true))
-		assertThat(presavedArticle.links.get("::article-id-2::"), Is(2))
 	}
 
 	@Test(expected = EntryAlreadyInArticleException::class)
@@ -315,48 +261,13 @@ class NitriteArticlesTest {
 
 	@Test
 	fun `Removing entry from article return it`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(secondPresavedEntry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(emptySet<String>()))
-		}
-
 		val updatedArticle = articles.removeEntry(article.id, secondPresavedEntry)
 
 		assertThat(presavedArticle, Is(updatedArticle))
 	}
 
 	@Test
-	fun `Removing entry removes implicit links`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(setOf("::article-id-2::")))
-		}
-
-		articles.removeEntry(article.id, firstPresavedEntry)
-
-		assertThat(presavedArticle.links.contains("::article-id-2::"), Is(false))
-	}
-
-	@Test
-	fun `Removing entry decreases number of links when more than one is present`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(setOf("::article-id-1::")))
-		}
-
-		articles.removeEntry(article.id, firstPresavedEntry)
-
-		assertThat(presavedArticle.links.contains("::article-id-1::"), Is(true))
-		assertThat(presavedArticle.links.get("::article-id-1::"), Is(1))
-	}
-
-	@Test
 	fun `Removing entry reorders entries after deletion`() {
-		context.expecting {
-			oneOf(entryLinker).findArticleLinks(firstPresavedEntry, mapOf("article-title" to "::article-id::"))
-			will(returnValue(emptySet<String>()))
-		}
-
 		articles.removeEntry(article.id, firstPresavedEntry)
 
 		assertThat(presavedArticle.entries.raw().count(), Is(1))
@@ -441,10 +352,6 @@ class NitriteArticlesTest {
 	@Test(expected = ArticleNotFoundException::class)
 	fun `Detaching property from non-existing article throws exception`() {
 		articles.detachProperty("::non-existing-article::", "::property-name::")
-	}
-
-	private fun Mockery.expecting(block: Expectations.() -> Unit) {
-		checking(Expectations().apply(block))
 	}
 
 	/**

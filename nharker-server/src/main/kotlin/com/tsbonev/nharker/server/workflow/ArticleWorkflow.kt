@@ -304,7 +304,6 @@ class ArticleWorkflow(
 				.rebuild()
 				.restoreEntries(restoredArticle.entries, restoredEntries)
 				.restoreProperties(restoredArticle.properties, restoredProperties)
-				.restoreLinks(restoredEntries, restoredProperties)
 
 			articles.save(rebuiltArticle)
 		}
@@ -404,31 +403,6 @@ class ArticleWorkflow(
 		}
 
 		return entryList
-	}
-
-	/**
-	 * Restores the links of an article by going through its
-	 * entries and properties and adding their links to its own.
-	 *
-	 * @param entries The restored entries.
-	 * @param properties The restored properties.
-	 *
-	 * @return The article with restored links.
-	 */
-	private fun Article.restoreLinks(entries: List<Entry>, properties: List<Entry>): Article {
-		entries.forEach {
-			it.links.forEach { _, link ->
-				this.links.addLink(link)
-			}
-		}
-
-		properties.forEach {
-			it.links.forEach { _, link ->
-				this.links.addLink(link)
-			}
-		}
-
-		return this
 	}
 }
 
