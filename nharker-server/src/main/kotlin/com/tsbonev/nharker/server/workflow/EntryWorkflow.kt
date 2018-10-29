@@ -168,7 +168,7 @@ class EntryWorkflow(
 	private fun Entry.verifyLinks(): Entry {
 		val rebuiltEntryLinks = mutableMapOf<String, String>()
 
-		this.links.forEach { phrase, link ->
+		this.explicitLinks.forEach { phrase, link ->
 			val response = eventBus.send(GetArticleByLinkTitleQuery(link))
 			if (response.statusCode.isSuccess()) {
 				rebuiltEntryLinks[phrase] = link

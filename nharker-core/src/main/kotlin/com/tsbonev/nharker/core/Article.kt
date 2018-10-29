@@ -27,8 +27,7 @@ data class Article(
 	override val creationDate: LocalDateTime,
 	val catalogues: Set<String> = emptySet(),
 	val properties: ArticleProperties = ArticleProperties(),
-	val entries: OrderedReferenceMap = OrderedReferenceMap(),
-	val links: ArticleLinks = ArticleLinks()
+	val entries: OrderedReferenceMap = OrderedReferenceMap()
 ) : Entity
 
 /**
@@ -42,11 +41,6 @@ fun String.toLinkTitle(): String {
 		.replace(",", "")
 		.replace(".", "")
 }
-
-/**
- * Projection used for faster automatic linking.
- */
-data class ArticleLinkTitle(val id: String, val linkTitle: String)
 
 class ArticleNotFoundException(val articleId: String) : Throwable()
 class ArticleTitleTakenException(val articleTitle: String) : Throwable()

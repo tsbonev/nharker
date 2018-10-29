@@ -302,7 +302,7 @@ class EntryWorkflowTest {
 
 			oneOf(entries).save(
 				entry.copy(
-					links = emptyMap()
+					explicitLinks = emptyMap()
 				)
 			)
 		}

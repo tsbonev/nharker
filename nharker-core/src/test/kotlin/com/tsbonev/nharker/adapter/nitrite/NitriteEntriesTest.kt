@@ -117,7 +117,7 @@ class NitriteEntriesTest {
 
 		entries.updateLinks(entry.id, links)
 
-		assertThat(presavedEntry, Is(entry.copy(links = links)))
+		assertThat(presavedEntry, Is(entry.copy(explicitLinks = links)))
 	}
 
 	@Test(expected = EntryNotFoundException::class)

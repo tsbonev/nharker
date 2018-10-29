@@ -3,7 +3,6 @@
 package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
-import com.tsbonev.nharker.core.ArticleLinks
 import com.tsbonev.nharker.core.ArticleNotFoundException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
@@ -471,46 +470,30 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Restoring article restores its deleted references and relinks itself`() {
-		val phrase = "::phrase::"
-		val link = "::link-id::"
-
-		val entryWithLinks = entry.copy(
-			links = mapOf(phrase to link)
-		)
-
-		val propertyWithLinks = propertyEntry.copy(
-			links = mapOf(phrase to link)
-		)
-
+	fun `Restores article's entries and properties`() {
 		context.expecting {
 			//Restoring the entries
 			oneOf(eventBus).send(GetEntryByIdQuery(entry.id))
 			will(returnValue(CommandResponse(StatusCode.NotFound)))
 
 			oneOf(eventBus).send(RestoreTrashedEntityCommand(entry.id, Entry::class.java))
-			will(returnValue(CommandResponse(StatusCode.OK, entryWithLinks)))
+			will(returnValue(CommandResponse(StatusCode.OK, entry)))
 
 			//Restoring the properties
 			oneOf(eventBus).send(GetEntryByIdQuery(propertyEntry.id))
 			will(returnValue(CommandResponse(StatusCode.NotFound)))
 
 			oneOf(eventBus).send(RestoreTrashedEntityCommand(propertyEntry.id, Entry::class.java))
-			will(returnValue(CommandResponse(StatusCode.OK, propertyWithLinks)))
+			will(returnValue(CommandResponse(StatusCode.OK, propertyEntry)))
 
-			oneOf(articles).save(
-				article.copy(
-					properties = ArticleProperties(mutableMapOf(propertyName to propertyWithLinks.id)),
-					links = ArticleLinks(mutableMapOf(link to 2))
-				)
-			)
+			oneOf(articles).save(article)
 		}
 
-		articleWorkflow.onArticleRestored(EntityRestoredEvent(article.copy(), Article::class.java))
+		articleWorkflow.onArticleRestored(EntityRestoredEvent(article, Article::class.java))
 	}
 
 	@Test
-	fun `Restoring article ignores missing references`() {
+	fun `Ignores article's unrestorable entries and properties`() {
 		context.expecting {
 			//Restoring the entries
 			oneOf(eventBus).send(GetEntryByIdQuery(entry.id))
@@ -529,8 +512,7 @@ class ArticleWorkflowTest {
 			oneOf(articles).save(
 				article.copy(
 					entries = OrderedReferenceMap(),
-					properties = ArticleProperties(),
-					links = ArticleLinks(mutableMapOf())
+					properties = ArticleProperties()
 				)
 			)
 		}

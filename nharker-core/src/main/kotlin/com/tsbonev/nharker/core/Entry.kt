@@ -26,7 +26,8 @@ data class Entry(
 	override val creationDate: LocalDateTime,
 	val articleId: String,
 	val content: String,
-	val links: Map<Phrase, ArticleId> = emptyMap()
+	val explicitLinks: Map<Phrase, ArticleId> = emptyMap(),
+	val implicitLinks: Map<Phrase, ArticleId> = emptyMap()
 ) : Entity
 
 class EntryNotFoundException(val entryId: String) : Throwable()
