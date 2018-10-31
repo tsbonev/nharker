@@ -13,8 +13,8 @@ import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
-import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.eq
+import org.dizitart.kno2.filters.text
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
@@ -74,7 +74,6 @@ class NitriteArticlesTest {
 
 	private val article = Article(
 		"::article-id::",
-		"article-title",
 		"Article title",
 		date,
 		properties = ArticleProperties(mutableMapOf("::property-name::" to articleProperty.id)),
@@ -150,17 +149,6 @@ class NitriteArticlesTest {
 	}
 
 	@Test
-	fun `Retrieves article by link title`() {
-		assertThat(articles.getByLinkTitle(article.linkTitle).isPresent, Is(true))
-		assertThat(articles.getByLinkTitle(article.linkTitle).get(), Is(article))
-	}
-
-	@Test
-	fun `Returns empty when article is not found by link title`() {
-		assertThat(articles.getByLinkTitle("::non-existing-link-title::").isPresent, Is(false))
-	}
-
-	@Test
 	fun `Retrieves all articles`() {
 		assertThat(articles.getAll(SortBy.ASCENDING), Is(listOf(presavedArticle)))
 	}
@@ -174,13 +162,11 @@ class NitriteArticlesTest {
 	@Test
 	fun `Changes article title`() {
 		val newFullTitle = "New title"
-		val newLinkTitle = newFullTitle.toLinkTitle()
 
 		val updatedArticle = articles.changeTitle(article.id, newFullTitle)
 
 		assertThat(presavedArticle, Is(updatedArticle))
-		assertThat(presavedArticle.fullTitle, Is(newFullTitle))
-		assertThat(presavedArticle.linkTitle, Is(newLinkTitle))
+		assertThat(presavedArticle.title, Is(newFullTitle))
 	}
 
 	@Test(expected = ArticleNotFoundException::class)
@@ -190,7 +176,7 @@ class NitriteArticlesTest {
 
 	@Test(expected = ArticleTitleTakenException::class)
 	fun `Changing title of article to a taken one throws exception`() {
-		articles.changeTitle(article.id, article.fullTitle)
+		articles.changeTitle(article.id, article.title)
 	}
 
 	@Test
@@ -275,14 +261,14 @@ class NitriteArticlesTest {
 	}
 
 	@Test
-	fun `Retrieves list of articles by querying full titles`() {
-		val articleList = articles.searchByFullTitle(article.fullTitle)
+	fun `Retrieves list of articles by querying titles`() {
+		val articleList = articles.searchByFullTitle(article.title)
 
 		assertThat(articleList, Is(listOf(article)))
 	}
 
 	@Test
-	fun `Returns empty list when no articles match full title search`() {
+	fun `Returns empty list when no articles match title search`() {
 		val articleList = articles.searchByFullTitle("Non existing")
 
 		assertThat(articleList, Is(emptyList()))
@@ -359,6 +345,6 @@ class NitriteArticlesTest {
 	 */
 	private fun removePresavedArticle() {
 		db.getRepository(collectionName, Article::class.java)
-			.remove(Article::linkTitle eq article.linkTitle)
+			.remove(Article::title text article.title)
 	}
 }

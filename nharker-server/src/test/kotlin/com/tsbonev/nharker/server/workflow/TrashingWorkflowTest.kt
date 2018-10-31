@@ -46,8 +46,7 @@ class TrashingWorkflowTest {
 
 	private val article = Article(
 		"::article-id::",
-		"link-title",
-		"Full title",
+		"Article title",
 		date
 	)
 

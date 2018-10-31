@@ -42,7 +42,6 @@ class NitriteEntryLinkerTest {
 
 	private val article = Article(
 		"::article-id::",
-		"article-title",
 		"Article title",
 		date,
 		entries = OrderedReferenceMap(linkedMapOf(entry.id to 0))

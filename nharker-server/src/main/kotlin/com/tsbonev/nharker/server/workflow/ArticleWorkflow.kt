@@ -259,24 +259,7 @@ class ArticleWorkflow(
 	}
 
 	/**
-	 * Retrieves an article by link title.
-	 * @code 200
-	 * @payload The retrieve article.
-	 *
-	 * If an article is not found, logs the link title.
-	 * @code 404
-	 * @exception ArticleNotFoundException
-	 */
-	@CommandHandler
-	fun getArticleByLinkTitle(query: GetArticleByLinkTitleQuery): QueryResponse {
-		val possibleArticle = articles.getByLinkTitle(query.linkTitle)
-
-		return if (possibleArticle.isPresent) QueryResponse(StatusCode.OK, possibleArticle.get())
-		else exceptionLogger.logException(ArticleNotFoundException(query.linkTitle))
-	}
-
-	/**
-	 * Searches for an article by matching its full title.
+	 * Searches for an article by matching its title.
 	 * @code 200
 	 * @payload A list of matched articles.
 	 */
@@ -318,8 +301,7 @@ class ArticleWorkflow(
 	private fun Article.rebuild(): Article {
 		return Article(
 			this.id,
-			this.linkTitle,
-			this.fullTitle,
+			this.title,
 			this.creationDate,
 			this.catalogues
 		)
@@ -409,7 +391,6 @@ class ArticleWorkflow(
 //region Queries
 data class GetArticleByIdQuery(val articleId: String) : Query
 
-data class GetArticleByLinkTitleQuery(val linkTitle: String) : Query
 data class SearchArticleByTitleQuery(val searchString: String) : Query
 //endregion
 

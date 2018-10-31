@@ -17,30 +17,16 @@ import java.time.LocalDateTime
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 @Indices(
-	Index(value = "linkTitle", type = IndexType.NonUnique),
-	Index(value = "fullTitle", type = IndexType.Fulltext)
+	Index(value = "title", type = IndexType.Fulltext)
 )
 data class Article(
 	@Id override val id: String,
-	val linkTitle: String,
-	val fullTitle: String,
+	val title: String,
 	override val creationDate: LocalDateTime,
 	val catalogues: Set<String> = emptySet(),
 	val properties: ArticleProperties = ArticleProperties(),
 	val entries: OrderedReferenceMap = OrderedReferenceMap()
 ) : Entity
-
-/**
- * Converts a full text title to a lowercase, dash-concatenated string.
- */
-fun String.toLinkTitle(): String {
-	return this.toLowerCase()
-		.replace("\\s+".toRegex(), "-")
-		.replace("\'", "")
-		.replace(":", "")
-		.replace(",", "")
-		.replace(".", "")
-}
 
 class ArticleNotFoundException(val articleId: String) : Throwable()
 class ArticleTitleTakenException(val articleTitle: String) : Throwable()

@@ -38,10 +38,10 @@ interface Articles {
 	fun deleteById(articleId: String): Article
 
 	/**
-	 * Changes the full title of an article, along with its link title.
+	 * Changes the title of an article.
 	 *
 	 * @param articleId The id of the article to rename.
-	 * @param newTitle The new full title.
+	 * @param newTitle The new title.
 	 * @return The updated article.
 	 *
 	 * @exception ArticleNotFoundException thrown when the article is not found.
@@ -175,14 +175,6 @@ interface Articles {
 		PropertyNotFoundException::class
 	)
 	fun detachProperty(articleId: String, propertyName: String): Article
-
-	/**
-	 * Retrieves an article by a given link title.
-	 *
-	 * @param linkTitle The link title to search for.
-	 * @return An optional article.
-	 */
-	fun getByLinkTitle(linkTitle: String): Optional<Article>
 
 	/**
 	 * Returns a list of all articles that match a give title.

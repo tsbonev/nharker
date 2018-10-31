@@ -41,7 +41,7 @@ class ArticleWorkflowTest {
 	private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
 
 	private val articleRequest = ArticleRequest(
-		"Full title",
+		"Article title",
 		setOf("::catalogue-id::")
 	)
 
@@ -61,7 +61,6 @@ class ArticleWorkflowTest {
 	)
 	private val article = Article(
 		"::article-id::",
-		"article-title",
 		"Article title",
 		date,
 		catalogues = setOf("::catalogue-id::"),
@@ -165,43 +164,14 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Retrieves article by link title`() {
-		context.expecting {
-			oneOf(articles).getByLinkTitle(article.linkTitle)
-			will(returnValue(Optional.of(article)))
-		}
-
-		val response = articleWorkflow
-			.getArticleByLinkTitle(GetArticleByLinkTitleQuery(article.linkTitle))
-
-		assertThat(response.statusCode, Is(StatusCode.OK))
-		assertThat(response.payload.isPresent, Is(true))
-		assertThat(response.payload.get() as Article, Is(article))
-	}
-
-	@Test
-	fun `Retrieving article by non-existing link title returns not found`() {
-		context.expecting {
-			oneOf(articles).getByLinkTitle(article.linkTitle)
-			will(returnValue(Optional.empty<Article>()))
-		}
-
-		val response = articleWorkflow
-			.getArticleByLinkTitle(GetArticleByLinkTitleQuery(article.linkTitle))
-
-		assertThat(response.statusCode, Is(StatusCode.NotFound))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
 	fun `Retrieves articles searching by title`() {
 		context.expecting {
-			oneOf(articles).searchByFullTitle(article.fullTitle)
+			oneOf(articles).searchByFullTitle(article.title)
 			will(returnValue(listOf(article)))
 		}
 
 		val response = articleWorkflow
-			.searchArticlesByTitle(SearchArticleByTitleQuery(article.fullTitle))
+			.searchArticlesByTitle(SearchArticleByTitleQuery(article.title))
 
 		assertThat(response.statusCode, Is(StatusCode.OK))
 		assertThat(response.payload.isPresent, Is(true))

@@ -55,7 +55,7 @@ class NitriteEntryLinker(
 	/**
 	 * Performs a full text search on all Articles using the
 	 * full content of the passed Entry. If this list contains
-	 * any articles then their full and link titles are matched
+	 * any articles then their title are matched
 	 * against the content of the Entry and saved as Phrase to Id
 	 * pairs if an exact match is found.
 	 */
@@ -64,8 +64,8 @@ class NitriteEntryLinker(
 
 		articles.searchByFullTitle(this.content)
 			.forEach {
-				if (this.content.contains(Regex(it.fullTitle, RegexOption.IGNORE_CASE))) {
-					phraseToIdMap[it.fullTitle] = it.id
+				if (this.content.contains(Regex(it.title, RegexOption.IGNORE_CASE))) {
+					phraseToIdMap[it.title] = it.id
 				}
 			}
 

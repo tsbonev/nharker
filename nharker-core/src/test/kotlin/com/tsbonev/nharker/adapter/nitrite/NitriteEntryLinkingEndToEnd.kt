@@ -87,17 +87,17 @@ class NitriteEntryLinkingEndToEnd {
 
 		//Set up synonyms
 		val collegeArticle = articleList.find {
-			it.fullTitle == "The College of Conciliators"
+			it.title == "The College of Conciliators"
 		}
 		synonyms.addSynonym("College", collegeArticle!!)
 
 		val primusArticle = articleList.find {
-			it.fullTitle == "Primus Suprima"
+			it.title == "Primus Suprima"
 		}
 		synonyms.addSynonym("Primus", primusArticle!!)
 
 		val harkerArticle = articleList.find {
-			it.fullTitle == "Novem Harker"
+			it.title == "Novem Harker"
 		}
 		synonyms.addSynonym("Harker", harkerArticle!!)
 		synonyms.addSynonym("Novem", harkerArticle)
@@ -109,7 +109,7 @@ class NitriteEntryLinkingEndToEnd {
 		val linkedEntry = linker.linkEntryToArticles(entry)
 
 		val mentionedArticles = articleList.filter {
-			it.fullTitle in mentionedArticleTitles
+			it.title in mentionedArticleTitles
 		}
 
 		val linkedArticles = articleList.filter {
