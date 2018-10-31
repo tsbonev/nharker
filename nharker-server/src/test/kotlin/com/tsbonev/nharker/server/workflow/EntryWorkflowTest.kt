@@ -263,9 +263,8 @@ class EntryWorkflowTest {
 	fun `Restoring entry verifies its links`() {
 		val restoredArticle = Article(
 			"::article-id::",
-			"full-title",
-			"Full title",
-			LocalDateTime.now()
+			"Article title",
+			date
 		)
 
 		val restoredEntry = Entry(
@@ -277,7 +276,7 @@ class EntryWorkflowTest {
 		)
 
 		context.expecting {
-			oneOf(eventBus).send(GetArticleByLinkTitleQuery("::link::"))
+			oneOf(eventBus).send(GetArticleByIdQuery("::link::"))
 			will(returnValue(CommandResponse(StatusCode.OK, restoredArticle)))
 
 			oneOf(entries).save(restoredEntry)
@@ -297,7 +296,7 @@ class EntryWorkflowTest {
 		)
 
 		context.expecting {
-			oneOf(eventBus).send(GetArticleByLinkTitleQuery("::link::"))
+			oneOf(eventBus).send(GetArticleByIdQuery("::link::"))
 			will(returnValue(CommandResponse(StatusCode.NotFound)))
 
 			oneOf(entries).save(

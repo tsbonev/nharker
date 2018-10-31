@@ -76,7 +76,7 @@ class ArticleSynonymWorkflow(
 	/**
 	 * Returns the whole global synonym map.
 	 * @code 200
-	 * @payload A map of synonyms and article link titles.
+	 * @payload A map of synonyms and article ids.
 	 */
 	@Suppress("UNUSED_PARAMETER")
 	@CommandHandler
@@ -103,7 +103,7 @@ class ArticleSynonymWorkflow(
 	/**
 	 * Searches for a synonym in the global synonym map.
 	 * @code 200
-	 * @payload The found article link title to which the synonym points.
+	 * @payload The found article id to which the synonym points.
 	 *
 	 * If no synonym matches the search string, returns not found.
 	 * @code 404

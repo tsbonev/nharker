@@ -33,7 +33,6 @@ class ArticleSynonymWorkflowTest {
 
 	private val article = Article(
 		"::article-id::",
-		"article-title",
 		"Article title",
 		date
 	)

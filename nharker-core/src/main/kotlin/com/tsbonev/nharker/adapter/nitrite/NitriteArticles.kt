@@ -12,7 +12,6 @@ import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SortBy
-import com.tsbonev.nharker.core.toLinkTitle
 import org.dizitart.kno2.filters.elemMatch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
@@ -42,12 +41,13 @@ class NitriteArticles(
 	override fun create(articleRequest: ArticleRequest): Article {
 		val article = Article(
 			NitriteId.newId().toString(),
-			articleRequest.fullTitle.toLinkTitle(),
 			articleRequest.fullTitle,
 			LocalDateTime.now(clock)
 		)
 
-		if (repo.find(Article::linkTitle eq article.linkTitle).any())
+		if (repo.find(Article::title text article.title)
+				.filter { it.title == article.title }
+				.any())
 			throw ArticleTitleTakenException(articleRequest.fullTitle)
 
 		repo.insert(article)
@@ -62,12 +62,12 @@ class NitriteArticles(
 	override fun changeTitle(articleId: String, newTitle: String): Article {
 		val article = findByIdOrThrow(articleId)
 
-		if (repo.find(Article::fullTitle text newTitle).toList()
-				.filter { it.fullTitle == newTitle }
+		if (repo.find(Article::title text newTitle).toList()
+				.filter { it.title == newTitle }
 				.any()
 		) throw ArticleTitleTakenException(newTitle)
 
-		val updatedArticle = article.copy(fullTitle = newTitle, linkTitle = newTitle.toLinkTitle())
+		val updatedArticle = article.copy(title = newTitle)
 
 		repo.update(updatedArticle)
 		return updatedArticle
@@ -90,13 +90,6 @@ class NitriteArticles(
 
 	override fun getByCatalogue(catalogue: Catalogue): List<Article> {
 		return repo.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
-	}
-
-	override fun getByLinkTitle(linkTitle: String): Optional<Article> {
-		val article = repo.find(Article::linkTitle eq linkTitle).firstOrNull()
-			?: return Optional.empty()
-
-		return Optional.of(article)
 	}
 
 	override fun deleteById(articleId: String): Article {
@@ -180,7 +173,7 @@ class NitriteArticles(
 	}
 
 	override fun searchByFullTitle(searchString: String): List<Article> {
-		return repo.find(Article::fullTitle text searchString).toList()
+		return repo.find(Article::title text searchString).toList()
 	}
 
 	/**

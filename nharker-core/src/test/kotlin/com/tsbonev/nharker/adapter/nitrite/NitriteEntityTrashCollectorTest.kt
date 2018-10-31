@@ -44,7 +44,6 @@ class NitriteEntityTrashCollectorTest {
 
 	private val article = Article(
 		"::article-id::",
-		"article-title",
 		"Article title",
 		date,
 		properties = ArticleProperties(mutableMapOf("::property-name::" to entry.id))
