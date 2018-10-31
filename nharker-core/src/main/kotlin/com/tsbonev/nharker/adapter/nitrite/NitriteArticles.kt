@@ -10,13 +10,15 @@ import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
-import com.tsbonev.nharker.core.Paginator
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.SortBy
 import org.dizitart.kno2.filters.elemMatch
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
+import org.dizitart.no2.FindOptions
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
+import org.dizitart.no2.SortOrder
 import org.dizitart.no2.objects.ObjectRepository
 import java.time.Clock
 import java.time.LocalDateTime
@@ -29,14 +31,10 @@ class NitriteArticles(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Articles",
 	private val clock: Clock = Clock.systemUTC()
-) : Articles, Paginator<Article> {
+) : Articles {
 
 	private val repo: ObjectRepository<Article>
 		get() = nitriteDb.getRepository(collectionName, Article::class.java)
-
-	private val paginator: Paginator<Article> by lazy {
-		NitritePaginator(repo)
-	}
 
 	override fun create(articleRequest: ArticleRequest): Article {
 		val article = Article(
@@ -74,11 +72,26 @@ class NitriteArticles(
 	}
 
 	override fun getAll(order: SortBy): List<Article> {
-		return paginator.getAll(order)
+		val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
+		else SortOrder.Descending
+
+		return repo.find(FindOptions.sort("creationDate", sortOrder)).toList()
 	}
 
 	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Article> {
-		return paginator.getPaginated(order, page, pageSize)
+		val sortOrder = if (order == SortBy.ASCENDING) SortOrder.Ascending
+		else SortOrder.Descending
+
+		if (page < 1 || pageSize < 0) throw ArticlePaginationException(page, pageSize)
+
+		val pageOffset = (page - 1) * pageSize
+
+		if (repo.find().count() < pageOffset) return emptyList()
+
+		return repo.find(
+			FindOptions.sort("creationDate", sortOrder)
+				.thenLimit(pageOffset, pageSize)
+		).toList()
 	}
 
 	override fun getById(articleId: String): Optional<Article> {
