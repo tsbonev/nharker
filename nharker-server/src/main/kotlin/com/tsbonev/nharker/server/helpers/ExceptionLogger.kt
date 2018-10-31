@@ -12,14 +12,13 @@ import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryNotInArticleException
-import com.tsbonev.nharker.core.PaginationException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.SynonymAlreadyTakenException
 import com.tsbonev.nharker.core.SynonymNotFoundException
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.StatusCode
-import com.tsbonev.nharker.server.workflow.NoPaginatorRegisteredException
 import org.slf4j.LoggerFactory
 
 /**
@@ -62,6 +61,11 @@ class ExceptionLogger {
 
 			is PropertyNotFoundException -> {
 				logger.error("Could not find property named ${e.property}!")
+				CommandResponse(StatusCode.BadRequest)
+			}
+
+			is ArticlePaginationException -> {
+				logger.error("Cannot paginate with page of ${e.page} and page size of ${e.pageSize}!")
 				CommandResponse(StatusCode.BadRequest)
 			}
 			//endregion
@@ -114,18 +118,6 @@ class ExceptionLogger {
 			is SynonymNotFoundException -> {
 				logger.error("The synonym ${e.synonym} was not found in the map")
 				CommandResponse(StatusCode.NotFound)
-			}
-			//endregion
-
-			//region Pagination Exceptions
-			is PaginationException -> {
-				logger.error("Cannot paginate with page of ${e.page} and page siez of ${e.pageSize}!")
-				CommandResponse(StatusCode.BadRequest)
-			}
-
-			is NoPaginatorRegisteredException -> {
-				logger.error("No paginator registered for class ${e.objectType}!")
-				CommandResponse(StatusCode.BadRequest)
 			}
 			//endregion
 

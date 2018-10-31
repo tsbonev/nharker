@@ -4,6 +4,7 @@ package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
@@ -13,6 +14,7 @@ import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
@@ -176,6 +178,56 @@ class ArticleWorkflowTest {
 		assertThat(response.statusCode, Is(StatusCode.OK))
 		assertThat(response.payload.isPresent, Is(true))
 		assertThat(response.payload.get() as List<Article>, Is(listOf(article)))
+	}
+
+	@Test
+	fun `Retrieves all articles`(){
+		val sortOrder = SortBy.ASCENDING
+
+		context.expecting {
+			oneOf(articles).getAll(sortOrder)
+			will(returnValue(listOf(article)))
+		}
+
+		val response = articleWorkflow
+			.getAllArticles(GetAllArticlesQuery(sortOrder))
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as List<Article>, Is(listOf(article)))
+	}
+
+	@Test
+	fun `Retrieves paginated articles`(){
+		val sortOrder = SortBy.ASCENDING
+
+		context.expecting {
+			oneOf(articles).getPaginated(sortOrder, 1, 1)
+			will(returnValue(listOf(article)))
+		}
+
+		val response = articleWorkflow
+			.getPaginatedArticles(GetPaginatedArticlesQuery(sortOrder, 1, 1))
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as List<Article>, Is(listOf(article)))
+	}
+
+	@Test
+	fun `Paginating with illegal page count and size returns bad request`(){
+		val sortOrder = SortBy.ASCENDING
+
+		context.expecting {
+			oneOf(articles).getPaginated(sortOrder, -1, 0)
+			will(throwException(ArticlePaginationException(-1, 0)))
+		}
+
+		val response = articleWorkflow
+			.getPaginatedArticles(GetPaginatedArticlesQuery(sortOrder, -1, 0))
+
+		assertThat(response.statusCode, Is(StatusCode.BadRequest))
+		assertThat(response.payload.isPresent, Is(false))
 	}
 
 	@Test

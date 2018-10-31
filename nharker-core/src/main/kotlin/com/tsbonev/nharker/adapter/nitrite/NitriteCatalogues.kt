@@ -9,9 +9,7 @@ import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
 import com.tsbonev.nharker.core.ElementNotInMapException
-import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
-import com.tsbonev.nharker.core.SortBy
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -27,14 +25,10 @@ class NitriteCatalogues(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Catalogues",
 	private val clock: Clock = Clock.systemUTC()
-) : Catalogues, Paginator<Catalogue> {
+) : Catalogues {
 
 	private val repo: ObjectRepository<Catalogue>
 		get() = nitriteDb.getRepository(collectionName, Catalogue::class.java)
-
-	private val paginator: Paginator<Catalogue> by lazy {
-		NitritePaginator(repo)
-	}
 
 	override fun create(catalogueRequest: CatalogueRequest): Catalogue {
 		if (repo.find(Catalogue::title eq catalogueRequest.title).any())
@@ -66,14 +60,6 @@ class NitriteCatalogues(
 			?: return Optional.empty()
 
 		return Optional.of(catalogue)
-	}
-
-	override fun getAll(order: SortBy): List<Catalogue> {
-		return paginator.getAll(order)
-	}
-
-	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Catalogue> {
-		return paginator.getPaginated(order, page, pageSize)
 	}
 
 	override fun changeTitle(catalogueId: String, newTitle: String): Catalogue {

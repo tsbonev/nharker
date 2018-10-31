@@ -5,7 +5,6 @@ import com.tsbonev.nharker.core.Entries
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
-import com.tsbonev.nharker.core.Paginator
 import com.tsbonev.nharker.core.SortBy
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
@@ -23,14 +22,10 @@ class NitriteEntries(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Entries",
 	private val clock: Clock = Clock.systemUTC()
-) : Entries, Paginator<Entry> {
+) : Entries {
 
 	private val repo: ObjectRepository<Entry>
 		get() = nitriteDb.getRepository(collectionName, Entry::class.java)
-
-	private val paginator: Paginator<Entry> by lazy {
-		NitritePaginator(repo)
-	}
 
 	override fun create(entryRequest: EntryRequest): Entry {
 		val entry = Entry(
@@ -55,14 +50,6 @@ class NitriteEntries(
 			?: return Optional.empty()
 
 		return Optional.of(entry)
-	}
-
-	override fun getAll(order: SortBy): List<Entry> {
-		return paginator.getAll(order)
-	}
-
-	override fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Entry> {
-		return paginator.getPaginated(order, page, pageSize)
 	}
 
 	override fun getByContent(searchText: String): List<Entry> {

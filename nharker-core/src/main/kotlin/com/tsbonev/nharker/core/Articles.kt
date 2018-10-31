@@ -62,6 +62,28 @@ interface Articles {
 	fun getById(articleId: String): Optional<Article>
 
 	/**
+	 * Retrieves all stored articles.
+	 *
+	 * @param order The order in which to sort.
+	 * @return A list of all stored articles.
+	 */
+	fun getAll(order: SortBy): List<Article>
+
+	/**
+	 * Retrieves all stored articles, paginated.
+	 *
+	 * @param order The order in which to sort.
+	 * @param page The index of the page.
+	 * @param pageSize The size of the page.
+	 * @return A list of articles, paginated.
+	 *
+	 * @exception ArticlePaginationException thrown when the pageSize
+	 * and page count are 0 or less than 1 respectively.
+	 */
+	@Throws(ArticlePaginationException::class)
+	fun getPaginated(order: SortBy, page: Int, pageSize: Int): List<Article>
+
+	/**
 	 * Retrieves a list of articles that have a given catalogue's id
 	 * in their catalogues list.
 	 *

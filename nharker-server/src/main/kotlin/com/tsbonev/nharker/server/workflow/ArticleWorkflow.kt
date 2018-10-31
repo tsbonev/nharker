@@ -2,6 +2,7 @@ package com.tsbonev.nharker.server.workflow
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
@@ -11,6 +12,7 @@ import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
 import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.PropertyNotFoundException
+import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.cqrs.Command
 import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
@@ -291,6 +293,35 @@ class ArticleWorkflow(
 			articles.save(rebuiltArticle)
 		}
 	}
+
+	/**
+	 * Retrieves all articles.
+	 * @code 200
+	 * @payload A list of articles.
+	 */
+	fun getAllArticles(query: GetAllArticlesQuery): QueryResponse {
+		val articleList = articles.getAll(query.order)
+		return CommandResponse(StatusCode.OK, articleList)
+	}
+
+	/**
+	 * Retrieves articles and paginates them.
+	 * @code 200
+	 * @payload A list of articles.
+	 *
+	 * If an illegal page size or page index are passed, logs an error with the size and index.
+	 * @code 400
+	 * @exception ArticlePaginationException
+	 */
+	@CommandHandler
+	fun getPaginatedArticles(query: GetPaginatedArticlesQuery): QueryResponse {
+		return try {
+			val articleList = articles.getPaginated(query.order, query.page, query.pageSize)
+			CommandResponse(StatusCode.OK, articleList)
+		} catch (e: ArticlePaginationException) {
+			exceptionLogger.logException(e)
+		}
+	}
 	//endregion
 
 	/**
@@ -392,6 +423,10 @@ class ArticleWorkflow(
 data class GetArticleByIdQuery(val articleId: String) : Query
 
 data class SearchArticleByTitleQuery(val searchString: String) : Query
+
+data class GetAllArticlesQuery(val order: SortBy) : Query
+
+data class GetPaginatedArticlesQuery(val order: SortBy, val page: Int, val pageSize: Int) : Query
 //endregion
 
 //region Commands

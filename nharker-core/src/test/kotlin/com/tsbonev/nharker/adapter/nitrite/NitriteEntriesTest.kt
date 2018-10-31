@@ -86,17 +86,6 @@ class NitriteEntriesTest {
 	}
 
 	@Test
-	fun `Retrieves all entries`() {
-		assertThat(entries.getAll(SortBy.DESCENDING), Is(listOf(entry)))
-	}
-
-	@Test
-	fun `Retrieves all entries, paginated`() {
-		assertThat(entries.getPaginated(SortBy.DESCENDING, 1, 1), Is(listOf(entry)))
-		assertThat(entries.getPaginated(SortBy.DESCENDING, 2, 2), Is(emptyList()))
-	}
-
-	@Test
 	fun `Updates entry content`() {
 		val content = "::new-content::"
 

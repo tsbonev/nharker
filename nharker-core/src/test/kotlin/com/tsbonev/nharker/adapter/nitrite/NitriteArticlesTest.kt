@@ -2,6 +2,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
@@ -151,12 +152,41 @@ class NitriteArticlesTest {
 	@Test
 	fun `Retrieves all articles`() {
 		assertThat(articles.getAll(SortBy.ASCENDING), Is(listOf(presavedArticle)))
+		assertThat(articles.getAll(SortBy.DESCENDING), Is(listOf(presavedArticle)))
 	}
 
 	@Test
 	fun `Retrieves all articles, paginated`() {
 		assertThat(articles.getPaginated(SortBy.ASCENDING, 1, 1), Is(listOf(presavedArticle)))
+		assertThat(articles.getPaginated(SortBy.DESCENDING, 1, 1), Is(listOf(presavedArticle)))
 		assertThat(articles.getPaginated(SortBy.ASCENDING, 2, 3), Is(emptyList()))
+		assertThat(articles.getPaginated(SortBy.DESCENDING, 2, 3), Is(emptyList()))
+	}
+
+	@Test
+	fun `Paginating fills up larger than content page sizes`() {
+		assertThat(
+			articles.getPaginated(SortBy.ASCENDING, 1, 100),
+			Is(listOf(presavedArticle))
+		)
+	}
+
+	@Test
+	fun `Paginating returns empty when pages overextend`() {
+		assertThat(
+			articles.getPaginated(SortBy.ASCENDING, 2, 100),
+			Is(emptyList())
+		)
+	}
+
+	@Test(expected = ArticlePaginationException::class)
+	fun `Paginating with size less than zero throws exception`() {
+		articles.getPaginated(SortBy.ASCENDING, 1, -1)
+	}
+
+	@Test(expected = ArticlePaginationException::class)
+	fun `Paginating with page less than one throws exception`() {
+		articles.getPaginated(SortBy.ASCENDING, 0, 2)
 	}
 
 	@Test

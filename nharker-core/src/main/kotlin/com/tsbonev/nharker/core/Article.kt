@@ -33,3 +33,10 @@ class ArticleTitleTakenException(val articleTitle: String) : Throwable()
 
 class EntryAlreadyInArticleException(val entryId: String, val articleId: String) : Throwable()
 class EntryNotInArticleException(val entryId: String, val articleId: String) : Throwable()
+
+enum class SortBy {
+	ASCENDING,
+	DESCENDING
+}
+
+class ArticlePaginationException(val page: Int, val pageSize: Int) : Throwable()

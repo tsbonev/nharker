@@ -127,25 +127,6 @@ class NitriteCataloguesTest {
 	}
 
 	@Test
-	fun `Retrieves all catalogues`() {
-		val cataloguesList = catalogues.getAll(SortBy.DESCENDING)
-		val expectedList = listOf(
-			presavedCatalogue,
-			childCatalogue,
-			firstPresavedChildCatalogue,
-			secondPresavedChildcatalogue
-		).sortedBy { it.creationDate }
-
-		assertThat(cataloguesList, Is(expectedList))
-	}
-
-	@Test
-	fun `Retrieves all articles, paginated`() {
-		assertThat(catalogues.getPaginated(SortBy.ASCENDING, 1, 1), Is(listOf(presavedCatalogue)))
-		assertThat(catalogues.getPaginated(SortBy.ASCENDING, 3, 4), Is(emptyList()))
-	}
-
-	@Test
 	fun `Changes catalogue title`() {
 		val updatedCatalogue = catalogues.changeTitle(catalogue.id, "::new-title::")
 
