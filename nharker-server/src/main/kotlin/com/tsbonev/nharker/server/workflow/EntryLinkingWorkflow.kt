@@ -12,7 +12,7 @@ import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 
 /**
- * Provides the commands to affect the links between entries and articles
+ * Provides the commands to affect the links between entries and articles.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */

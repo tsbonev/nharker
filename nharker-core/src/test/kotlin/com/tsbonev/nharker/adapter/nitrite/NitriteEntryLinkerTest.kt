@@ -10,6 +10,7 @@ import org.jmock.AbstractExpectations.returnValue
 import org.jmock.Expectations
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JUnitRuleMockery
+import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
@@ -55,8 +56,12 @@ class NitriteEntryLinkerTest {
 
 			oneOf(synonyms).getSynonymMap()
 			will(returnValue(mapOf("some other title" to "::article-id::")))
+		}
 
-			oneOf(entries).save(
+		val linkedEntry = linker.linkEntryToArticles(entry)
+
+		assertThat(
+			linkedEntry, Is(
 				entry.copy(
 					implicitLinks = mapOf(
 						"Article title" to article.id,
@@ -64,9 +69,7 @@ class NitriteEntryLinkerTest {
 					)
 				)
 			)
-		}
-
-		linker.linkEntryToArticles(entry)
+		)
 	}
 
 	@Test
@@ -80,18 +83,22 @@ class NitriteEntryLinkerTest {
 
 			oneOf(synonyms).getSynonymMap()
 			will(returnValue(mapOf("some other title" to "::article-id::")))
+		}
 
-			oneOf(entries).save(
-				entry.copy(
-					implicitLinks = mapOf(
-						"Article title" to article.id,
-						"some other title" to article.id
+		val linkedEntries = linker.refreshLinksOfArticle(article)
+
+		assertThat(
+			linkedEntries, Is(
+				listOf(
+					entry.copy(
+						implicitLinks = mapOf(
+							"Article title" to article.id,
+							"some other title" to article.id
+						)
 					)
 				)
 			)
-		}
-
-		linker.refreshLinksOfArticle(article)
+		)
 	}
 
 	private fun Mockery.expecting(block: Expectations.() -> Unit) {
