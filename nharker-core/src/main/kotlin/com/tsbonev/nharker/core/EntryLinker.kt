@@ -3,6 +3,8 @@ package com.tsbonev.nharker.core
 /**
  * Provides the methods necessary to automatically link
  * articles by looking up their entries' content.
+ * Note: The Entry Linker does not hold the responsibility
+ * of saving the affected objects into persistence.
  *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */

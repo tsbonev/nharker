@@ -29,14 +29,12 @@ class NitriteEntryLinker(
 	}
 
 	override fun linkEntryToArticles(entry: Entry): Entry {
-		val linkedEntry = entry
+		return entry
 			.clearExplicitLinksFromContent()
 			.runFullTextLinking()
 			.clearImplicitLinksFromContent()
 			.runSynonymLinking()
 			.restoreOriginalContentFrom(entry)
-
-		return entries.save(linkedEntry)
 	}
 
 	/**
