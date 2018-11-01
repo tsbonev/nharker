@@ -551,6 +551,15 @@ class ArticleWorkflowTest {
 		articleWorkflow.onArticleRestored(EntityRestoredEvent(article, String::class.java))
 	}
 
+	@Test
+	fun `Relinks article's entries when refreshed`(){
+		context.expecting {
+			oneOf(eventBus).send(LinkEntryContentToArticlesCommand(entry))
+		}
+
+	    articleWorkflow.onArticleRefreshed(ArticleLinksRefreshedEvent(article, listOf(entry)))
+	}
+
 	private fun Mockery.expecting(block: Expectations.() -> Unit) {
 		checking(Expectations().apply(block))
 	}

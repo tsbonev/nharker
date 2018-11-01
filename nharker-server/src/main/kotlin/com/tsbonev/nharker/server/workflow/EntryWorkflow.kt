@@ -145,17 +145,13 @@ class EntryWorkflow(
 
 	//region Event Handlers
 	/**
-	 * Saves a restored entry and verifies its explicit links for existence.
+	 * Saves entries that have been linked after restoration.
 	 */
 	@EventHandler
-	fun onEntryRestored(event: EntityRestoredEvent) {
-		if (event.entityClass == Entry::class.java && event.entity is Entry) {
-			val restoredEntry = event.entity
+	fun onEntryLinked(event: EntryLinkedEvent) {
+		val verifiedEntry = event.entry.verifyLinks()
 
-			val verifiedEntry = restoredEntry.verifyLinks()
-
-			entries.save(verifiedEntry)
-		}
+		entries.save(verifiedEntry)
 	}
 	//endregion
 

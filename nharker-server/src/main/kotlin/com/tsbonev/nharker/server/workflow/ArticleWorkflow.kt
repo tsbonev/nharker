@@ -173,7 +173,7 @@ class ArticleWorkflow(
 		return try {
 			val updatedArticle = articles.attachProperty(
 				command.articleId,
-				command.propertyName,
+				command.propName,
 				command.property
 			)
 
@@ -203,7 +203,7 @@ class ArticleWorkflow(
 		return try {
 			val updatedArticle = articles.detachProperty(
 				command.articleId,
-				command.propertyName
+				command.propName
 			)
 
 			eventBus.publish(ArticleUpdatedEvent(updatedArticle))
@@ -269,30 +269,6 @@ class ArticleWorkflow(
 	fun searchArticlesByTitle(query: SearchArticleByTitleQuery): QueryResponse {
 		return QueryResponse(StatusCode.OK, articles.searchByFullTitle(query.searchString))
 	}
-	//endregion
-
-	//region Event Handlers
-	/**
-	 * Saves a restored article and restores its linked entries.
-	 * @publishes EntryRestoredEvent
-	 */
-	@EventHandler
-	fun onArticleRestored(event: EntityRestoredEvent) {
-		if (event.entityClass == Article::class.java && event.entity is Article) {
-
-			val restoredArticle = event.entity
-
-			val restoredEntries = mutableListOf<Entry>()
-			val restoredProperties = mutableListOf<Entry>()
-
-			val rebuiltArticle = restoredArticle
-				.rebuild()
-				.restoreEntries(restoredArticle.entries, restoredEntries)
-				.restoreProperties(restoredArticle.properties, restoredProperties)
-
-			articles.save(rebuiltArticle)
-		}
-	}
 
 	/**
 	 * Retrieves all articles.
@@ -320,6 +296,40 @@ class ArticleWorkflow(
 			CommandResponse(StatusCode.OK, articleList)
 		} catch (e: ArticlePaginationException) {
 			exceptionLogger.logException(e)
+		}
+	}
+	//endregion
+
+	//region Event Handlers
+	/**
+	 * Saves a restored article and restores all of its entries.
+	 * @spawns RestoreTrashedEntityCommand
+	 */
+	@EventHandler
+	fun onArticleRestored(event: EntityRestoredEvent) {
+		if (event.entityClass == Article::class.java && event.entity is Article) {
+			val restoredArticle = event.entity
+
+			val restoredEntries = mutableListOf<Entry>()
+			val restoredProperties = mutableListOf<Entry>()
+
+			val rebuiltArticle = restoredArticle
+				.rebuild()
+				.restoreEntries(restoredArticle.entries, restoredEntries)
+				.restoreProperties(restoredArticle.properties, restoredProperties)
+
+			articles.save(rebuiltArticle)
+		}
+	}
+
+	/**
+	 * Saves an article that has had its entries' links refreshed.
+	 * @spawns LinkEntryContentToArticlesCommand
+	 */
+	@EventHandler
+	fun onArticleRefreshed(event: ArticleLinksRefreshedEvent) {
+		event.entries.forEach {
+			eventBus.send(LinkEntryContentToArticlesCommand(it))
 		}
 	}
 	//endregion
@@ -393,6 +403,7 @@ class ArticleWorkflow(
 	/**
 	 * Restores a list of entries by a given list of ids.
 	 *
+	 * @spawns RestoreTrashedEntityCommand
 	 * @param refList The list of ids to restore.
 	 * @return A list of restored entries.
 	 */
@@ -439,10 +450,8 @@ data class ArticleDeletedEvent(val article: Article) : Event
 
 data class AppendEntryToArticleCommand(val entry: Entry, val articleId: String) : Command
 data class RemoveEntryFromArticleCommand(val entry: Entry, val articleId: String) : Command
-data class AttachPropertyToArticleCommand(val propertyName: String, val property: Entry, val articleId: String) :
-	Command
-
-data class DetachPropertyFromArticleCommand(val propertyName: String, val articleId: String) : Command
+data class AttachPropertyToArticleCommand(val propName: String, val property: Entry, val articleId: String) : Command
+data class DetachPropertyFromArticleCommand(val propName: String, val articleId: String) : Command
 data class SwitchEntriesInArticleCommand(val articleId: String, val first: Entry, val second: Entry) : Command
 data class ArticleUpdatedEvent(val article: Article) : Event
 //endregion

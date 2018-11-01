@@ -84,6 +84,33 @@ class EntryLinkerWorkflowTest {
 		assertThat(response.payload.get() as List<Entry>, Is(listOf(entry)))
 	}
 
+	@Test
+	fun `Refreshes links of restored entries`(){
+		context.expecting {
+			oneOf(linker).linkEntryToArticles(entry)
+			will(returnValue(entry))
+
+			oneOf(eventBus).publish(EntryLinkedEvent(entry))
+		}
+
+		linkingWorkflow.onEntryRestored(
+			EntityRestoredEvent(entry, Entry::class.java)
+		)
+	}
+
+	@Test
+	fun `Ignores non-entry restoration events`(){
+		context.expecting {
+			never(linker).linkEntryToArticles(entry)
+
+			never(eventBus).publish(EntryLinkedEvent(entry))
+		}
+
+		linkingWorkflow.onEntryRestored(
+			EntityRestoredEvent(article, Article::class.java)
+		)
+	}
+
 	private fun Mockery.expecting(block: Expectations.() -> Unit){
 	        checking(Expectations().apply(block))
 	}

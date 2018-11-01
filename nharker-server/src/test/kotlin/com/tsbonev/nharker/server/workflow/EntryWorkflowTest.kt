@@ -251,16 +251,16 @@ class EntryWorkflowTest {
 	}
 
 	@Test
-	fun `Saves entry when completely restored`() {
+	fun `Saves entry when when linked after restoration`() {
 		context.expecting {
 			oneOf(entries).save(entry)
 		}
 
-		entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
+		entryWorkflow.onEntryLinked(EntryLinkedEvent(entry))
 	}
 
 	@Test
-	fun `Restoring entry verifies its links`() {
+	fun `Restoring linked entry verifies its links`() {
 		val restoredArticle = Article(
 			"::article-id::",
 			"Article title",
@@ -282,11 +282,11 @@ class EntryWorkflowTest {
 			oneOf(entries).save(restoredEntry)
 		}
 
-		entryWorkflow.onEntryRestored(EntityRestoredEvent(restoredEntry, Entry::class.java))
+		entryWorkflow.onEntryLinked(EntryLinkedEvent(restoredEntry))
 	}
 
 	@Test
-	fun `Restoring entry skips unverified explicit links`() {
+	fun `Restoring linked entry skips unverified explicit links`() {
 		val entry = Entry(
 			"::entry-id::",
 			LocalDateTime.now(),
@@ -306,16 +306,7 @@ class EntryWorkflowTest {
 			)
 		}
 
-		entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, Entry::class.java))
-	}
-
-	@Test
-	fun `Ignores foreign restored entities`() {
-		context.expecting {
-			never(entries).save(entry)
-		}
-
-		entryWorkflow.onEntryRestored(EntityRestoredEvent(entry, String::class.java))
+		entryWorkflow.onEntryLinked(EntryLinkedEvent(entry))
 	}
 
 	private fun Mockery.expecting(block: Expectations.() -> Unit) {

@@ -8,6 +8,7 @@ import com.tsbonev.nharker.cqrs.CommandHandler
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.Event
 import com.tsbonev.nharker.cqrs.EventBus
+import com.tsbonev.nharker.cqrs.EventHandler
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.Workflow
 
@@ -52,7 +53,19 @@ class EntryLinkingWorkflow(
 	//endregion
 
 	//region Event Handlers
-
+	/**
+	 * Refreshes an entry's implicit links when restored.
+	 * @publishes EntryLinkedEvent
+	 */
+	@EventHandler
+	fun onEntryRestored(event: EntityRestoredEvent){
+		when(event.entity){
+			is Entry -> {
+				val refreshedEntry = linker.linkEntryToArticles(event.entity)
+				eventBus.publish(EntryLinkedEvent(refreshedEntry))
+			}
+		}
+	}
 	//endregion
 }
 //region Commands
