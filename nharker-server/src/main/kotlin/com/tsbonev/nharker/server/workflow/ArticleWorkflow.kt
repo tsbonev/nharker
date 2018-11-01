@@ -133,6 +133,7 @@ class ArticleWorkflow(
 	 * @code 200
 	 * @payload The updated article.
 	 * @publishes ArticleUpdatedEvent
+	 * @spawns DeleteEntryCommand
 	 *
 	 * If an article is not found by id, logs id.
 	 * @code 404
@@ -189,6 +190,7 @@ class ArticleWorkflow(
 	 * @code 200
 	 * @payload The updated article.
 	 * @publishes ArticleUpdatedEvent
+	 * @spawns DeleteEntryCommand
 	 *
 	 * If the article is not found by id, logs id.
 	 * @code 404
@@ -201,13 +203,15 @@ class ArticleWorkflow(
 	@CommandHandler
 	fun detachPropertyFromArticle(command: DetachPropertyFromArticleCommand): CommandResponse {
 		return try {
-			val updatedArticle = articles.detachProperty(
+			val updatedArticleEntryIdPair = articles.detachProperty(
 				command.articleId,
 				command.propName
 			)
 
-			eventBus.publish(ArticleUpdatedEvent(updatedArticle))
-			CommandResponse(StatusCode.OK, updatedArticle)
+			eventBus.send(DeleteEntryCommand(updatedArticleEntryIdPair.second))
+
+			eventBus.publish(ArticleUpdatedEvent(updatedArticleEntryIdPair.first))
+			CommandResponse(StatusCode.OK, updatedArticleEntryIdPair)
 		} catch (e: ArticleNotFoundException) {
 			exceptionLogger.logException(e)
 		} catch (e: PropertyNotFoundException) {

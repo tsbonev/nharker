@@ -340,7 +340,7 @@ class NitriteArticlesTest {
 
 	@Test
 	fun `Attaches property to article`() {
-		val updatedArticle = articles.attachProperty(article.id, "::propertyName::", entry)
+		val updatedArticle = articles.attachProperty(article.id, "::property-name::", entry)
 
 		assertThat(
 			presavedArticle,
@@ -350,14 +350,15 @@ class NitriteArticlesTest {
 
 	@Test(expected = ArticleNotFoundException::class)
 	fun `Attaching property to non-existing article throws exception`() {
-		articles.attachProperty("::non-existing-article::", "::propertyName::", entry)
+		articles.attachProperty("::non-existing-article::", "::property-name::", entry)
 	}
 
 	@Test
 	fun `Detaches property from article`() {
-		val updatedArticle = articles.detachProperty(article.id, "::property-name::")
+		val articleEntryIdPair = articles.detachProperty(article.id, "::property-name::")
 
-		assertThat(presavedArticle, Is(updatedArticle))
+		assertThat(presavedArticle, Is(articleEntryIdPair.first))
+		assertThat(articleEntryIdPair.second, Is("::article-property-id::"))
 	}
 
 	@Test(expected = PropertyNotFoundException::class)
