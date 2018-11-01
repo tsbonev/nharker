@@ -373,7 +373,9 @@ class ArticleWorkflowTest {
 	fun `Detaches property from article`() {
 		context.expecting {
 			oneOf(articles).detachProperty(article.id, propertyName)
-			will(returnValue(article))
+			will(returnValue(Pair(article, propertyEntry.id)))
+
+			oneOf(eventBus).send(DeleteEntryCommand(propertyEntry.id))
 
 			oneOf(eventBus).publish(ArticleUpdatedEvent(article))
 		}
@@ -387,7 +389,7 @@ class ArticleWorkflowTest {
 
 		assertThat(response.statusCode, Is(StatusCode.OK))
 		assertThat(response.payload.isPresent, Is(true))
-		assertThat(response.payload.get() as Article, Is(article))
+		assertThat(response.payload.get() as Pair<Article, String>, Is(Pair(article, propertyEntry.id)))
 	}
 
 	@Test

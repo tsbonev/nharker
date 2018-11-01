@@ -176,13 +176,13 @@ class NitriteArticles(
 		return article
 	}
 
-	override fun detachProperty(articleId: String, propertyName: String): Article {
+	override fun detachProperty(articleId: String, propertyName: String): Pair<Article, String> {
 		val article = findByIdOrThrow(articleId)
 
-		article.properties.detachProperty(propertyName)
+		val removedPropertyId = article.properties.detachProperty(propertyName)
 
 		repo.update(article)
-		return article
+		return Pair(article, removedPropertyId)
 	}
 
 	override fun searchByFullTitle(searchString: String): List<Article> {

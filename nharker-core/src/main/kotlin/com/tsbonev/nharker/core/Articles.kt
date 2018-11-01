@@ -187,7 +187,7 @@ interface Articles {
 	 *
 	 * @param articleId The id of the targeted article.
 	 * @param propertyName The name of the property.
-	 * @return The updated article.
+	 * @return The updated article and the removed property id in a pair.
 	 *
 	 * @exception ArticleNotFoundException thrown when the article is not found.
 	 * @exception PropertyNotFoundException thrown when there is no property of the given name.
@@ -196,7 +196,7 @@ interface Articles {
 		ArticleNotFoundException::class,
 		PropertyNotFoundException::class
 	)
-	fun detachProperty(articleId: String, propertyName: String): Article
+	fun detachProperty(articleId: String, propertyName: String): Pair<Article, String>
 
 	/**
 	 * Returns a list of all articles that match a give title.
