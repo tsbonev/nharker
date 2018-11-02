@@ -4,7 +4,6 @@ import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
-import com.tsbonev.nharker.core.SortBy
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.nitrite

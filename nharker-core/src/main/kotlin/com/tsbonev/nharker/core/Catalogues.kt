@@ -89,41 +89,15 @@ interface Catalogues {
 	fun changeParentCatalogue(childCatalogueId: String, parentCatalogue: Catalogue): Catalogue
 
 	/**
-	 * Appends a catalogue to the targeted catalogue's children list.
+	 * Orphans a catalogue by setting its parentId to null.
 	 *
-	 * @param parentCatalogueId The id of the targeted parent catalogue.
-	 * @param childCatalogue The child catalogue to append.
+	 * @param catalogueId The catalogue to orphan.
 	 * @return The updated parent catalogue.
 	 *
-	 * @exception CatalogueNotFoundException thrown when the parent catalogue is not found.
-	 * @exception CatalogueAlreadyAChildException thrown when the child catalogue is already a child.
-	 * @exception SelfContainedCatalogueException thrown when the parent catalogue would become its own parent.
-	 * @exception CatalogueCircularInheritanceException thrown when the child is
-	 * the parent of the requested parent.
+	 * @exception CatalogueNotFoundException thrown when the catalogue is not found.
 	 */
-	@Throws(
-		CatalogueNotFoundException::class,
-		CatalogueAlreadyAChildException::class,
-		SelfContainedCatalogueException::class,
-		CatalogueCircularInheritanceException::class
-	)
-	fun appendChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
-
-	/**
-	 * Removes a catalogue from the targeted catalogue's children list.
-	 *
-	 * @param parentCatalogueId The id of the parent catalogue.
-	 * @param childCatalogue The child catalogue to remove.
-	 * @return The updated parent catalogue.
-	 *
-	 * @exception CatalogueNotFoundException thrown when the parent catalogue is not found.
-	 * @exception CatalogueNotAChildException thrown when the catalogue is not a child.
-	 */
-	@Throws(
-		CatalogueNotFoundException::class,
-		CatalogueNotAChildException::class
-	)
-	fun removeChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue
+	@Throws(CatalogueNotFoundException::class)
+	fun orphanCatalogue(catalogueId: String): Catalogue
 
 	/**
 	 * Switches the order of two children catalogues in a parent catalogue.

@@ -181,7 +181,7 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Retrieves all articles`(){
+	fun `Retrieves all articles`() {
 		val sortOrder = SortBy.ASCENDING
 
 		context.expecting {
@@ -198,7 +198,7 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Retrieves paginated articles`(){
+	fun `Retrieves paginated articles`() {
 		val sortOrder = SortBy.ASCENDING
 
 		context.expecting {
@@ -215,7 +215,7 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Paginating with illegal page count and size returns bad request`(){
+	fun `Paginating with illegal page count and size returns bad request`() {
 		val sortOrder = SortBy.ASCENDING
 
 		context.expecting {
@@ -554,12 +554,12 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
-	fun `Relinks article's entries when refreshed`(){
+	fun `Relinks article's entries when refreshed`() {
 		context.expecting {
 			oneOf(eventBus).send(LinkEntryContentToArticlesCommand(entry))
 		}
 
-	    articleWorkflow.onArticleRefreshed(ArticleLinksRefreshedEvent(article, listOf(entry)))
+		articleWorkflow.onArticleRefreshed(ArticleLinksRefreshedEvent(article, listOf(entry)))
 	}
 
 	private fun Mockery.expecting(block: Expectations.() -> Unit) {

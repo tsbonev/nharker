@@ -2,6 +2,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
@@ -10,7 +11,6 @@ import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
-import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.SortBy
 import org.dizitart.kno2.filters.elemMatch
 import org.dizitart.kno2.filters.eq
@@ -45,7 +45,8 @@ class NitriteArticles(
 
 		if (repo.find(Article::title text article.title)
 				.filter { it.title == article.title }
-				.any())
+				.any()
+		)
 			throw ArticleTitleTakenException(articleRequest.fullTitle)
 
 		repo.insert(article)
