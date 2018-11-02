@@ -16,6 +16,12 @@ import com.tsbonev.nharker.cqrs.Workflow
 import com.tsbonev.nharker.server.helpers.ExceptionLogger
 
 /**
+ * Provides the command handlers that are concerned with
+ * the trash store.
+ *
+ * Provides the event handlers that store deleted objects
+ * into the trash.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class TrashingWorkflow(
@@ -26,16 +32,16 @@ class TrashingWorkflow(
 	//region Command Handlers
 	/**
 	 * Restores an entity from the trash.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The restored entity.
-	 * @publishes EntityRestoredEvent.
+	 * @publishes [EntityRestoredEvent].
 	 *
 	 * If the entity is not found in the class, logs the id and class.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception EntityNotInTrashException
 	 *
 	 * If the entity cannot be cast to the specified class, logs the id and class.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception EntityCannotBeCastException
 	 */
 	@CommandHandler
@@ -55,9 +61,9 @@ class TrashingWorkflow(
 
 	/**
 	 * Clears the trash store.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The cleared trashed entities.
-	 * @publishes TrashStoreClearedEvent
+	 * @publishes [TrashStoreClearedEvent]
 	 */
 	@Suppress("UNUSED_PARAMETER")
 	@CommandHandler
@@ -72,7 +78,7 @@ class TrashingWorkflow(
 
 	/**
 	 * Returns a list of trashed entities from a specified class.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of entities of the specified class.
 	 */
 	@CommandHandler

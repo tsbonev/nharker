@@ -97,7 +97,6 @@ interface Articles {
 	 *
 	 * @param articleId The id of the article.
 	 * @param catalogue The catalogue to add.
-	 *
 	 * @return The updated article.
 	 *
 	 * @exception ArticleNotFoundException thrown when the article is not found.
@@ -110,7 +109,6 @@ interface Articles {
 	 *
 	 * @param articleId The id of the article.
 	 * @param catalogue The catalogue to remove.
-	 *
 	 * @return The updated article.
 	 *
 	 * @exception ArticleNotFoundException thrown when the article is not found.

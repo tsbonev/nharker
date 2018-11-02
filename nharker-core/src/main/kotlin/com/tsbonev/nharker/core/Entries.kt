@@ -65,7 +65,6 @@ interface Entries {
 	 *
 	 * @param entryId The id of the entry.
 	 * @param article The new article that holds the entry.
-	 *
 	 * @return The updated entry.
 	 *
 	 * @exception EntryNotFoundException thrown when the entry is not found.

@@ -414,7 +414,7 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Skips reattaching to parent when not found`(){
+	fun `Skips reattaching to parent when not found`() {
 		context.expecting {
 			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
 
@@ -433,7 +433,7 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Reappends children to catalogue when restoring`(){
+	fun `Reappends children to catalogue when restoring`() {
 		context.expecting {
 			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
 
@@ -452,7 +452,7 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Skips non-existing children when restoring`(){
+	fun `Skips non-existing children when restoring`() {
 		context.expecting {
 			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
 
@@ -471,7 +471,7 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Restores catalogue to inheritance tree fully`(){
+	fun `Restores catalogue to inheritance tree fully`() {
 		context.expecting {
 			//Saves as childless orphan
 			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))

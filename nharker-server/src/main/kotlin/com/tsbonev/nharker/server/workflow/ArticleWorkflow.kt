@@ -33,6 +33,14 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
  * Provides the event handlers that are concerned with the
  * state of articles and entries that are in articles.
  *
+ * Article restoration begins in this workflow,
+ * then the entry restoration is delegated to the
+ * [TrashingWorkflow] to take it out of the trash,
+ * which delegates it to [EntryLinkingWorkflow] which
+ * refreshes its links, which finally delegates it to
+ * [EntryWorkflow] which verifies the explicit links and
+ * saves the entry.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class ArticleWorkflow(
@@ -43,12 +51,12 @@ class ArticleWorkflow(
 	//region Command Handlers
 	/**
 	 * Creates an article.
-	 * @code 201
+	 * @code [StatusCode.Created]
 	 * @payload The created article.
-	 * @publishes ArticleCreatedEvent
+	 * @publishes [ArticleCreatedEvent]
 	 *
 	 * If the article title is taken, logs the title.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception ArticleTitleTakenException
 	 */
 	@CommandHandler
@@ -65,13 +73,13 @@ class ArticleWorkflow(
 
 	/**
 	 * Deletes and article and its entries and properties.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The deleted article.
-	 * @publishes ArticleDeletedEvent
-	 * @spawns DeleteEntryCommand
+	 * @publishes [ArticleDeletedEvent]
+	 * @spawns [DeleteEntryCommand]
 	 *
 	 * If the article is not found, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 */
 	@CommandHandler
@@ -102,16 +110,16 @@ class ArticleWorkflow(
 
 	/**
 	 * Appends an entry to an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated article.
-	 * @publishes ArticleUpdatedEvent
+	 * @publishes [ArticleUpdatedEvent]
 	 *
 	 * If an article is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 *
 	 * If the entry is already in the article, logs entry id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception EntryAlreadyInArticleException
 	 */
 	@CommandHandler
@@ -130,17 +138,17 @@ class ArticleWorkflow(
 
 	/**
 	 * Removes an entry from an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated article.
-	 * @publishes ArticleUpdatedEvent
-	 * @spawns DeleteEntryCommand
+	 * @publishes [ArticleUpdatedEvent]
+	 * @spawns [DeleteEntryCommand]
 	 *
 	 * If an article is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 *
 	 * If the entry is not in the article, logs entry id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception EntryNotInArticleException
 	 */
 	@CommandHandler
@@ -161,12 +169,12 @@ class ArticleWorkflow(
 
 	/**
 	 * Attaches a property to an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated article.
-	 * @publishes ArticleUpdatedEvent
+	 * @publishes [ArticleUpdatedEvent]
 	 *
 	 * If the article is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 */
 	@CommandHandler
@@ -187,17 +195,17 @@ class ArticleWorkflow(
 
 	/**
 	 * Detaches a property from an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated article.
-	 * @publishes ArticleUpdatedEvent
-	 * @spawns DeleteEntryCommand
+	 * @publishes [ArticleUpdatedEvent]
+	 * @spawns [DeleteEntryCommand]
 	 *
 	 * If the article is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 *
 	 * If the article does not contain the property, logs property name and article id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception PropertyNotFoundException
 	 */
 	@CommandHandler
@@ -221,16 +229,16 @@ class ArticleWorkflow(
 
 	/**
 	 * Switches two entries' order in an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated article.
-	 * @publishes ArticleUpdatedEvent
+	 * @publishes [ArticleUpdatedEvent]
 	 *
 	 * If the article is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 *
 	 * If the entries are not both in the article, logs the entries' ids and the article's id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception EntryNotInArticleException
 	 */
 	@CommandHandler
@@ -249,11 +257,11 @@ class ArticleWorkflow(
 
 	/**
 	 * Retrieves an article by id.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The retrieve article.
 	 *
 	 * If an article is not found, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception ArticleNotFoundException
 	 */
 	@CommandHandler
@@ -266,7 +274,7 @@ class ArticleWorkflow(
 
 	/**
 	 * Searches for an article by matching its title.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of matched articles.
 	 */
 	@CommandHandler
@@ -276,7 +284,7 @@ class ArticleWorkflow(
 
 	/**
 	 * Retrieves all articles.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of articles.
 	 */
 	fun getAllArticles(query: GetAllArticlesQuery): QueryResponse {
@@ -286,11 +294,11 @@ class ArticleWorkflow(
 
 	/**
 	 * Retrieves articles and paginates them.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of articles.
 	 *
 	 * If an illegal page size or page index are passed, logs an error with the size and index.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception ArticlePaginationException
 	 */
 	@CommandHandler
@@ -307,7 +315,7 @@ class ArticleWorkflow(
 	//region Event Handlers
 	/**
 	 * Saves a restored article and restores all of its entries.
-	 * @spawns RestoreTrashedEntityCommand
+	 * @spawns [RestoreTrashedEntityCommand]
 	 */
 	@EventHandler
 	fun onArticleRestored(event: EntityRestoredEvent) {
@@ -328,7 +336,7 @@ class ArticleWorkflow(
 
 	/**
 	 * Saves an article that has had its entries' links refreshed.
-	 * @spawns LinkEntryContentToArticlesCommand
+	 * @spawns [LinkEntryContentToArticlesCommand]
 	 */
 	@EventHandler
 	fun onArticleRefreshed(event: ArticleLinksRefreshedEvent) {

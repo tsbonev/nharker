@@ -29,6 +29,8 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
  * Provides the event handlers that are concerned with the
  * state of catalogues and articles that are in catalogues.
  *
+ * Catalogues are directly restored in this workflow.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class CatalogueWorkflow(
@@ -39,16 +41,16 @@ class CatalogueWorkflow(
 	//region Command Handlers
 	/**
 	 * Creates a catalogue.
-	 * @code 201
+	 * @code [StatusCode.Created]
 	 * @payload The created catalogue.
-	 * @publishes CatalogueCreatedEvent
+	 * @publishes [CatalogueCreatedEvent]
 	 *
 	 * If the catalogue requests a non-existing parent, logs the parent's id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 *
 	 * If the catalogue title is taken, logs the title.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception CatalogueTitleTakenException
 	 */
 	@CommandHandler
@@ -67,12 +69,12 @@ class CatalogueWorkflow(
 
 	/**
 	 * Deletes a catalogue.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The deleted catalogue.
-	 * @publishes CatalogueDeletedEvent
+	 * @publishes [CatalogueDeletedEvent]
 	 *
 	 * If catalogue is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 */
 	@CommandHandler
@@ -89,16 +91,16 @@ class CatalogueWorkflow(
 
 	/**
 	 * Changes the title of a catalogue.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated catalogue.
-	 * @publishes CatalogueUpdatedEvent
+	 * @publishes [CatalogueUpdatedEvent]
 	 *
 	 * If the catalogue is not found by id, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 *
 	 * If the catalogue title is taken, logs title.
-	 * @code 400
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueTitleTakenException
 	 */
 	@CommandHandler
@@ -117,24 +119,24 @@ class CatalogueWorkflow(
 
 	/**
 	 * Changes the parent of a catalogue.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated catalogue.
-	 * @publishes CatalogueUpdatedEvent
+	 * @publishes [CatalogueUpdatedEvent]
 	 *
 	 * If the catalogue is not found by id, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 *
 	 * If the catalogue is already a child, logs the catalogue id and the parent id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception CatalogueAlreadyAChildException
 	 *
 	 * If the parent catalogue is a child of the requested parent catalogue, logs the parent's and the child's ids.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception CatalogueCircularInheritanceException
 	 *
 	 * If the catalogue is requested to become its own child, logs the catalogue's id.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception SelfContainedCatalogueException
 	 */
 	@CommandHandler
@@ -157,16 +159,16 @@ class CatalogueWorkflow(
 
 	/**
 	 * Switches the order of two child catalogues.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated catalogue.
-	 * @publishes CatalogueUpdatedEvent
+	 * @publishes [CatalogueUpdatedEvent]
 	 *
 	 * If the catalogue is not found by id, logs the id
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 *
 	 * If the catalogue does not contain both child catalogues, logs the catalogue's id and the child catalogues' ids.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception CatalogueNotAChildException
 	 */
 	@CommandHandler
@@ -187,12 +189,12 @@ class CatalogueWorkflow(
 
 	/**
 	 * Orphans a catalogue.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The orphaned catalogue.
-	 * @publishes CatalogueUpdatedEvent
+	 * @publishes [CatalogueUpdatedEvent]
 	 *
 	 * If the catalogue is not found by id, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 */
 	@CommandHandler
@@ -209,11 +211,11 @@ class CatalogueWorkflow(
 
 	/**
 	 * Retrieves a catalogue by id.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The retrieved catalogue.
 	 *
 	 * If no catalogue is found, logs id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception CatalogueNotFoundException
 	 */
 	@CommandHandler
@@ -227,8 +229,10 @@ class CatalogueWorkflow(
 
 	//region Event Handlers
 	/**
-	 * Saves a restored catalogue by inserting it back into
-	 * the inheritance tree.
+	 * Restores a catalogue by inserting it back into
+	 * the inheritance tree, as a child of its parent
+	 * if it exists, and retaking its old children, if they
+	 * also exist.
 	 */
 	@EventHandler
 	fun onCatalogueRestored(event: EntityRestoredEvent) {
@@ -294,7 +298,7 @@ class CatalogueWorkflow(
 	 * Extract the existing children
 	 * of a catalogue and sorts them by their original order.
 	 */
-	private fun Catalogue.extractExistingChildren(): Map<Catalogue, Int>{
+	private fun Catalogue.extractExistingChildren(): Map<Catalogue, Int> {
 		val existingChildren = hashMapOf<Catalogue, Int>()
 
 		this.children.raw()

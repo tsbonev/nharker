@@ -17,7 +17,6 @@ class NitriteArticleSynonymProvider(
 	private val collectionName: String = "Article_synonyms",
 	private val globalMapId: String = "Global_synonym_map"
 ) : ArticleSynonymProvider {
-
 	private val coll: NitriteCollection
 		get() = nitriteDb.getCollection(collectionName)
 
