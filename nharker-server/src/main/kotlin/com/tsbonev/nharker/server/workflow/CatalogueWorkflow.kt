@@ -8,6 +8,7 @@ import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.cqrs.Command
 import com.tsbonev.nharker.cqrs.CommandHandler
@@ -226,15 +227,88 @@ class CatalogueWorkflow(
 
 	//region Event Handlers
 	/**
-	 * Saves a restored catalogue.
+	 * Saves a restored catalogue by inserting it back into
+	 * the inheritance tree.
 	 */
 	@EventHandler
 	fun onCatalogueRestored(event: EntityRestoredEvent) {
 		if (event.entityClass == Catalogue::class.java && event.entity is Catalogue) {
-			catalogues.save(event.entity)
+			event.entity
+				.saveAsChildlessOrphan()
+				.restoreToOldParent()
+				.reappendChildren()
 		}
 	}
 	//endregion
+
+	/**
+	 * Save the catalogue without any parent or children so it can
+	 * be accessed by the others.
+	 */
+	private fun Catalogue.saveAsChildlessOrphan(): Catalogue {
+		catalogues.save(
+			this.copy(
+				parentId = null,
+				children = OrderedReferenceMap()
+			)
+		)
+
+		return this
+	}
+
+	/**
+	 * Checks if a catalogue's parent is still in existence.
+	 */
+	private fun Catalogue.restoreToOldParent(): Catalogue {
+		val parentId = this.parentId
+
+		return if (parentId != null) {
+			val parentCatalogue = catalogues.getById(parentId)
+
+			return if (parentCatalogue.isPresent) {
+				catalogues.changeParentCatalogue(this.id, parentCatalogue.get())
+			} else this.copy(parentId = null)
+		} else this
+	}
+
+	/**
+	 * Reappends the children that a catalogue had before deletion.
+	 */
+	private fun Catalogue.reappendChildren(): Catalogue {
+		val reappendedCatalogue = this.copy(
+			children = OrderedReferenceMap()
+		)
+
+		val existingChildren = this.extractExistingChildren()
+
+		existingChildren
+			.forEach { child, _ ->
+				catalogues.changeParentCatalogue(child.id, this)
+				reappendedCatalogue.children.append(child.id)
+			}
+
+		return reappendedCatalogue
+	}
+
+	/**
+	 * Extract the existing children
+	 * of a catalogue and sorts them by their original order.
+	 */
+	private fun Catalogue.extractExistingChildren(): Map<Catalogue, Int>{
+		val existingChildren = hashMapOf<Catalogue, Int>()
+
+		this.children.raw()
+			.forEach { id, order ->
+				val possibleChild = catalogues.getById(id)
+
+				if (possibleChild.isPresent)
+					existingChildren[possibleChild.get()] = order
+			}
+
+		return existingChildren.toList()
+			.sortedBy { it.second }
+			.toMap()
+	}
 }
 
 //region Queries

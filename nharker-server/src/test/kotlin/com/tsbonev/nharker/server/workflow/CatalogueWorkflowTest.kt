@@ -8,6 +8,7 @@ import com.tsbonev.nharker.core.CatalogueNotFoundException
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
+import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.cqrs.StatusCode
@@ -43,6 +44,27 @@ class CatalogueWorkflowTest {
 	)
 
 	private val date = LocalDateTime.ofEpochSecond(1, 1, ZoneOffset.UTC)
+
+	private val parentCatalogue = Catalogue(
+		"::parent-catalogue-id::",
+		"::parent-title::",
+		date
+	)
+
+	private val childCatalogue = Catalogue(
+		"::child-catalogue-id::",
+		"::child-title::",
+		date,
+		parentId = parentCatalogue.id
+	)
+
+	private val restoredCatalogue = Catalogue(
+		"::catalogue-id::",
+		"::title::",
+		date,
+		parentId = "::parent-catalogue-id::",
+		children = OrderedReferenceMap(linkedMapOf(childCatalogue.id to 0))
+	)
 
 	private val catalogue = Catalogue(
 		"::id::",
@@ -363,12 +385,119 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Saves catalogue when restored`() {
+	fun `Saves orphan childless catalogue when restored`() {
 		context.expecting {
 			oneOf(catalogues).save(catalogue)
 		}
 
 		catalogueWorkflow.onCatalogueRestored(EntityRestoredEvent(catalogue, Catalogue::class.java))
+	}
+
+	@Test
+	fun `Reattaches catalogue to old parent when restoring`() {
+		context.expecting {
+			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
+
+			oneOf(catalogues).getById(parentCatalogue.id)
+			will(returnValue(Optional.of(parentCatalogue)))
+
+			oneOf(catalogues).changeParentCatalogue(restoredCatalogue.id, parentCatalogue)
+			will(returnValue(restoredCatalogue.copy(children = OrderedReferenceMap())))
+		}
+
+		catalogueWorkflow.onCatalogueRestored(
+			EntityRestoredEvent(
+				restoredCatalogue.copy(children = OrderedReferenceMap()),
+				Catalogue::class.java
+			)
+		)
+	}
+
+	@Test
+	fun `Skips reattaching to parent when not found`(){
+		context.expecting {
+			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
+
+			oneOf(catalogues).getById(parentCatalogue.id)
+			will(returnValue(Optional.empty<Catalogue>()))
+
+			never(catalogues).changeParentCatalogue(restoredCatalogue.id, parentCatalogue)
+		}
+
+		catalogueWorkflow.onCatalogueRestored(
+			EntityRestoredEvent(
+				restoredCatalogue.copy(children = OrderedReferenceMap()),
+				Catalogue::class.java
+			)
+		)
+	}
+
+	@Test
+	fun `Reappends children to catalogue when restoring`(){
+		context.expecting {
+			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
+
+			oneOf(catalogues).getById(childCatalogue.id)
+			will(returnValue(Optional.of(childCatalogue)))
+
+			oneOf(catalogues).changeParentCatalogue(childCatalogue.id, restoredCatalogue.copy(parentId = null))
+		}
+
+		catalogueWorkflow.onCatalogueRestored(
+			EntityRestoredEvent(
+				restoredCatalogue.copy(parentId = null),
+				Catalogue::class.java
+			)
+		)
+	}
+
+	@Test
+	fun `Skips non-existing children when restoring`(){
+		context.expecting {
+			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
+
+			oneOf(catalogues).getById(childCatalogue.id)
+			will(returnValue(Optional.empty<Catalogue>()))
+
+			never(catalogues).changeParentCatalogue(childCatalogue.id, restoredCatalogue.copy(parentId = null))
+		}
+
+		catalogueWorkflow.onCatalogueRestored(
+			EntityRestoredEvent(
+				restoredCatalogue.copy(parentId = null),
+				Catalogue::class.java
+			)
+		)
+	}
+
+	@Test
+	fun `Restores catalogue to inheritance tree fully`(){
+		context.expecting {
+			//Saves as childless orphan
+			oneOf(catalogues).save(restoredCatalogue.copy(parentId = null, children = OrderedReferenceMap()))
+
+			//Checks parent for existence
+			oneOf(catalogues).getById(parentCatalogue.id)
+			will(returnValue(Optional.of(parentCatalogue)))
+
+			//Attaches to parent
+			oneOf(catalogues).changeParentCatalogue(restoredCatalogue.id, parentCatalogue)
+			will(returnValue(restoredCatalogue))
+
+			//Checks children for existence
+			oneOf(catalogues).getById(childCatalogue.id)
+			will(returnValue(Optional.of(childCatalogue)))
+
+			//Attaches children to parent
+			oneOf(catalogues).changeParentCatalogue(childCatalogue.id, restoredCatalogue)
+		}
+
+		catalogueWorkflow.onCatalogueRestored(
+			EntityRestoredEvent(
+				restoredCatalogue,
+				Catalogue::class.java
+			)
+		)
 	}
 
 	@Test
