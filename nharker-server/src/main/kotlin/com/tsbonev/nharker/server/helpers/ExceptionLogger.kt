@@ -1,6 +1,7 @@
 package com.tsbonev.nharker.server.helpers
 
 import com.tsbonev.nharker.core.ArticleNotFoundException
+import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
 import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
@@ -12,7 +13,6 @@ import com.tsbonev.nharker.core.EntityNotInTrashException
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryNotInArticleException
-import com.tsbonev.nharker.core.ArticlePaginationException
 import com.tsbonev.nharker.core.PropertyNotFoundException
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.SynonymAlreadyTakenException

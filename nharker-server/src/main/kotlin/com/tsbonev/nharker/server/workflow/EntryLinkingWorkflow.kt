@@ -30,7 +30,7 @@ class EntryLinkingWorkflow(
 	 * @publishes EntryLinkedEvent
 	 */
 	@CommandHandler
-	fun linkEntry(command: LinkEntryContentToArticlesCommand): CommandResponse{
+	fun linkEntry(command: LinkEntryContentToArticlesCommand): CommandResponse {
 		val linkedEntry = linker.linkEntryToArticles(command.entry)
 
 		eventBus.publish(EntryLinkedEvent(linkedEntry))
@@ -44,7 +44,7 @@ class EntryLinkingWorkflow(
 	 * @publishes ArticleLinksRefreshedEvent
 	 */
 	@CommandHandler
-	fun refreshArticleLinks(command: RefreshArticleEntryLinksCommand): CommandResponse{
+	fun refreshArticleLinks(command: RefreshArticleEntryLinksCommand): CommandResponse {
 		val refreshedEntries = linker.refreshLinksOfArticle(command.article)
 
 		eventBus.publish(ArticleLinksRefreshedEvent(command.article, refreshedEntries))
@@ -58,8 +58,8 @@ class EntryLinkingWorkflow(
 	 * @publishes EntryLinkedEvent
 	 */
 	@EventHandler
-	fun onEntryRestored(event: EntityRestoredEvent){
-		when(event.entity){
+	fun onEntryRestored(event: EntityRestoredEvent) {
+		when (event.entity) {
 			is Entry -> {
 				val refreshedEntry = linker.linkEntryToArticles(event.entity)
 				eventBus.publish(EntryLinkedEvent(refreshedEntry))
@@ -68,10 +68,12 @@ class EntryLinkingWorkflow(
 	}
 	//endregion
 }
-//region Commands
-data class RefreshArticleEntryLinksCommand(val article: Article): Command
-data class ArticleLinksRefreshedEvent(val article: Article, val entries: List<Entry>): Event
 
-data class LinkEntryContentToArticlesCommand(val entry: Entry): Command
-data class EntryLinkedEvent(val entry: Entry): Event
+//region Commands
+data class RefreshArticleEntryLinksCommand(val article: Article) : Command
+
+data class ArticleLinksRefreshedEvent(val article: Article, val entries: List<Entry>) : Event
+
+data class LinkEntryContentToArticlesCommand(val entry: Entry) : Command
+data class EntryLinkedEvent(val entry: Entry) : Event
 //endregion

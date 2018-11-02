@@ -282,84 +282,6 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Appends child catalogue to catalogue`() {
-		context.expecting {
-			oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
-			will(returnValue(catalogue))
-
-			oneOf(eventBus).publish(CatalogueUpdatedEvent(catalogue))
-		}
-
-		val response = catalogueWorkflow.appendChildCatalogue(
-			AppendChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.OK))
-		assertThat(response.payload.isPresent, Is(true))
-		assertThat(response.payload.get() as Catalogue, Is(catalogue))
-	}
-
-	@Test
-	fun `Appending catalogue to itself returns bad request`() {
-		context.expecting {
-			oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
-			will(throwException(SelfContainedCatalogueException(catalogue.id)))
-		}
-
-		val response = catalogueWorkflow.appendChildCatalogue(
-			AppendChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.BadRequest))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
-	fun `Appending catalogue to its child returns bad request`() {
-		context.expecting {
-			oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
-			will(throwException(CatalogueCircularInheritanceException(catalogue.id, catalogue.id)))
-		}
-
-		val response = catalogueWorkflow.appendChildCatalogue(
-			AppendChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.BadRequest))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
-	fun `Appending catalogue that is already a child returns bad request`() {
-		context.expecting {
-			oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
-			will(throwException(CatalogueAlreadyAChildException(catalogue.id, catalogue.id)))
-		}
-
-		val response = catalogueWorkflow.appendChildCatalogue(
-			AppendChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.BadRequest))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
-	fun `Appending child catalogue to a non-existing catalogue returns not found`() {
-		context.expecting {
-			oneOf(catalogues).appendChildCatalogue(catalogue.id, catalogue)
-			will(throwException(CatalogueNotFoundException(catalogue.id)))
-		}
-
-		val response = catalogueWorkflow.appendChildCatalogue(
-			AppendChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.NotFound))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
 	fun `Switches child catalogue order in catalogue`() {
 		context.expecting {
 			oneOf(catalogues).switchChildCatalogues(catalogue.id, catalogue, catalogue)
@@ -410,14 +332,14 @@ class CatalogueWorkflowTest {
 	@Test
 	fun `Removes child catalogue from catalogue`() {
 		context.expecting {
-			oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
+			oneOf(catalogues).orphanCatalogue(catalogue.id)
 			will(returnValue(catalogue))
 
 			oneOf(eventBus).publish(CatalogueUpdatedEvent(catalogue))
 		}
 
-		val response = catalogueWorkflow.removeChildCatalogue(
-			RemoveChildCatalogueCommand(catalogue.id, catalogue)
+		val response = catalogueWorkflow.orphanCatalogue(
+			OrphanCatalogueCommand(catalogue.id)
 		)
 
 		assertThat(response.statusCode, Is(StatusCode.OK))
@@ -426,29 +348,14 @@ class CatalogueWorkflowTest {
 	}
 
 	@Test
-	fun `Removing child catalogue from non-parent catalogue returns bad request`() {
-		context.expecting {
-			oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
-			will(throwException(CatalogueNotAChildException(catalogue.id, catalogue.id)))
-		}
-
-		val response = catalogueWorkflow.removeChildCatalogue(
-			RemoveChildCatalogueCommand(catalogue.id, catalogue)
-		)
-
-		assertThat(response.statusCode, Is(StatusCode.BadRequest))
-		assertThat(response.payload.isPresent, Is(false))
-	}
-
-	@Test
 	fun `Removing child catalogue from a non-existing catalogue returns not found`() {
 		context.expecting {
-			oneOf(catalogues).removeChildCatalogue(catalogue.id, catalogue)
+			oneOf(catalogues).orphanCatalogue(catalogue.id)
 			will(throwException(CatalogueNotFoundException(catalogue.id)))
 		}
 
-		val response = catalogueWorkflow.removeChildCatalogue(
-			RemoveChildCatalogueCommand(catalogue.id, catalogue)
+		val response = catalogueWorkflow.orphanCatalogue(
+			OrphanCatalogueCommand(catalogue.id)
 		)
 
 		assertThat(response.statusCode, Is(StatusCode.NotFound))

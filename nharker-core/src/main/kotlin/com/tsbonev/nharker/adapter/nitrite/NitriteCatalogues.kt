@@ -86,6 +86,8 @@ class NitriteCatalogues(
 		if (parentCatalogue.parentId == childCatalogue.id)
 			throw CatalogueCircularInheritanceException(parentCatalogue.id, childCatalogue.id)
 
+		removeFromOldParent(childCatalogue)
+
 		val updatedChild = childCatalogue
 			.copy(parentId = parentCatalogue.id)
 
@@ -112,41 +114,15 @@ class NitriteCatalogues(
 		return catalogue
 	}
 
-	override fun appendChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue {
-		if (childCatalogue.parentId == parentCatalogueId)
-			throw CatalogueAlreadyAChildException(parentCatalogueId, childCatalogue.id)
+	override fun orphanCatalogue(catalogueId: String): Catalogue {
+		val catalogue = findOrThrow(catalogueId)
 
-		if (childCatalogue.id == parentCatalogueId)
-			throw SelfContainedCatalogueException(parentCatalogueId)
-
-		val parentCatalogue = findOrThrow(parentCatalogueId)
-
-		if (parentCatalogue.parentId == childCatalogue.id)
-			throw CatalogueCircularInheritanceException(parentCatalogueId, childCatalogue.id)
-
-		val updatedChild = childCatalogue
-			.copy(parentId = parentCatalogueId)
-
-		parentCatalogue.children.append(childCatalogue.id)
-
-		repo.update(updatedChild)
-		repo.update(parentCatalogue)
-		return updatedChild
-	}
-
-	override fun removeChildCatalogue(parentCatalogueId: String, childCatalogue: Catalogue): Catalogue {
-		if (childCatalogue.parentId != parentCatalogueId)
-			throw CatalogueNotAChildException(parentCatalogueId, childCatalogue.id)
-
-		val parentCatalogue = findOrThrow(parentCatalogueId)
-
-		val updatedChild = childCatalogue
+		val updatedChild = catalogue
 			.copy(parentId = null)
 
-		parentCatalogue.children.subtract(childCatalogue.id)
+		removeFromOldParent(catalogue)
 
 		repo.update(updatedChild)
-		repo.update(parentCatalogue)
 		return updatedChild
 	}
 
@@ -178,5 +154,19 @@ class NitriteCatalogues(
 	private fun findOrThrow(catalogueId: String): Catalogue {
 		return repo.find(Catalogue::id eq catalogueId).firstOrNull()
 			?: throw CatalogueNotFoundException(catalogueId)
+	}
+
+	/**
+	 * Removes the catalogue from its old parent.
+	 *
+	 * @param childCatalogue The catalogue whose parent to update.
+	 */
+	private fun removeFromOldParent(childCatalogue: Catalogue) {
+		if (childCatalogue.parentId != null) {
+			val oldParent = findOrThrow(childCatalogue.parentId)
+
+			oldParent.children.subtract(childCatalogue.id)
+			repo.update(oldParent)
+		}
 	}
 }

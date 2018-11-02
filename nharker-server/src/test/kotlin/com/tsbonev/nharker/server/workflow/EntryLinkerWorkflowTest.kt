@@ -12,12 +12,12 @@ import org.jmock.AbstractExpectations.returnValue
 import org.jmock.Expectations
 import org.jmock.Mockery
 import org.jmock.integration.junit4.JUnitRuleMockery
+import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.hamcrest.CoreMatchers.`is` as Is
-import org.junit.Assert.assertThat
 
 /**
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
@@ -49,7 +49,7 @@ class EntryLinkerWorkflowTest {
 	private val linkingWorkflow = EntryLinkingWorkflow(eventBus, linker)
 
 	@Test
-	fun `Links entry to articles`(){
+	fun `Links entry to articles`() {
 		context.expecting {
 			oneOf(linker).linkEntryToArticles(entry)
 			will(returnValue(entry))
@@ -67,7 +67,7 @@ class EntryLinkerWorkflowTest {
 	}
 
 	@Test
-	fun `Refreshes articles entry links`(){
+	fun `Refreshes articles entry links`() {
 		context.expecting {
 			oneOf(linker).refreshLinksOfArticle(article)
 			will(returnValue(listOf(entry)))
@@ -85,7 +85,7 @@ class EntryLinkerWorkflowTest {
 	}
 
 	@Test
-	fun `Refreshes links of restored entries`(){
+	fun `Refreshes links of restored entries`() {
 		context.expecting {
 			oneOf(linker).linkEntryToArticles(entry)
 			will(returnValue(entry))
@@ -99,7 +99,7 @@ class EntryLinkerWorkflowTest {
 	}
 
 	@Test
-	fun `Ignores non-entry restoration events`(){
+	fun `Ignores non-entry restoration events`() {
 		context.expecting {
 			never(linker).linkEntryToArticles(entry)
 
@@ -111,7 +111,7 @@ class EntryLinkerWorkflowTest {
 		)
 	}
 
-	private fun Mockery.expecting(block: Expectations.() -> Unit){
-	        checking(Expectations().apply(block))
+	private fun Mockery.expecting(block: Expectations.() -> Unit) {
+		checking(Expectations().apply(block))
 	}
 }
