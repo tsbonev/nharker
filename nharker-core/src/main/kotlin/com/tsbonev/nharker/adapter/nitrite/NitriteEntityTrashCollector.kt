@@ -17,7 +17,6 @@ class NitriteEntityTrashCollector(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Entity_trash"
 ) : TrashCollector {
-
 	private val coll: NitriteCollection
 		get() = nitriteDb.getCollection(collectionName)
 

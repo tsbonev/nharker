@@ -15,6 +15,8 @@ import com.tsbonev.nharker.cqrs.Workflow
 /**
  * Provides the commands to affect the links between entries and articles.
  *
+ * Provides the event handler that restores entries after being trashed.
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EntryLinkingWorkflow(
@@ -25,9 +27,9 @@ class EntryLinkingWorkflow(
 	/**
 	 * Links an entry's content to matching article's titles or
 	 * to synonyms from the global synonym map.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The linked entry.
-	 * @publishes EntryLinkedEvent
+	 * @publishes [EntryLinkedEvent]
 	 */
 	@CommandHandler
 	fun linkEntry(command: LinkEntryContentToArticlesCommand): CommandResponse {
@@ -39,9 +41,9 @@ class EntryLinkingWorkflow(
 
 	/**
 	 * Refreshes an article's entries' links.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The refreshed entries.
-	 * @publishes ArticleLinksRefreshedEvent
+	 * @publishes [ArticleLinksRefreshedEvent]
 	 */
 	@CommandHandler
 	fun refreshArticleLinks(command: RefreshArticleEntryLinksCommand): CommandResponse {
@@ -55,7 +57,7 @@ class EntryLinkingWorkflow(
 	//region Event Handlers
 	/**
 	 * Refreshes an entry's implicit links when restored.
-	 * @publishes EntryLinkedEvent
+	 * @publishes [EntryLinkedEvent]
 	 */
 	@EventHandler
 	fun onEntryRestored(event: EntityRestoredEvent) {

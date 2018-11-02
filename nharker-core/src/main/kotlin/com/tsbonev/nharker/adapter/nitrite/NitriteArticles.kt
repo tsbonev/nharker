@@ -32,7 +32,6 @@ class NitriteArticles(
 	private val collectionName: String = "Articles",
 	private val clock: Clock = Clock.systemUTC()
 ) : Articles {
-
 	private val repo: ObjectRepository<Article>
 		get() = nitriteDb.getRepository(collectionName, Article::class.java)
 

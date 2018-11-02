@@ -33,12 +33,12 @@ class ArticleSynonymWorkflow(
 	//region Command Handlers
 	/**
 	 * Adds a synonym to the global map.
-	 * @code 201
+	 * @code [StatusCode.OK]
 	 * @payload A pair of the added synonym and its article.
-	 * @publishes SynonymAddedEvent
+	 * @publishes [SynonymAddedEvent]
 	 *
 	 * If the synonym is already taken, logs the name of the synonym.
-	 * @code 400
+	 * @code [StatusCode.BadRequest]
 	 * @exception SynonymAlreadyTakenException
 	 */
 	fun addSynonym(command: AddSynonymCommand): CommandResponse {
@@ -54,12 +54,12 @@ class ArticleSynonymWorkflow(
 
 	/**
 	 * Removes a synonym from the global synonym map.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The removed synonym.
-	 * @publishes
+	 * @publishes [SynonymRemovedEvent]
 	 *
 	 * If the synonym is not found, logs the synonym name.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception SynonymNotFoundException
 	 */
 	fun removeSynonym(command: RemoveSynonymCommand): CommandResponse {
@@ -75,7 +75,7 @@ class ArticleSynonymWorkflow(
 
 	/**
 	 * Returns the whole global synonym map.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A map of synonyms and article ids.
 	 */
 	@Suppress("UNUSED_PARAMETER")
@@ -86,7 +86,7 @@ class ArticleSynonymWorkflow(
 
 	/**
 	 * Returns a list of synonyms associated with an article.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of synonyms.
 	 */
 	@CommandHandler
@@ -102,11 +102,11 @@ class ArticleSynonymWorkflow(
 
 	/**
 	 * Searches for a synonym in the global synonym map.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The found article id to which the synonym points.
 	 *
 	 * If no synonym matches the search string, returns not found.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 */
 	@CommandHandler
 	fun searchSynonymMap(query: SearchSynonymMapQuery): QueryResponse {
@@ -123,7 +123,7 @@ class ArticleSynonymWorkflow(
 	//region Event Handlers
 	/**
 	 * Removes the synonyms of a deleted article.
-	 * @publishes SynonymRemovedEvent
+	 * @publishes [SynonymRemovedEvent]
 	 */
 	@EventHandler
 	fun onArticleDeletedRemoveSynonyms(event: ArticleDeletedEvent) {

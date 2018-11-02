@@ -24,6 +24,10 @@ import com.tsbonev.nharker.server.helpers.ExceptionLogger
  * Provides the event handlers that are concerned with the state
  * of entries.
  *
+ * Restores entries after they have gone through [EntryLinkingWorkflow].
+ * Note: Entries cannot be restored on their own, they must be
+ * restored as part of their parent article's entry group!
+ *
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class EntryWorkflow(
@@ -34,9 +38,9 @@ class EntryWorkflow(
 	//region Command Handlers
 	/**
 	 * Creates an entry.
-	 * @code 201
+	 * @code [StatusCode.Created]
 	 * @payload The created entry.
-	 * @publishes EntryDeletedEvent
+	 * @publishes [EntryCreatedEvent]
 	 */
 	@CommandHandler
 	fun createEntry(command: CreateEntryCommand): CommandResponse {
@@ -48,12 +52,12 @@ class EntryWorkflow(
 
 	/**
 	 * Deletes an entry.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The deleted entry.
-	 * @publishes EntryDeletedEvent
+	 * @publishes [EntryDeletedEvent]
 	 *
 	 * If entry is not found, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception EntryNotFoundException
 	 */
 	@CommandHandler
@@ -70,12 +74,12 @@ class EntryWorkflow(
 
 	/**
 	 * Updates an entry's content.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated entry.
-	 * @publishes EntryUpdatedEvent
+	 * @publishes [EntryUpdatedEvent]
 	 *
 	 * If the entry is not, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception EntryNotFoundException
 	 */
 	@CommandHandler
@@ -92,12 +96,12 @@ class EntryWorkflow(
 
 	/**
 	 * Updates an entry's links.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The updated entry.
-	 * @publishes EntryUpdatedEvent
+	 * @publishes [EntryUpdatedEvent]
 	 *
 	 * If the entry is not, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception EntryNotFoundException
 	 */
 	@CommandHandler
@@ -114,11 +118,11 @@ class EntryWorkflow(
 
 	/**
 	 * Retrieves an entry by id.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload The retrieved entry.
 	 *
 	 * If the entry is not, logs the id.
-	 * @code 404
+	 * @code [StatusCode.NotFound]
 	 * @exception EntryNotFoundException
 	 */
 	@CommandHandler
@@ -132,7 +136,7 @@ class EntryWorkflow(
 
 	/**
 	 * Retrieves a list of entries by their content.
-	 * @code 200
+	 * @code [StatusCode.OK]
 	 * @payload A list of entries whose contents match the request's search text.
 	 */
 	@CommandHandler
