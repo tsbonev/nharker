@@ -1,6 +1,11 @@
 package com.tsbonev.nharker.server
 
-import com.tsbonev.nharker.server.adapter.koin.fakeNitrite
+import com.tsbonev.nharker.server.adapter.koin.SimpleCqrsModule
+import com.tsbonev.nharker.server.adapter.koin.exceptionLoggingModule
+import com.tsbonev.nharker.server.adapter.koin.fakeNitriteDbModule
+import com.tsbonev.nharker.server.adapter.koin.nitriteEntryLinkerModule
+import com.tsbonev.nharker.server.adapter.koin.nitritePersistenceModule
+import com.tsbonev.nharker.server.adapter.koin.workflowModule
 import io.ktor.application.Application
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -19,7 +24,16 @@ import org.hamcrest.CoreMatchers.`is` as Is
 class EndToEndAppTest : AutoCloseKoinTest() {
 	@Before
 	fun setUp() {
-		startKoin(listOf(fakeNitrite))
+		startKoin(
+			listOf(
+				fakeNitriteDbModule,
+				nitritePersistenceModule,
+				nitriteEntryLinkerModule,
+				SimpleCqrsModule,
+				exceptionLoggingModule,
+				workflowModule
+				)
+		)
 	}
 
 	@Test
