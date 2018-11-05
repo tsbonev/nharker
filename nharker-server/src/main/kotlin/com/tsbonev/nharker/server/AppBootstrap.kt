@@ -1,6 +1,6 @@
 package com.tsbonev.nharker.server
 
-import com.tsbonev.nharker.server.adapter.koin.fakeNitrite
+import com.tsbonev.nharker.server.adapter.koin.fakeNitriteDbModule
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -33,7 +33,7 @@ fun Application.main() {
 
 fun main(args: Array<String>) {
 	// Start Koin
-	startKoin(listOf(fakeNitrite))
+	startKoin(listOf(fakeNitriteDbModule))
 	// Start Ktor
 	embeddedServer(Netty, commandLineEnvironment(args)).start(true)
 }
