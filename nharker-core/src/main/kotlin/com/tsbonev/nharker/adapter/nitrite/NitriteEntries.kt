@@ -1,10 +1,13 @@
 package com.tsbonev.nharker.adapter.nitrite
 
+import com.tsbonev.nharker.adapter.nitrite.helpers.generateNitriteUniqueId
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.Entries
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryNotFoundException
 import com.tsbonev.nharker.core.EntryRequest
+import com.tsbonev.nharker.core.IdGenerator
+import com.tsbonev.nharker.core.UUIDGenerator
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite
@@ -20,14 +23,15 @@ import java.util.Optional
 class NitriteEntries(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Entries",
-	private val clock: Clock = Clock.systemUTC()
+	private val clock: Clock = Clock.systemUTC(),
+	private val idGenerator: IdGenerator = UUIDGenerator()
 ) : Entries {
 	private val repo: ObjectRepository<Entry>
 		get() = nitriteDb.getRepository(collectionName, Entry::class.java)
 
 	override fun create(entryRequest: EntryRequest): Entry {
 		val entry = Entry(
-			NitriteId.newId().toString(),
+			idGenerator.generateNitriteUniqueId(repo),
 			LocalDateTime.now(clock),
 			entryRequest.articleId,
 			entryRequest.content,

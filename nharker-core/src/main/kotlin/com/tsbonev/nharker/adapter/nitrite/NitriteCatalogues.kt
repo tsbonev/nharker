@@ -1,5 +1,6 @@
 package com.tsbonev.nharker.adapter.nitrite
 
+import com.tsbonev.nharker.adapter.nitrite.helpers.generateNitriteUniqueId
 import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueAlreadyAChildException
 import com.tsbonev.nharker.core.CatalogueCircularInheritanceException
@@ -9,7 +10,9 @@ import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.core.CatalogueTitleTakenException
 import com.tsbonev.nharker.core.Catalogues
 import com.tsbonev.nharker.core.ElementNotInMapException
+import com.tsbonev.nharker.core.IdGenerator
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
+import com.tsbonev.nharker.core.UUIDGenerator
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteId
@@ -24,7 +27,8 @@ import java.util.Optional
 class NitriteCatalogues(
 	private val nitriteDb: Nitrite,
 	private val collectionName: String = "Catalogues",
-	private val clock: Clock = Clock.systemUTC()
+	private val clock: Clock = Clock.systemUTC(),
+	private val idGenerator: IdGenerator = UUIDGenerator()
 ) : Catalogues {
 	private val repo: ObjectRepository<Catalogue>
 		get() = nitriteDb.getRepository(collectionName, Catalogue::class.java)
@@ -39,7 +43,7 @@ class NitriteCatalogues(
 			throw CatalogueNotFoundException(catalogueRequest.parentId)
 
 		val catalogue = Catalogue(
-			NitriteId.newId().toString(),
+			idGenerator.generateNitriteUniqueId(repo),
 			catalogueRequest.title,
 			LocalDateTime.now(clock),
 			parentId = catalogueRequest.parentId
