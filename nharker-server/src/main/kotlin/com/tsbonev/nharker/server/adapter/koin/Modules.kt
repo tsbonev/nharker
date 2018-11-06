@@ -59,7 +59,7 @@ val nitriteEntryLinkerModule = module {
 /**
  * Simple Cqrs module.
  */
-val SimpleCqrsModule = module {
+val simpleCqrsModule = module {
 	single<EventBus> { SimpleEventBus() }
 }
 

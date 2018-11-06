@@ -7,7 +7,7 @@ import org.dizitart.no2.objects.filters.ObjectFilters
 /**
  * Helpers that aid the generation of unique ids in a NitriteDb context.
  *
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 
 /**
