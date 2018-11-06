@@ -29,6 +29,7 @@ dependencies {
 
     // Ktor
     compile "io.ktor:ktor-server-netty:$ktor_version"
+    compile "io.ktor:ktor-gson:$ktor_version"
     testCompile "io.ktor:ktor-server-test-host:$ktor_version"
 
     // Logback

@@ -1,7 +1,7 @@
 package com.tsbonev.nharker.core
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 interface IdGenerator {
 	/**

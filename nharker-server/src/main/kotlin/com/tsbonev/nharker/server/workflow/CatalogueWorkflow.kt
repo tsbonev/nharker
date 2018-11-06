@@ -200,7 +200,7 @@ class CatalogueWorkflow(
 	@CommandHandler
 	fun orphanCatalogue(command: OrphanCatalogueCommand): CommandResponse {
 		return try {
-			val updatedCatalogue = catalogues.orphanCatalogue(command.parentCatalogueId)
+			val updatedCatalogue = catalogues.orphanCatalogue(command.catalogueId)
 
 			eventBus.publish(CatalogueUpdatedEvent(updatedCatalogue))
 			CommandResponse(StatusCode.OK, updatedCatalogue)
@@ -329,7 +329,7 @@ data class CatalogueDeletedEvent(val catalogue: Catalogue) : Event
 
 data class ChangeCatalogueTitleCommand(val catalogueId: String, val newTitle: String) : Command
 data class ChangeCatalogueParentCommand(val catalogueId: String, val newParent: Catalogue) : Command
-data class OrphanCatalogueCommand(val parentCatalogueId: String) : Command
+data class OrphanCatalogueCommand(val catalogueId: String) : Command
 data class SwitchChildCataloguesCommand(val catalogueId: String, val first: Catalogue, val second: Catalogue) : Command
 data class CatalogueUpdatedEvent(val catalogue: Catalogue) : Event
 //endregion

@@ -6,7 +6,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 /**
- * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
+ * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
 class UUIDGeneratorTest {
 
