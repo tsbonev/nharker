@@ -109,6 +109,22 @@ class NitriteCataloguesTest {
 		)
 	}
 
+	@Test
+	fun `Creates a catalogue with a preexisting parent`() {
+	    val parentCatalogue = Catalogue("::parent-id::", "Parent", date)
+		db.getRepository(collectionName, Catalogue::class.java).insert(parentCatalogue)
+
+		val childRequest = CatalogueRequest("Child title", parentCatalogue.id)
+
+		val createdChild = catalogues.create(childRequest)
+
+		val retrievedParent = db.getRepository(collectionName, Catalogue::class.java)
+			.find(Catalogue::id eq parentCatalogue.id).first()
+
+		assertThat(createdChild.parentId, Is(parentCatalogue.id))
+		assertThat(retrievedParent.children.contains(createdChild.id), Is(true))
+	}
+
 	@Test(expected = CatalogueTitleTakenException::class)
 	fun `Creating a catalogue with a taken title throws exception`() {
 		catalogues.create(catalogueRequest)

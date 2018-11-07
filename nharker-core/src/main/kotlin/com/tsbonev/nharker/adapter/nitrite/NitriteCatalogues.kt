@@ -36,17 +36,20 @@ class NitriteCatalogues(
 		if (repo.find(Catalogue::title eq catalogueRequest.title).any())
 			throw CatalogueTitleTakenException(catalogueRequest.title)
 
-		if (catalogueRequest.parentId != null
-			&& repo.find(Catalogue::title eq catalogueRequest.parentId).none()
-		)
-			throw CatalogueNotFoundException(catalogueRequest.parentId)
-
 		val catalogue = Catalogue(
 			idGenerator.generateNitriteUniqueId(repo),
 			catalogueRequest.title,
 			LocalDateTime.now(clock),
 			parentId = catalogueRequest.parentId
 		)
+
+		if(catalogue.parentId != null) {
+			val parentCatalogue = findOrThrow(catalogue.parentId)
+
+			parentCatalogue.children.append(catalogue.id)
+
+			repo.update(Catalogue::id eq catalogue.parentId, parentCatalogue)
+		}
 
 		repo.insert(catalogue)
 		return catalogue
