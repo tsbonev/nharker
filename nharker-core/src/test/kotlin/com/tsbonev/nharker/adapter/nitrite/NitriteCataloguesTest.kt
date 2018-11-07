@@ -11,6 +11,7 @@ import com.tsbonev.nharker.core.OrderedReferenceMap
 import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.helpers.StubClock
 import org.dizitart.kno2.filters.eq
+import org.dizitart.kno2.getRepository
 import org.dizitart.kno2.nitrite
 import org.hamcrest.CoreMatchers.nullValue
 import org.junit.Assert.assertThat
@@ -261,13 +262,50 @@ class NitriteCataloguesTest {
 	}
 
 	@Test
-	fun `Deleting catalogue with children folds their hierarchy to its parent`() {
+	fun `Deleting catalogue with children folds their hierarchy to its parent when parent is an orphan`() {
 		val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
 
+		val firstChildId = deletedCatalogue.children.raw().keys.first()
+
 		val childCatalogue = db.getRepository(collectionName, Catalogue::class.java)
-			.find(Catalogue::id eq deletedCatalogue.children.raw().keys.first()).first()
+			.find(Catalogue::id eq firstChildId).first()
 
 		assertThat(childCatalogue.parentId, Is(deletedCatalogue.parentId))
+	}
+
+	@Test
+	fun `Deleting catalogue with children folds their hierarchy to its own parent`() {
+		val childCatalogue = Catalogue("::child-id::", "Child title", date, parentId = "::parent-id::")
+		val parentCatalogue = Catalogue(
+			"::parent-id::", "Parent title", date,
+			OrderedReferenceMap(linkedMapOf(childCatalogue.id to 0)),
+			parentId = "::root-id::"
+		)
+		val rootCatalogue = Catalogue(
+			"::root-id::", "Root title", date,
+			OrderedReferenceMap(linkedMapOf(parentCatalogue.id to 0))
+		)
+
+		with(db.getRepository(collectionName, Catalogue::class.java)){
+			insert(childCatalogue)
+			insert(parentCatalogue)
+			insert(rootCatalogue)
+		}
+
+		catalogues.delete(parentCatalogue.id)
+
+		val retrievedRoot = db.getRepository(collectionName, Catalogue::class.java)
+			.find(Catalogue::id eq rootCatalogue.id).first()
+
+		val retrievedChild = db.getRepository(collectionName, Catalogue::class.java)
+			.find(Catalogue::id eq childCatalogue.id).first()
+
+		val retrievedParent = db.getRepository(collectionName, Catalogue::class.java)
+			.find(Catalogue::id eq parentCatalogue.id).firstOrNull()
+
+		assertThat(retrievedChild.parentId, Is(parentCatalogue.parentId))
+		assertThat(retrievedRoot.children.contains(retrievedChild.id), Is(true))
+		assertThat(retrievedParent, Is(nullValue()))
 	}
 
 	@Test(expected = CatalogueNotFoundException::class)

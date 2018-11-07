@@ -15,7 +15,6 @@ import com.tsbonev.nharker.core.SelfContainedCatalogueException
 import com.tsbonev.nharker.core.UUIDGenerator
 import org.dizitart.kno2.filters.eq
 import org.dizitart.no2.Nitrite
-import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
 import java.time.Clock
 import java.time.LocalDateTime
@@ -104,14 +103,22 @@ class NitriteCatalogues(
 	override fun delete(catalogueId: String): Catalogue {
 		val catalogue = findOrThrow(catalogueId)
 
+		val parentCatalogue = repo.find(Catalogue::id eq catalogue.parentId).firstOrNull()
+
 		catalogue.children
 			.raw()
 			.keys
 			.forEach {
 				repo.find(Catalogue::id eq it).firstOrNull()?.let { child ->
+					parentCatalogue?.children?.append(child.id)
 					repo.update(Catalogue::id eq it, child.copy(parentId = catalogue.parentId))
 				}
 			}
+
+		if (parentCatalogue != null) repo.update(
+			Catalogue::id eq parentCatalogue.id,
+			parentCatalogue
+		)
 
 		repo.remove(Catalogue::id eq catalogueId)
 		return catalogue
