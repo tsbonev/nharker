@@ -118,10 +118,14 @@ class NitriteCatalogues(
 				}
 			}
 
-		if (parentCatalogue != null) repo.update(
-			Catalogue::id eq parentCatalogue.id,
-			parentCatalogue
-		)
+		if (parentCatalogue != null) {
+			parentCatalogue.children.subtract(catalogueId)
+
+			repo.update(
+				Catalogue::id eq parentCatalogue.id,
+				parentCatalogue
+			)
+		}
 
 		repo.remove(Catalogue::id eq catalogueId)
 		return catalogue
