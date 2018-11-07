@@ -11,7 +11,6 @@ import com.tsbonev.nharker.core.UUIDGenerator
 import org.dizitart.kno2.filters.eq
 import org.dizitart.kno2.filters.text
 import org.dizitart.no2.Nitrite
-import org.dizitart.no2.NitriteId
 import org.dizitart.no2.objects.ObjectRepository
 import java.time.Clock
 import java.time.LocalDateTime
