@@ -278,6 +278,13 @@ class NitriteCataloguesTest {
 	}
 
 	@Test
+	fun `Deleting catalogue removes it from old parent`() {
+		val deletedCatalogue = catalogues.delete(firstPresavedChildCatalogue.id)
+
+		assertThat(presavedCatalogue.children.contains(deletedCatalogue.id), Is(false))
+	}
+
+	@Test
 	fun `Deleting catalogue with children folds their hierarchy to its parent when parent is an orphan`() {
 		val deletedCatalogue = catalogues.delete(presavedCatalogue.id)
 
