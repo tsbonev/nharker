@@ -1,6 +1,6 @@
 package com.tsbonev.nharker.server.end2end
 
-import com.tsbonev.nharker.server.CatalogueRequestDTO
+import com.tsbonev.nharker.server.adapter.ktor.CatalogueRequestDto
 import com.tsbonev.nharker.server.main
 import io.ktor.application.Application
 import io.ktor.http.HttpMethod
@@ -30,30 +30,30 @@ class CatalogueEndpointsTest {
 		 */
 		val rootCatalogue = handleRequest(HttpMethod.Post, root) {
 			setBody(
-				CatalogueRequestDTO("Root").toJson()
+				CatalogueRequestDto("Root").toJson()
 			)
 		}.asCatalogue()
 
 		val parentCatalogue = handleRequest(HttpMethod.Post, root) {
 			setBody(
-				CatalogueRequestDTO("Parent", rootCatalogue.id).toJson()
+				CatalogueRequestDto("Parent", rootCatalogue.id).toJson()
 			)
 		}.asCatalogue()
 
 		val firstChild = handleRequest(HttpMethod.Post, root) {
 			setBody(
-				CatalogueRequestDTO("Child 1").toJson()
+				CatalogueRequestDto("Child 1").toJson()
 			)
 		}.asCatalogue()
 
 		val secondChild = handleRequest(HttpMethod.Post, root) {
 			setBody(
-				CatalogueRequestDTO("Child 2").toJson()
+				CatalogueRequestDto("Child 2").toJson()
 			)
 		}.asCatalogue()
 
 		/**
-		 * Assert that the root has been notified of parent beign his child.
+		 * Assert that the root has been notified of parent being his child.
 		 */
 		val rootNotifiedOfParent = handleRequest {
 			method = HttpMethod.Get
