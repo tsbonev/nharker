@@ -8,6 +8,8 @@ import com.tsbonev.nharker.server.adapter.koin.nitritePersistenceModule
 import com.tsbonev.nharker.server.adapter.koin.simpleCqrsModule
 import com.tsbonev.nharker.server.adapter.koin.workflowModule
 import com.tsbonev.nharker.server.adapter.ktor.catalogueRoute
+import com.tsbonev.nharker.server.adapter.ktor.articleRoute
+import com.tsbonev.nharker.server.workflow.ArticleWorkflow
 import com.tsbonev.nharker.server.workflow.CatalogueWorkflow
 import io.ktor.application.Application
 import io.ktor.application.install
@@ -46,12 +48,16 @@ fun Application.main() {
 
 	val catalogueWorkflow: CatalogueWorkflow by inject()
 
+	val articleWorkflow: ArticleWorkflow by inject()
+
 	with(eventBus) {
 		registerWorkflow(catalogueWorkflow)
+		registerWorkflow(articleWorkflow)
 	}
 
 	routing {
 		catalogueRoute()
+		articleRoute()
 	}
 }
 

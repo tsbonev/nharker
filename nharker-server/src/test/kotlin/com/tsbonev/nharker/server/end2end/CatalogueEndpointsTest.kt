@@ -212,7 +212,7 @@ class CatalogueEndpointsTest {
 	}
 
 	@Test
-	fun `Retrieving parent when changing parent fails`() = withTestApplication(Application::main) {
+	fun `Retrieving parent when changing parent fails when not found`() = withTestApplication(Application::main) {
 		val response = handleRequest {
 			method = HttpMethod.Patch
 			uri = "$root/child-id/changeParent/parent-id"
@@ -222,7 +222,7 @@ class CatalogueEndpointsTest {
 	}
 
 	@Test
-	fun `Retrieving children when switching fails`() = withTestApplication(Application::main) {
+	fun `Retrieving children when switching fails when not found`() = withTestApplication(Application::main) {
 		val response = handleRequest {
 			method = HttpMethod.Patch
 			uri = "$root/parent-id/switchChildren/first-id/second-id"
@@ -233,7 +233,7 @@ class CatalogueEndpointsTest {
 
 
 	/**
-	 * Happy path setup methods.
+	 * Happy path setup.
 	 */
 	private data class FourCatalogues(
 		val rootCatalogue: Catalogue,

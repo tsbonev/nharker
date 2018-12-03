@@ -51,8 +51,7 @@ class NitriteArticles(
 		if (repo.find(Article::title text article.title)
 				.filter { it.title == article.title }
 				.any()
-		)
-			throw ArticleTitleTakenException(articleRequest.fullTitle)
+		) throw ArticleTitleTakenException(articleRequest.fullTitle)
 
 		repo.insert(article)
 		return article

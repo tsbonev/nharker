@@ -1,5 +1,8 @@
 package com.tsbonev.nharker.server.adapter.ktor
 
+import com.tsbonev.nharker.core.Article
+import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.cqrs.CommandResponse
 import com.tsbonev.nharker.cqrs.StatusCode
 import com.tsbonev.nharker.cqrs.isSuccess
@@ -12,6 +15,23 @@ import io.ktor.response.respond
  * and translating their responses.
  * @author Tsvetozar Bonev (tsbonev@gmail.com)
  */
+
+
+/**
+ * Convert a CommandResponse payload to an object.
+ */
+fun CommandResponse.asEntry(): Entry {
+	return this.payload.get() as Entry
+}
+
+fun CommandResponse.asArticle(): Article {
+	return this.payload.get() as Article
+}
+
+fun CommandResponse.asCatalogue(): Catalogue {
+	return this.payload.get() as Catalogue
+}
+
 
 /**
  * Converts a [StatusCode] to an [HttpStatusCode] object.

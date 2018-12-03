@@ -1,6 +1,5 @@
 package com.tsbonev.nharker.server.adapter.ktor
 
-import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.CatalogueRequest
 import com.tsbonev.nharker.cqrs.EventBus
 import com.tsbonev.nharker.server.workflow.ChangeCatalogueParentCommand
@@ -75,7 +74,7 @@ fun Routing.catalogueRoute() {
 			val response = eventBus.send(
 				ChangeCatalogueParentCommand(
 					catalogueId = call.getParameter("id"),
-					newParent = parent.payload.get() as Catalogue
+					newParent = parent.asCatalogue()
 				)
 			)
 
@@ -98,8 +97,8 @@ fun Routing.catalogueRoute() {
 			val response = eventBus.send(
 				SwitchChildCataloguesCommand(
 					catalogueId = call.getParameter("id"),
-					first = firstChild.payload.get() as Catalogue,
-					second = secondChild.payload.get() as Catalogue
+					first = firstChild.asCatalogue(),
+					second = secondChild.asCatalogue()
 				)
 			)
 

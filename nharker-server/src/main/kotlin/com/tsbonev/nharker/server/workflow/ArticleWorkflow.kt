@@ -373,6 +373,7 @@ class ArticleWorkflow(
 	 * @code [StatusCode.OK]
 	 * @payload A list of articles.
 	 */
+	@CommandHandler
 	fun getAllArticles(query: GetAllArticlesQuery): QueryResponse {
 		val articleList = articles.getAll(query.order)
 		return CommandResponse(StatusCode.OK, articleList)
