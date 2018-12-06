@@ -139,6 +139,60 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
+	fun `Renames an article`() {
+		context.expecting {
+			oneOf(articles).changeTitle(article.id, article.title)
+			will(returnValue(article))
+
+			oneOf(eventBus).publish(ArticleUpdatedEvent(article))
+		}
+
+		val response = articleWorkflow.renameArticle(
+			RenameArticleCommand(
+				article.id, article.title
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as Article, Is(article))
+	}
+
+	@Test
+	fun `Renaming non-existing article returns not found`() {
+		context.expecting {
+			oneOf(articles).changeTitle(article.id, article.title)
+			will(throwException(ArticleNotFoundException(article.id)))
+		}
+
+		val response = articleWorkflow.renameArticle(
+			RenameArticleCommand(
+				article.id, article.title
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.NotFound))
+		assertThat(response.payload.isPresent, Is(false))
+	}
+
+	@Test
+	fun `Renaming article with taken title returns bad request`() {
+		context.expecting {
+			oneOf(articles).changeTitle(article.id, article.title)
+			will(throwException(ArticleTitleTakenException(article.title)))
+		}
+
+		val response = articleWorkflow.renameArticle(
+			RenameArticleCommand(
+				article.id, article.title
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.BadRequest))
+		assertThat(response.payload.isPresent, Is(false))
+	}
+
+	@Test
 	fun `Retrieves article by id`() {
 		context.expecting {
 			oneOf(articles).getById(article.id)
