@@ -9,6 +9,7 @@ import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
+import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
@@ -52,6 +53,12 @@ class ArticleWorkflowTest {
 		date,
 		"::id::",
 		"::content::"
+	)
+
+	private val catalogue = Catalogue(
+		"::catalogue-id::",
+		"::catalogue-title::",
+		date
 	)
 
 	private val propertyName = "::property-name::"
@@ -193,6 +200,84 @@ class ArticleWorkflowTest {
 	}
 
 	@Test
+	fun `Adds article to catalogue`() {
+		context.expecting {
+			oneOf(articles).addCatalogue(article.id, catalogue)
+			will(returnValue(article))
+
+			oneOf(eventBus).publish(ArticleUpdatedEvent(article))
+		}
+
+		val response = articleWorkflow.addArticleToCatalogue(
+			AddArticleToCatalogueCommand(
+				articleId = article.id,
+				catalogue = catalogue
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as Article, Is(article))
+	}
+
+	@Test
+	fun `Adding non-existing article to catalogue returns not found`() {
+		context.expecting {
+			oneOf(articles).addCatalogue(article.id, catalogue)
+			will(throwException(ArticleNotFoundException(article.id)))
+		}
+
+		val response = articleWorkflow.addArticleToCatalogue(
+			AddArticleToCatalogueCommand(
+				articleId = article.id,
+				catalogue = catalogue
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.NotFound))
+		assertThat(response.payload.isPresent, Is(false))
+	}
+
+	@Test
+	fun `Removes article from catalogue`() {
+		context.expecting {
+			oneOf(articles).removeCatalogue(article.id, catalogue)
+			will(returnValue(article))
+
+			oneOf(eventBus).publish(ArticleUpdatedEvent(article))
+		}
+
+		val response = articleWorkflow.removeArticleToCatalogue(
+			RemoveArticleFromCatalogueCommand(
+				articleId = article.id,
+				catalogue = catalogue
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as Article, Is(article))
+	}
+
+	@Test
+	fun `Removing non-existing article from catalogue returns not found`() {
+		context.expecting {
+			oneOf(articles).removeCatalogue(article.id, catalogue)
+			will(throwException(ArticleNotFoundException(article.id)))
+		}
+
+		val response = articleWorkflow.removeArticleToCatalogue(
+			RemoveArticleFromCatalogueCommand(
+				articleId = article.id,
+				catalogue = catalogue
+			)
+		)
+
+		assertThat(response.statusCode, Is(StatusCode.NotFound))
+		assertThat(response.payload.isPresent, Is(false))
+	}
+
+	@Test
 	fun `Retrieves article by id`() {
 		context.expecting {
 			oneOf(articles).getById(article.id)
@@ -228,6 +313,22 @@ class ArticleWorkflowTest {
 
 		val response = articleWorkflow
 			.searchArticlesByTitle(SearchArticleByTitleQuery(article.title))
+
+		assertThat(response.statusCode, Is(StatusCode.OK))
+		assertThat(response.payload.isPresent, Is(true))
+		assertThat(response.payload.get() as List<Article>, Is(listOf(article)))
+	}
+
+	@Test
+	fun `Retrieves articles by catalogue`() {
+		context.expecting {
+			oneOf(articles).getByCatalogue(catalogue)
+			will(returnValue(listOf(article)))
+		}
+
+		val response = articleWorkflow.getArticlesByCatalogue(
+			GetArticlesByCatalogueQuery(catalogue)
+		)
 
 		assertThat(response.statusCode, Is(StatusCode.OK))
 		assertThat(response.payload.isPresent, Is(true))
