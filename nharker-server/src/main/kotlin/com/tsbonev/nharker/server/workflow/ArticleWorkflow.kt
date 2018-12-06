@@ -7,6 +7,7 @@ import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
+import com.tsbonev.nharker.core.Catalogue
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
@@ -285,6 +286,50 @@ class ArticleWorkflow(
 	}
 
 	/**
+	 * Adds an article to a catalogue.
+	 * @code [StatusCode.OK]
+	 * @payload The updated article.
+	 * @publishes [ArticleUpdatedEvent]
+	 *
+	 * If the article is not found by id, logs id.
+	 * @code [StatusCode.NotFound]
+	 * @exception ArticleNotFoundException
+	 */
+	@CommandHandler
+	fun addArticleToCatalogue(command: AddArticleToCatalogueCommand): CommandResponse {
+		return try {
+			val attachedArticle = articles.addCatalogue(command.articleId, command.catalogue)
+
+			eventBus.publish(ArticleUpdatedEvent(attachedArticle))
+			CommandResponse(StatusCode.OK, attachedArticle)
+		}catch (e: ArticleNotFoundException) {
+			exceptionLogger.logException(e)
+		}
+	}
+
+	/**
+	 * Removes an article to a catalogue.
+	 * @code [StatusCode.OK]
+	 * @payload The updated article.
+	 * @publishes [ArticleUpdatedEvent]
+	 *
+	 * If the article is not found by id, logs id.
+	 * @code [StatusCode.NotFound]
+	 * @exception ArticleNotFoundException
+	 */
+	@CommandHandler
+	fun removeArticleToCatalogue(command: RemoveArticleFromCatalogueCommand): CommandResponse {
+		return try {
+			val attachedArticle = articles.removeCatalogue(command.articleId, command.catalogue)
+
+			eventBus.publish(ArticleUpdatedEvent(attachedArticle))
+			CommandResponse(StatusCode.OK, attachedArticle)
+		}catch (e: ArticleNotFoundException) {
+			exceptionLogger.logException(e)
+		}
+	}
+
+	/**
 	 * Retrieves an article by id.
 	 * @code [StatusCode.OK]
 	 * @payload The retrieve article.
@@ -299,6 +344,18 @@ class ArticleWorkflow(
 
 		return if (possibleArticle.isPresent) QueryResponse(StatusCode.OK, possibleArticle.get())
 		else exceptionLogger.logException(ArticleNotFoundException(command.articleId))
+	}
+
+	/**
+	 * Retrieves a list of articles by catalogue.
+	 * @code [StatusCode.OK]
+	 * @payload A list of articles.
+	 */
+	@CommandHandler
+	fun getArticlesByCatalogue(command: GetArticlesByCatalogueQuery): QueryResponse {
+		val articleList = articles.getByCatalogue(command.catalogue)
+
+		return QueryResponse(StatusCode.OK, articleList)
 	}
 
 	/**
@@ -479,6 +536,8 @@ data class SearchArticleByTitleQuery(val searchString: String) : Query
 data class GetAllArticlesQuery(val order: SortBy) : Query
 
 data class GetPaginatedArticlesQuery(val order: SortBy, val page: Int, val pageSize: Int) : Query
+
+data class GetArticlesByCatalogueQuery(val catalogue: Catalogue) : Query
 //endregion
 
 //region Commands
@@ -491,9 +550,16 @@ data class ArticleDeletedEvent(val article: Article) : Event
 
 data class AppendEntryToArticleCommand(val entry: Entry, val articleId: String) : Command
 data class RemoveEntryFromArticleCommand(val entry: Entry, val articleId: String) : Command
+
 data class RenameArticleCommand(val articleId: String, val newTitle: String) : Command
+
 data class AttachPropertyToArticleCommand(val propName: String, val property: Entry, val articleId: String) : Command
 data class DetachPropertyFromArticleCommand(val propName: String, val articleId: String) : Command
+
 data class SwitchEntriesInArticleCommand(val articleId: String, val first: Entry, val second: Entry) : Command
+
+data class AddArticleToCatalogueCommand(val catalogue: Catalogue, val articleId: String) : Command
+data class RemoveArticleFromCatalogueCommand(val catalogue: Catalogue, val articleId: String) : Command
+
 data class ArticleUpdatedEvent(val article: Article) : Event
 //endregion
