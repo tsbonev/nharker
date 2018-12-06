@@ -109,6 +109,35 @@ class ArticleWorkflow(
 	}
 
 	/**
+	 * Renames an article.
+	 * @code [StatusCode.OK]
+	 * @payload The renamed article.
+	 * @publishes [ArticleUpdatedEvent]
+	 *
+	 * If the article is not found, logs the id.
+	 * @code [StatusCode.NotFound]
+	 * @exception ArticleNotFoundException
+	 *
+	 * If the article's title is already taken, logs the title.
+	 * @code [StatusCode.BadRequest]
+	 * @exception ArticleTitleTakenException
+	 */
+	@CommandHandler
+	fun renameArticle(command: RenameArticleCommand): CommandResponse {
+		return try {
+			val renamedArticle = articles.changeTitle(command.articleId, command.newTitle)
+
+			eventBus.publish(ArticleUpdatedEvent(renamedArticle))
+
+			CommandResponse(StatusCode.OK, renamedArticle)
+		} catch (e: ArticleNotFoundException) {
+			exceptionLogger.logException(e)
+		} catch (e: ArticleTitleTakenException) {
+			exceptionLogger.logException(e)
+		}
+	}
+
+	/**
 	 * Appends an entry to an article.
 	 * @code [StatusCode.OK]
 	 * @payload The updated article.
@@ -462,6 +491,7 @@ data class ArticleDeletedEvent(val article: Article) : Event
 
 data class AppendEntryToArticleCommand(val entry: Entry, val articleId: String) : Command
 data class RemoveEntryFromArticleCommand(val entry: Entry, val articleId: String) : Command
+data class RenameArticleCommand(val articleId: String, val newTitle: String) : Command
 data class AttachPropertyToArticleCommand(val propName: String, val property: Entry, val articleId: String) : Command
 data class DetachPropertyFromArticleCommand(val propName: String, val articleId: String) : Command
 data class SwitchEntriesInArticleCommand(val articleId: String, val first: Entry, val second: Entry) : Command
