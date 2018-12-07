@@ -10,6 +10,7 @@ import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
 import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.CatalogueReference
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
@@ -45,7 +46,7 @@ class ArticleWorkflowTest {
 
 	private val articleRequest = ArticleRequest(
 		"Article title",
-		setOf("::catalogue-id::")
+		setOf(CatalogueReference("::catalogue-id::", "::catalogue-title::"))
 	)
 
 	private val entry = Entry(
@@ -72,7 +73,7 @@ class ArticleWorkflowTest {
 		"::article-id::",
 		"Article title",
 		date,
-		catalogues = setOf("::catalogue-id::"),
+		catalogues = setOf(CatalogueReference("::catalogue-id::", "::catalogue-title::")),
 		entries = OrderedReferenceMap(linkedMapOf("::entry-id::" to 0)),
 		properties = ArticleProperties(mutableMapOf(propertyName to propertyEntry.id))
 	)

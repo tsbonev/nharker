@@ -23,7 +23,7 @@ data class Article(
 	@Id override val id: String,
 	val title: String,
 	override val creationDate: LocalDateTime,
-	val catalogues: Set<String> = emptySet(),
+	val catalogues: Set<CatalogueReference> = emptySet(),
 	val properties: ArticleProperties = ArticleProperties(),
 	val entries: OrderedReferenceMap = OrderedReferenceMap()
 ) : Entity
@@ -40,3 +40,5 @@ enum class SortBy {
 }
 
 class ArticlePaginationException(val page: Int, val pageSize: Int) : Throwable()
+
+data class CatalogueReference(val id: String, val title: String)

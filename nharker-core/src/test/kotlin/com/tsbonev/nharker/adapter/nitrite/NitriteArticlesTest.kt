@@ -7,6 +7,7 @@ import com.tsbonev.nharker.core.ArticleProperties
 import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.CatalogueReference
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
 import com.tsbonev.nharker.core.EntryNotInArticleException
@@ -70,7 +71,7 @@ class NitriteArticlesTest {
 
 	private val articleRequest = ArticleRequest(
 		"Article title",
-		setOf("::catalogue-id::")
+		setOf(CatalogueReference("::catalogue-id::", "::catalogue-title::"))
 	)
 
 	private val article = Article(
@@ -84,7 +85,7 @@ class NitriteArticlesTest {
 				secondPresavedEntry.id to 1
 			)
 		),
-		catalogues = setOf("::catalogue-id::")
+		catalogues = setOf(CatalogueReference("::catalogue-id::", "::catalogue-title::"))
 	)
 
 	private val catalogue = Catalogue(
