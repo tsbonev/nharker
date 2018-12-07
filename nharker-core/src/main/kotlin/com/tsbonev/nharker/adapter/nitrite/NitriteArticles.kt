@@ -42,7 +42,8 @@ class NitriteArticles(
 		val article = Article(
 			idGenerator.generateNitriteUniqueId(repo),
 			articleRequest.fullTitle,
-			LocalDateTime.now(clock)
+			LocalDateTime.now(clock),
+			articleRequest.catalogues
 		)
 
 		if (repo.find(Article::title text article.title)

@@ -117,8 +117,7 @@ class NitriteArticlesTest {
 		assertThat(
 			createdArticle.copy(
 				id = "::article-id::",
-				entries = article.entries,
-				catalogues = article.catalogues
+				entries = article.entries
 			),
 			Is(article.copy(properties = ArticleProperties(mutableMapOf())))
 		)
