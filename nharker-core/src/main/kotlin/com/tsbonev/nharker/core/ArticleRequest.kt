@@ -8,5 +8,5 @@ package com.tsbonev.nharker.core
  */
 data class ArticleRequest(
 	val fullTitle: String,
-	val catalogues: Set<String>
+	val catalogues: Set<CatalogueReference>
 )

@@ -4,6 +4,7 @@ package com.tsbonev.nharker.adapter.nitrite
 
 import com.tsbonev.nharker.core.Article
 import com.tsbonev.nharker.core.ArticleRequest
+import com.tsbonev.nharker.core.CatalogueReference
 import com.tsbonev.nharker.core.Entry
 import org.dizitart.kno2.nitrite
 import org.junit.Assert.assertThat
@@ -26,7 +27,7 @@ class NitriteEntryLinkingEndToEnd {
 	private val articles = NitriteArticles(db, "Test_articles")
 	private val synonyms = NitriteArticleSynonymProvider(db, "Test_synonyms")
 
-	private val catalogues = setOf("::catalogue-id::")
+	private val catalogues = setOf(CatalogueReference("::catalogue-id::", "::catalogue-title::"))
 
 	private val articleRequestList = listOf(
 		ArticleRequest("Novem Harker", catalogues),

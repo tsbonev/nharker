@@ -8,6 +8,7 @@ import com.tsbonev.nharker.core.ArticleRequest
 import com.tsbonev.nharker.core.ArticleTitleTakenException
 import com.tsbonev.nharker.core.Articles
 import com.tsbonev.nharker.core.Catalogue
+import com.tsbonev.nharker.core.CatalogueReference
 import com.tsbonev.nharker.core.ElementNotInMapException
 import com.tsbonev.nharker.core.Entry
 import com.tsbonev.nharker.core.EntryAlreadyInArticleException
@@ -22,6 +23,7 @@ import org.dizitart.no2.FindOptions
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.SortOrder
 import org.dizitart.no2.objects.ObjectRepository
+import org.dizitart.no2.objects.filters.ObjectFilters.and
 import java.time.Clock
 import java.time.LocalDateTime
 import java.util.Optional
@@ -106,7 +108,12 @@ class NitriteArticles(
 	}
 
 	override fun getByCatalogue(catalogue: Catalogue): List<Article> {
-		return repo.find(Article::catalogues elemMatch (Article::catalogues eq catalogue.id)).toList()
+		return repo.find(
+			and(
+				Article::catalogues elemMatch (CatalogueReference::id eq catalogue.id),
+				Article::catalogues elemMatch (CatalogueReference::title eq catalogue.title)
+			)
+		).toList()
 	}
 
 	override fun deleteById(articleId: String): Article {
@@ -119,7 +126,11 @@ class NitriteArticles(
 	override fun addCatalogue(articleId: String, catalogue: Catalogue): Article {
 		val article = findByIdOrThrow(articleId)
 
-		val updatedArticle = article.copy(catalogues = article.catalogues.plus(catalogue.id))
+		val updatedArticle = article.copy(
+			catalogues = article.catalogues.plus(
+				CatalogueReference(catalogue.id, catalogue.title)
+			)
+		)
 
 		repo.update(updatedArticle)
 		return updatedArticle
@@ -128,7 +139,11 @@ class NitriteArticles(
 	override fun removeCatalogue(articleId: String, catalogue: Catalogue): Article {
 		val article = findByIdOrThrow(articleId)
 
-		val updatedArticle = article.copy(catalogues = article.catalogues.minus(catalogue.id))
+		val updatedArticle = article.copy(
+			catalogues = article.catalogues.minus(
+				CatalogueReference(catalogue.id, catalogue.title)
+			)
+		)
 
 		repo.update(updatedArticle)
 		return updatedArticle
