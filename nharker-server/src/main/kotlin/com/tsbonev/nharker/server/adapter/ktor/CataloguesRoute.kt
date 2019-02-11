@@ -11,8 +11,10 @@ import com.tsbonev.nharker.server.workflow.GetCatalogueByIdQuery
 import com.tsbonev.nharker.server.workflow.OrphanCatalogueCommand
 import com.tsbonev.nharker.server.workflow.SwitchChildCataloguesCommand
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
+import io.ktor.response.defaultTextContentType
 import io.ktor.response.respond
 import io.ktor.routing.Routing
 import io.ktor.routing.delete
@@ -29,6 +31,7 @@ fun Routing.catalogueRoute() {
 	val eventBus: EventBus by inject()
 
 	route("/catalogue") {
+
 		get("{id}") {
 			val response = eventBus.send(
 				GetCatalogueByIdQuery(
